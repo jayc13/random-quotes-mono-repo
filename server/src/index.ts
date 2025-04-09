@@ -5,13 +5,25 @@ import { handler as quotesPostHandler } from './controllers/quotes.post';
 import { handler as quotesIdGetHandler } from './controllers/quotes.[id].get';
 import { handler as quotesIdPutHandler } from './controllers/quotes.[id].put';
 import { handler as quotesIdDeleteHandler } from './controllers/quotes.[id].delete';
+import { handler as categoriesGetHandler } from './controllers/categories.get';
+import { handler as categoriesPostHandler } from './controllers/categories.post';
+import { handler as categoriesIdGetHandler } from './controllers/categories.[id].get';
+import { handler as categoriesIdPutHandler } from './controllers/categories.[id].put';
+import { handler as categoriesIdDeleteHandler } from './controllers/categories.[id].delete';
 
 export async function setup(env: { DB: D1Database }) {
   await env.DB.exec(`
-    CREATE TABLE IF NOT EXISTS Quotes (
+    CREATE TABLE IF NOT EXISTS Categories (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL
-    )
+    );
+
+    CREATE TABLE IF NOT EXISTS Quotes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      category_id INTEGER,
+      FOREIGN KEY (category_id) REFERENCES Categories(id)
+    );
   `);
 }
 
@@ -75,6 +87,23 @@ export default {
           return await quotesIdPutHandler(request, env);
         } else if (request.method === "DELETE") {
           return await quotesIdDeleteHandler(request, env);
+        }
+      } else if (path === "/categories") {
+        if (request.method === "GET") {
+          return await categoriesGetHandler(request, env);
+        } else if (request.method === "POST") {
+          return await categoriesPostHandler(request, env);
+        }
+      } else if (path.startsWith("/categories/")) {
+        const id = url.pathname.substring(12);
+        request.params = { id }; // Set id as a request parameter
+
+        if (request.method === "GET") {
+          return await categoriesIdGetHandler(request, env);
+        } else if (request.method === "PUT") {
+          return await categoriesIdPutHandler(request, env);
+        } else if (request.method === "DELETE") {
+          return await categoriesIdDeleteHandler(request, env);
         }
       }
     } catch (error: any) {
