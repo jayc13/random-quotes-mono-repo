@@ -1,116 +1,73 @@
-import { jwtVerify } from 'jose';
-import { Request } from 'itty-router';
-import { handler as quotesGetHandler } from './controllers/quotes.get';
-import { handler as quotesPostHandler } from './controllers/quotes.post';
-import { handler as quotesIdGetHandler } from './controllers/quotes.[id].get';
-import { handler as quotesIdPutHandler } from './controllers/quotes.[id].put';
-import { handler as quotesIdDeleteHandler } from './controllers/quotes.[id].delete';
-import { handler as categoriesGetHandler } from './controllers/categories.get';
-import { handler as categoriesPostHandler } from './controllers/categories.post';
-import { handler as categoriesIdGetHandler } from './controllers/categories.[id].get';
-import { handler as categoriesIdPutHandler } from './controllers/categories.[id].put';
-import { handler as categoriesIdDeleteHandler } from './controllers/categories.[id].delete';
+/**
+ * Welcome to Cloudflare Workers! This is your first worker.
+ *
+ * - Run `npm run dev` in your terminal to start a development server
+ * - Open a browser tab at http://localhost:8787/ to see your worker in action
+ * - Run `npm run deploy` to publish your worker
+ *
+ * Bind resources to your worker in `wrangler.jsonc`. After adding bindings, a type definition for the
+ * `Env` object can be regenerated with `npm run cf-typegen`.
+ *
+ * Learn more at https://developers.cloudflare.com/workers/
+ */
+import {
+	getAllCategoriesHandler,
+	createCategoryHandler,
+	getCategoryByIdHandler,
+	deleteCategoryHandler,
+	updateCategoryHandler,
+} from "./controller/category.controller";
+import {CategoryInput} from "./services/category.service";
 
-export async function setup(env: { DB: D1Database }) {
-  await env.DB.exec(`
-    CREATE TABLE IF NOT EXISTS Categories (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS Quotes (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      category_id INTEGER,
-      FOREIGN KEY (category_id) REFERENCES Categories(id)
-    );
-  `);
+export interface Env {
+	// If you set another name in the Wrangler config file for the value for 'binding',
+	// replace "DB" with the variable name you defined.
+	DB: D1Database;
 }
 
-export async function verifyAuth(request: Request, env: { AUTH0_DOMAIN: string, AUTH0_AUDIENCE: string, AUTH0_ADMIN_ROLE: string }, requireAdmin: boolean = false) {
-  const authHeader = request.headers.get("Authorization");
-  if (!authHeader) {
-    throw { message: "Authorization header missing", status: 401 };
-  }
-
-  const token = authHeader.split(" ")[1];
-  if (!token) {
-    throw { message: "Token missing", status: 401 };
-  }
-
-  try {
-    const { payload } = await jwtVerify(
-      token,
-      new TextEncoder().encode(env.AUTH0_AUDIENCE), // Use audience as secret for HS256
-      {
-        issuer: `https://${env.AUTH0_DOMAIN}/`,
-        audience: env.AUTH0_AUDIENCE,
-      }
-    );
-
-    if (requireAdmin && !isAdmin(payload, env.AUTH0_ADMIN_ROLE)) {
-      throw { message: "Insufficient permissions", status: 403 };
-    }
-
-    return payload;
-  } catch (e: any) {
-    console.error("JWT Verification Error:", e);
-    throw { message: "Invalid token", status: 401 };
-  }
-}
-
-export function isAdmin(payload: any, adminRole: string): boolean {
-  return payload && payload[`${adminRole}`] === true;
-}
 
 export default {
-  async fetch(request: Request, env: { DB: D1Database, AUTH0_DOMAIN: string, AUTH0_AUDIENCE: string, AUTH0_ADMIN_ROLE: string }): Promise<Response> {
-    await setup(env); // Ensure table exists
+	async fetch(request, env, ctx): Promise<Response> {
+		const url = new URL(request.url);
 
-    const url = new URL(request.url);
-    const path = url.pathname;
+		if (url.pathname === '/categories') {
+			switch (request.method) {
+				case 'GET':
+					if (url.pathname === '/categories') {
+						return getAllCategoriesHandler(env.DB);
+					}
+					break;
+				case 'POST':
+					try {
+						const requestBody = await request.json<CategoryInput>();
 
-    try {
-      if (path === "/quotes") {
-        if (request.method === "GET") {
-          return await quotesGetHandler(request, env);
-        } else if (request.method === "POST") {
-          return await quotesPostHandler(request, env);
-        }
-      } else if (path.startsWith("/quotes/")) {
-        const id = url.pathname.substring(7);
-        request.params = { id }; // Set id as a request parameter
+						return createCategoryHandler(env.DB, requestBody);
+					} catch {
+						return new Response('Invalid JSON', {status: 400});
+					}
+				default:
+					return new Response('Method Not Allowed', {status: 405});
+			}
+		}
 
-        if (request.method === "GET") {
-          return await quotesIdGetHandler(request, env);
-        } else if (request.method === "PUT") {
-          return await quotesIdPutHandler(request, env);
-        } else if (request.method === "DELETE") {
-          return await quotesIdDeleteHandler(request, env);
-        }
-      } else if (path === "/categories") {
-        if (request.method === "GET") {
-          return await categoriesGetHandler(request, env);
-        } else if (request.method === "POST") {
-          return await categoriesPostHandler(request, env);
-        }
-      } else if (path.startsWith("/categories/")) {
-        const id = url.pathname.substring(12);
-        request.params = { id }; // Set id as a request parameter
+		if (url.pathname.startsWith('/categories/')) {
+			const categoryId: number = parseInt(url.pathname.split('/')[2]);
+			switch (request.method) {
+				case 'PUT':
+					const requestBody = await request.json<CategoryInput>();
+					if (!requestBody.name) {
+						return new Response('Invalid request body', {status: 400});
+					}
+					return updateCategoryHandler(env.DB, categoryId, requestBody);
+				case 'GET':
+					return getCategoryByIdHandler(env.DB, categoryId);
+				case 'DELETE':
+					return deleteCategoryHandler(env.DB, categoryId);
+				default:
+					return new Response('Method Not Allowed', {status: 405});
+			}
+		}
 
-        if (request.method === "GET") {
-          return await categoriesIdGetHandler(request, env);
-        } else if (request.method === "PUT") {
-          return await categoriesIdPutHandler(request, env);
-        } else if (request.method === "DELETE") {
-          return await categoriesIdDeleteHandler(request, env);
-        }
-      }
-    } catch (error: any) {
-      console.error(error);
-      return new Response(JSON.stringify({ error: error.message }), { status: error.status || 500 });
-    }
-
-    return new Response("Not Found", { status: 404 });
-  },
-};
+		return new Response('Not Found', {status: 404});
+	},
+} satisfies ExportedHandler<Env>;
