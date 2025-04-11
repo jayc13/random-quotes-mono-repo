@@ -11,10 +11,10 @@
  * Learn more at https://developers.cloudflare.com/workers/
  */
 import {
-	getAllCategoriesHandler,
 	createCategoryHandler,
-	getCategoryByIdHandler,
 	deleteCategoryHandler,
+	getAllCategoriesHandler,
+	getCategoryByIdHandler,
 	updateCategoryHandler,
 } from "./controller/category.controller";
 import {CategoryInput} from "./services/category.service";
@@ -46,7 +46,14 @@ export default {
 			});
 		}
 
-		await authenticationMiddleware(request, env, ctx);
+		try {
+			await authenticationMiddleware(request, env, ctx);
+		} catch {
+			return Response.json({
+				error: 'Unauthorized',
+				message: 'Authentication failed.',
+			}, {status: 401});
+		}
 
 		try {
 			if (url.pathname === '/categories') {
