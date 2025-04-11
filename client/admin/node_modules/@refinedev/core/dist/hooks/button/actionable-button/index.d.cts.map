@@ -1,0 +1,1 @@
+{"version":3,"file":"index.d.ts","sourceRoot":"","sources":["../../../../src/hooks/button/actionable-button/index.tsx"],"names":[],"mappings":"AAGA,MAAM,MAAM,qBAAqB,GAAG;IAClC,IAAI,EAAE,MAAM,GAAG,QAAQ,GAAG,QAAQ,CAAC;CACpC,CAAC;AAEF,MAAM,MAAM,sBAAsB,GAAG;IACnC,KAAK,EAAE,MAAM,CAAC;CACf,CAAC;AAEF,wBAAgB,mBAAmB,CAAC,EAClC,IAAI,GACL,EAAE,qBAAqB,GAAG,sBAAsB,CAYhD"}

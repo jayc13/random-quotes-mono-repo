@@ -1,0 +1,43 @@
+import React from "react";
+import type { BaseKey } from "../../contexts/data/types";
+import type { IResourceItem } from "../../contexts/resource/types";
+import type { Action } from "../../contexts/router/types";
+import type { FormAction } from "../form/types";
+type Props = {
+    id?: BaseKey;
+    resource?: string;
+    action?: Action;
+};
+type ResourceParams = {
+    id?: BaseKey;
+    setId: React.Dispatch<React.SetStateAction<BaseKey | undefined>>;
+    resource?: IResourceItem;
+    action?: Action;
+    identifier?: string;
+    formAction: FormAction;
+};
+/**
+ * Interactions in Refine has 3 main parameters: resource, action and id.
+ *
+ * This hook is used to manage these parameters based on below conditions and outputs the final parameters.
+ *
+ * `resource`: The resource to be used. (either the identifier or the name of the resource)
+ * - If a `resource` is provided, it will be used (even if it's not defined in the <Refine/> component)
+ * - If a `resource` is not provided, it will be inferred from the route.
+ * `id`: The `id` of the record to be used.
+ * - If an `id` is provided, it will be used.
+ * - If an `id` is not provided, it will either be inferred from the route or will be `undefined`.
+ * -- If a custom resource is provided and it's different from the inferred resource, the id will be undefined.
+ * -- If a custom resource is provided and it's same as the inferred resource, the id will be inferred from the route.
+ * -- If a custom resource is not provided, the id will be inferred from the route.
+ * `action`: The action to be used.
+ * - If an `action` is provided, it will be used.
+ * - If an `action` is not provided, it will be inferred from the route.
+ * `formAction`: The action to be used in the form.
+ * - `formAction` can only be "edit", "clone" or "create".
+ * - If action is "edit" or "clone", `formAction` will be the same as action.
+ * - Same as `id`, if passed resource is different from inferred resource, `formAction` will fallback to "create" and ignore the action from the route.
+ */
+export declare function useResourceParams(props?: Props): ResourceParams;
+export {};
+//# sourceMappingURL=index.d.ts.map

@@ -1,0 +1,1 @@
+{"version":3,"file":"index.d.ts","sourceRoot":"","sources":["../../../src/hooks/useMeta/index.ts"],"names":[],"mappings":"AAIA,OAAO,KAAK,EAAE,SAAS,EAAE,MAAM,2BAA2B,CAAC;AAC3D,OAAO,KAAK,EAAE,aAAa,EAAE,MAAM,+BAA+B,CAAC;AAEnE;;;;GAIG;AACH,eAAO,MAAM,OAAO,6CAQf;IACD,QAAQ,CAAC,EAAE,aAAa,CAAC;IACzB,IAAI,CAAC,EAAE,SAAS,CAAC;CAClB,4BA2BF,CAAC"}

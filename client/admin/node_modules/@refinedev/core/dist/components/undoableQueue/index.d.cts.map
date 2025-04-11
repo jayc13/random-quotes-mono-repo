@@ -1,0 +1,1 @@
+{"version":3,"file":"index.d.ts","sourceRoot":"","sources":["../../../src/components/undoableQueue/index.tsx"],"names":[],"mappings":"AAAA,OAAO,KAA8B,MAAM,OAAO,CAAC;AAKnD,OAAO,EAEL,KAAK,cAAc,EACpB,MAAM,oCAAoC,CAAC;AAE5C,eAAO,MAAM,aAAa,EAAE,KAAK,CAAC,EAAE,CAAC;IACnC,YAAY,EAAE,cAAc,CAAC;CAC9B,CAyDA,CAAC"}
