@@ -1,0 +1,20 @@
+{
+  "name": "integration-test",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "mocha --no-warnings "
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@types/chai": "^5.2.1",
+    "@types/mocha": "^10.0.10",
+    "@types/supertest": "^6.0.3",
+    "chai": "^5.2.0",
+    "mocha": "^11.1.0",
+    "supertest": "^7.1.0"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2"
+  }
+}
