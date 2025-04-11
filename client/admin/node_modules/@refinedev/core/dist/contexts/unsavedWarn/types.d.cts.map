@@ -1,0 +1,1 @@
+{"version":3,"file":"types.d.ts","sourceRoot":"","sources":["../../../src/contexts/unsavedWarn/types.ts"],"names":[],"mappings":"AAAA,MAAM,WAAW,mBAAmB;IAClC,QAAQ,CAAC,EAAE,OAAO,CAAC;IACnB,WAAW,CAAC,EAAE,CAAC,KAAK,EAAE,OAAO,KAAK,IAAI,CAAC;CACxC"}

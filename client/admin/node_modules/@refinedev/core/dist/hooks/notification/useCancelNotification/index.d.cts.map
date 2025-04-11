@@ -1,0 +1,1 @@
+{"version":3,"file":"index.d.ts","sourceRoot":"","sources":["../../../../src/hooks/notification/useCancelNotification/index.tsx"],"names":[],"mappings":";AAGA,OAAO,KAAK,EAAE,cAAc,EAAE,MAAM,uCAAuC,CAAC;AAE5E,MAAM,MAAM,yBAAyB,GAAG,MAAM;IAC5C,aAAa,EAAE,cAAc,EAAE,CAAC;IAChC,oBAAoB,EAAE,KAAK,CAAC,QAAQ,CAAC,GAAG,CAAC,CAAC;CAC3C,CAAC;AAEF,eAAO,MAAM,qBAAqB,EAAE,yBAKnC,CAAC"}

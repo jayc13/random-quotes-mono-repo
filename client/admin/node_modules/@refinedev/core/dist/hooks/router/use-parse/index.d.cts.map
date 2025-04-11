@@ -1,0 +1,1 @@
+{"version":3,"file":"index.d.ts","sourceRoot":"","sources":["../../../../src/hooks/router/use-parse/index.tsx"],"names":[],"mappings":"AAEA,OAAO,KAAK,EAEV,aAAa,EACd,MAAM,gCAAgC,CAAC;AAExC,KAAK,YAAY,GAAG,MAAM,CACxB,OAAO,SAAS,MAAM,CAAC,MAAM,EAAE,GAAG,CAAC,GAAG,MAAM,CAAC,MAAM,EAAE,GAAG,CAAC,OACpD,aAAa,CAAC,OAAO,CAAC,CAAC;AAE9B,eAAO,MAAM,QAAQ,EAAE,YAgBtB,CAAC"}
