@@ -6,7 +6,7 @@
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "server",
 	"main": "src/index.ts",
-	"compatibility_date": "2025-04-10",
+	"compatibility_date": "2025-03-10",
 	"compatibility_flags": [
 		"nodejs_compat"
 	],
@@ -17,9 +17,11 @@
 		{
 			"binding": "DB",
 			"database_name": "prod-random-quotes",
-			"database_id": "18896754-8df8-44de-9711-1dfdb5078448"
+			"database_id": "18896754-8df8-44de-9711-1dfdb5078448",
+			"preview_database_id": "3698514b-4d80-406f-9bfa-017317db8672",
+			"migrations_dir": "./database/migrations"
 		}
-	]
+	],
 	/**
 	 * Smart Placement
 	 * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
@@ -37,7 +39,9 @@
 	 * Environment Variables
 	 * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
 	 */
-	// "vars": { "MY_VARIABLE": "production_value" },
+	"vars": {
+		"AUTH0_CLIENT_SECRET": "secret"
+	}
 	/**
 	 * Note: Use secrets to store sensitive data.
 	 * https://developers.cloudflare.com/workers/configuration/secrets/

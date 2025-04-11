@@ -34,8 +34,17 @@ export const getCategoryById = async (db: D1Database, id: number): Promise<Categ
 	};
 }
 
+export const validateCategoryInput = (input: CategoryInput): boolean => {
+	return !(!input || !input.name || input.name.trim().length === 0);
+};
+
 export const createCategory = async (db: D1Database, input: CategoryInput): Promise<Category> => {
 	const { name } = input;
+
+	if (!validateCategoryInput(input)) {
+		throw new Error('Invalid category input');
+	}
+
 	const result = await db.prepare(
 		"INSERT INTO Categories (CategoryName) VALUES (?)",
 	).bind(name).run();
@@ -50,6 +59,11 @@ export const createCategory = async (db: D1Database, input: CategoryInput): Prom
 
 export const updateCategory = async (db: D1Database, id: number, input: CategoryInput): Promise<Category | null> => {
 	const { name } = input;
+
+	if (!validateCategoryInput(input)) {
+		throw new Error('Invalid category input');
+	}
+
 	await db.prepare(
 		"UPDATE Categories SET CategoryName = ? WHERE CategoryId = ?",
 	).bind(name, id).run();

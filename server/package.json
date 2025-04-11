@@ -6,14 +6,19 @@
 		"deploy": "wrangler deploy",
 		"dev": "wrangler dev",
 		"start": "wrangler dev",
-		"test": "vitest",
+		"test": "vitest --config ./vitest.config.mts",
 		"cf-typegen": "wrangler types"
 	},
-	"devDependencies": {
-		"@cloudflare/vitest-pool-workers": "^0.7.5",
-		"@cloudflare/workers-types": "^4.20250410.0",
-		"typescript": "^5.5.2",
-		"vitest": "~3.0.7",
+	"dependencies": {
+		"@cfworker/jwt": "^7.0.4",
+		"@cloudflare/vitest-pool-workers": "^0.8.15",
+		"@tsndr/cloudflare-worker-jwt": "^3.1.4",
+		"typescript": "^5.2.2",
+		"vitest": "3.0.9",
 		"wrangler": "^4.9.1"
+	},
+	"devDependencies": {
+		"@types/node": "^22.14.0",
+		"@vitest/coverage-istanbul": "3.0.9"
 	}
 }
