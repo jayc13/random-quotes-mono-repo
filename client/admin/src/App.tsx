@@ -1,8 +1,8 @@
-import {AuthBindings, Authenticated, Refine,} from "@refinedev/core";
-import {RefineKbar, RefineKbarProvider} from "@refinedev/kbar";
+import React from "react";
+import {AuthBindings, Authenticated, Refine} from "@refinedev/core";
+import {RefineKbarProvider} from "@refinedev/kbar";
 
 import {ErrorComponent, ThemedLayoutV2, ThemedSiderV2, useNotificationProvider,} from "@refinedev/antd";
-import "@refinedev/antd/dist/reset.css";
 
 import {useAuth0} from "@auth0/auth0-react";
 import routerBindings, {
@@ -18,18 +18,17 @@ import {BrowserRouter, Outlet, Route, Routes} from "react-router";
 import {AppIcon} from "./components/app-icon";
 import {Header} from "./components";
 import {ColorModeContextProvider} from "./contexts/color-mode";
-import {CategoryCreate, CategoryEdit, CategoryList, CategoryShow,} from "./pages/categories";
+import {CategoryList} from "./pages/categories";
 import {Login} from "./pages/login";
+import "@refinedev/antd/dist/reset.css";
 
 const API_URL = import.meta.env.VITE_API_URL as string;
 
 function App() {
   const {isLoading, user, logout, getIdTokenClaims} = useAuth0();
-
   if (isLoading) {
     return <span>loading...</span>;
   }
-
   const authProvider: AuthBindings = {
     login: async () => {
       return {
@@ -49,39 +48,39 @@ function App() {
     check: async () => {
       try {
         const token = await getIdTokenClaims();
-        if (token) {
-          axios.defaults.headers.common = {
-            Authorization: `Bearer ${token.__raw}`,
-          };
-          return {
-            authenticated: true,
-          };
-        } else {
+        if (!token) {
           return {
             authenticated: false,
-            error: {
-              message: "Check failed",
-              name: "Token not found",
-            },
             redirectTo: "/login",
-            logout: true,
-          };
+            error: new Error("Token not found"),
+          }
         }
-      } catch (error: any) {
+        axios.defaults.headers.common = {
+          Authorization: `Bearer ${token.__raw}`,
+        };
+        return {
+          authenticated: true,
+        };
+      } catch {
         return {
           authenticated: false,
-          error: new Error(error),
           redirectTo: "/login",
-          logout: true,
-        };
+          error: new Error("Token not found"),
+        }
       }
     },
-    getPermissions: async () => null,
+    getPermissions: async (params) => {
+      if (user && Object.keys(user).includes('random_quotes/roles')) {
+        return user['random_quotes/roles'];
+      }
+      return [];
+    },
     getIdentity: async () => {
       if (user) {
         return {
           ...user,
           avatar: user.picture,
+          roles: user['random_quotes/roles'] ?? [],
         };
       }
       return null;
@@ -111,7 +110,7 @@ function App() {
                 },
               ]}
               options={{
-                syncWithLocation: true,
+                syncWithLocation: false,
                 warnWhenUnsavedChanges: true,
                 useNewQueryKeys: true,
                 breadcrumb: true,
@@ -123,11 +122,16 @@ function App() {
                   element={
                     <Authenticated
                       key="authenticated-inner"
+
                       fallback={<CatchAllNavigate to="/login"/>}
                     >
                       <ThemedLayoutV2
                         Header={Header}
-                        Sider={(props) => <ThemedSiderV2 {...props} fixed/>}
+                        Sider={() => <ThemedSiderV2 fixed render={({
+                                                                     items,
+                                                                   }) => <>
+                          {items}
+                        </>}/>}
                       >
                         <Outlet/>
                       </ThemedLayoutV2>
@@ -140,9 +144,6 @@ function App() {
                   />
                   <Route path="/categories">
                     <Route index element={<CategoryList/>}/>
-                    <Route path="create" element={<CategoryCreate/>}/>
-                    <Route path="edit/:id" element={<CategoryEdit/>}/>
-                    <Route path="show/:id" element={<CategoryShow/>}/>
                   </Route>
                   <Route path="*" element={<ErrorComponent/>}/>
                 </Route>
@@ -160,7 +161,6 @@ function App() {
                 </Route>
               </Routes>
 
-              <RefineKbar/>
               <UnsavedChangesNotifier/>
               <DocumentTitleHandler/>
             </Refine>
