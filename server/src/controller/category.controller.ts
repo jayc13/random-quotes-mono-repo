@@ -10,7 +10,11 @@ import {DEFAULT_CORS_HEADERS} from "../index";
 export const getAllCategoriesHandler = async (db: D1Database) => {
 	const categories = await getAllCategories(db);
 	return Response.json(categories, {
-		headers: DEFAULT_CORS_HEADERS
+		headers: {
+			...DEFAULT_CORS_HEADERS,
+			'Content-Range': `categories 0-${categories.length}/${categories.length}`,
+			'X-Total-Count': `${categories.length}`,
+		}
 	});
 }
 

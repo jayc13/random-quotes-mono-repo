@@ -18,7 +18,7 @@ import {
 	updateCategoryHandler,
 } from "./controller/category.controller";
 import {CategoryInput} from "./services/category.service";
-import authenticationMiddleware from "./middleware/authentication.middleware";
+import {authenticationMiddleware, isAdmin} from "./middleware/authentication.middleware";
 
 export interface Env {
 	// If you set another name in the Wrangler config file for the value for 'binding',
@@ -46,6 +46,8 @@ export default {
 			});
 		}
 
+		// Unauthenticated user
+
 		try {
 			await authenticationMiddleware(request, env, ctx);
 		} catch {
@@ -54,6 +56,17 @@ export default {
 				message: 'Authentication failed.',
 			}, {status: 401});
 		}
+
+		// Regular authenticated user
+
+		if (!await isAdmin(ctx)) {
+			return Response.json({
+				error: 'Forbidden',
+				message: 'You do not have permission to perform this action.',
+			}, {status: 403});
+		}
+
+		// Admin authenticated user
 
 		try {
 			if (url.pathname === '/categories') {
