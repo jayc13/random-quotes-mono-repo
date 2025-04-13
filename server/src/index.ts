@@ -106,6 +106,35 @@ export default {
 				}
 			}
 
+			if (url.pathname === '/quotes') {
+				switch (request.method) {
+					case 'GET':
+						return getAllQuotesHandler(env.DB);
+					case 'POST':
+						try {
+							const requestBody = await request.json<QuoteInput>();
+							return createQuoteHandler(env.DB, requestBody);
+						} catch {
+							return Response.json('Invalid JSON', {
+								status: 400,
+								headers: DEFAULT_CORS_HEADERS
+							});
+						}
+				}
+			}
+
+			if (url.pathname.startsWith('/quotes/')) {
+				const quoteId: number = parseInt(url.pathname.split('/')[2]);
+				switch (request.method) {
+					case 'PUT':
+						const requestBody = await request.json<QuoteInput>();
+						return updateQuoteHandler(env.DB, quoteId, requestBody);
+					case 'GET':
+						return getQuoteByIdHandler(env.DB, quoteId);
+					case 'DELETE':
+						return deleteQuoteHandler(env.DB, quoteId);
+				}
+			}
 		} catch (error) {
 			console.error('Error handling request:', error);
 			return Response.json({
