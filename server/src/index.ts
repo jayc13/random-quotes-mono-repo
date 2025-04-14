@@ -117,7 +117,7 @@ export default {
 			if (url.pathname === '/quotes') {
 				switch (request.method) {
 					case 'GET':
-						return getAllQuotesHandler(env.DB);
+						return getAllQuotesHandler(request, env.DB);
 					case 'POST':
 						try {
 							const requestBody = await request.json<QuoteInput>();
