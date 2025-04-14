@@ -50,7 +50,6 @@ const modalShowStyles = {
     minHeight: '60px',
     padding: '8px 16px',
     display: 'flex',
-    flexDirection: 'row',
     alignItems: 'center',
   },
   body: {
@@ -236,7 +235,7 @@ export const QuoteList = () => {
         title={<div style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
           <Title level={5} style={{margin: 0, padding: 0}}>Quote</Title>
           <Tag color="blue-inverse" style={{marginLeft: '8px'}}>
-            {dataCategories?.data?.find((p: ICategory) => p.id === record?.categoryId ?? '')?.name}
+            {dataCategories?.data?.find((p: ICategory) => p.id === record?.categoryId)?.name}
           </Tag>
         </div>}
         styles={modalShowStyles}
