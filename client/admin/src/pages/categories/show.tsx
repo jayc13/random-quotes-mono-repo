@@ -1,9 +1,6 @@
 import {Show} from "@refinedev/antd";
 import {useShow} from "@refinedev/core";
-import {Typography} from "antd";
 import {QuoteList} from '../quotes'
-
-const {Title} = Typography;
 
 export const CategoryShow = () => {
   const {queryResult} = useShow({});
