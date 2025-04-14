@@ -94,6 +94,7 @@ export const QuoteList = ({categoryId}: QuoteListProps) => {
     formLoading: createFormLoading,
   } = useModalForm<IQuote>({
     action: "create",
+    resource: "quotes",
     syncWithLocation: true,
     warnWhenUnsavedChanges: true,
   });
@@ -106,6 +107,7 @@ export const QuoteList = ({categoryId}: QuoteListProps) => {
     formLoading: editFormLoading,
   } = useModalForm<IQuote>({
     action: "edit",
+    resource: "quotes",
     syncWithLocation: true,
     warnWhenUnsavedChanges: true,
   });
@@ -113,7 +115,9 @@ export const QuoteList = ({categoryId}: QuoteListProps) => {
   // Show Modal
   const [visibleShowModal, setVisibleShowModal] = useState<boolean>(false);
 
-  const {query: queryResult, setShowId} = useShow<IQuote>();
+  const {query: queryResult, setShowId} = useShow<IQuote>({
+    resource: "quotes",
+  });
 
   const useSelectCategories = useSelect<ICategory>({
     resource: "categories",
