@@ -126,7 +126,13 @@ export const QuoteList = () => {
       >
         <Table {...tableProps} rowKey="id">
           <Table.Column dataIndex="id" title={"#"}/>
-          <Table.Column dataIndex="quote" title={"Quote"}/>
+          <Table.Column
+            dataIndex="quote"
+            title={"Quote"}
+            render={(value) => (
+              <Text italic>  &quot;{value}  &quot;</Text>
+            )}
+          />
           <Table.Column dataIndex="author" title={"Author"}/>
           <Table.Column
             dataIndex={["categoryId"]}
