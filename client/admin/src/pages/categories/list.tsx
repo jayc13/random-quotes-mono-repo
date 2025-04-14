@@ -123,15 +123,7 @@ export const CategoryList = () => {
                   recordItemId={record.id}
                   onClick={() => editModalShow(record.id)}
                 />
-                <ShowButton
-                  hideText
-                  size="small"
-                  recordItemId={record.id}
-                  onClick={() => {
-                    setShowId(record.id);
-                    setVisibleShowModal(true);
-                  }}
-                />
+                <ShowButton hideText size="small" recordItemId={record.id}/>
                 <DeleteButton
                   hideText
                   size="small"

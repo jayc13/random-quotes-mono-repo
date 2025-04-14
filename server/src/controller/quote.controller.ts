@@ -14,13 +14,28 @@ export const getAllQuotesHandler = async (request: Request, db: D1Database) => {
 	const end = parseInt(url.searchParams.get("_end") || "10", 10);
 	const limit = end - start;
 	const offset = start;
-	const count: number = await getCountQuotes(db);
-	const quotes = await getAllQuotes(db, {limit, offset});
+	const categoryId = url.searchParams.get("categoryId") || "0"
+	const options = {
+		pagination: {
+			limit,
+			offset,
+		},
+		filter: {
+			categoryId: parseInt(categoryId, 10),
+		},
+	};
+	const {
+		quotes,
+		meta: {
+			count,
+			total,
+		},
+	} = await getAllQuotes(db, options);
 	return Response.json(quotes, {
 		headers: {
 			...DEFAULT_CORS_HEADERS,
-			"Content-Range": `quotes 0-${quotes.length}/${quotes.length}`,
-			"X-Total-Count": `${count}`,
+			"Content-Range": `quotes ${start}-${end}/${count}`,
+			"X-Total-Count": `${total}`,
 		},
 	});
 };
