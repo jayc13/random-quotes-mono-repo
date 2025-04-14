@@ -1,0 +1,75 @@
+name: Pull Request Checks
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  client-admin:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client/admin
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+          cache: 'npm'
+      - name: Install dependencies (client/admin)
+        run: npm install
+      - name: Build
+        run: npm run build
+
+  server:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm install
+      - name: Build
+        run: npm run build
+      - name: Run unit tests
+        run: npm test
+  integration-tests:
+    name: Integration Tests
+    needs:
+      - client-admin
+      - server
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+          cache: 'npm'
+      - name: Install dependencies (server)
+        run: |
+          cd server
+          npm install
+      - name: Build (server)
+        run: |
+          cd server
+          npm run build
+      - name: Install dependencies (integration tests)
+        run: |
+          cd test/integration-tests
+          npm install
+      - name: Run integration tests
+        run: |
+          cd test/integration-tests
+          npm run test
