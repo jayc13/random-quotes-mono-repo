@@ -4,6 +4,7 @@ import {CatchAllNavigate, NavigateToResource} from "@refinedev/react-router";
 import {ErrorComponent, ThemedLayoutV2, ThemedSiderV2} from "@refinedev/antd";
 import {Header} from "./components";
 import {CategoryList} from "./pages/categories";
+import {QuoteList} from "./pages/quotes";
 import Dashboard from "./pages/dashboard";
 import {Login} from "./pages/login";
 import React from "react";
@@ -34,6 +35,9 @@ const AppRouter = () => {
       />
       <Route path="/categories">
         <Route index element={<CategoryList/>}/>
+      </Route>
+      <Route path="/quotes">
+        <Route index element={<QuoteList/>}/>
       </Route>
       <Route path="/">
         <Route index element={<Dashboard/>}/>

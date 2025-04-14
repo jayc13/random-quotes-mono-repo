@@ -3,7 +3,7 @@ import {AuthBindings, Refine} from "@refinedev/core";
 import {RefineKbarProvider} from "@refinedev/kbar";
 import {useNotificationProvider,} from "@refinedev/antd";
 import {App as AntdApp} from "antd";
-import {DashboardOutlined} from "@ant-design/icons";
+import {DashboardOutlined, MessageOutlined, TagsOutlined} from "@ant-design/icons";
 import routerBindings, {DocumentTitleHandler, UnsavedChangesNotifier,} from "@refinedev/react-router";
 import {useAuth0} from "@auth0/auth0-react";
 import dataProvider from "@refinedev/simple-rest";
@@ -59,6 +59,7 @@ function App() {
         };
         return {
           authenticated: true,
+          redirectTo: "/",
         };
       } catch {
         return {
@@ -119,9 +120,18 @@ function App() {
                 {
                   name: "categories",
                   list: "/categories",
-                  create: "/categories/create",
-                  edit: "/categories/edit/:id",
-                  show: "/categories/show/:id",
+                  options: {
+                    label: "Categories",
+                    icon: <TagsOutlined/>
+                  },
+                },
+                {
+                  name: "quotes",
+                  list: "/quotes",
+                  options: {
+                    label: "Quotes",
+                    icon: <MessageOutlined/>
+                  },
                 },
               ]}
               options={{
