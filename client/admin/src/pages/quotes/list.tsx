@@ -67,7 +67,7 @@ const modalShowStyles = {
 };
 
 export interface QuoteListProps {
-  categoryId?: number;
+  categoryId?: string;
 }
 
 export const QuoteList = ({categoryId}: QuoteListProps) => {
@@ -79,7 +79,7 @@ export const QuoteList = ({categoryId}: QuoteListProps) => {
       permanent: [
         {
           field: "categoryId",
-          operator: "equal",
+          operator: "eq",
           value: categoryId,
         },
       ],

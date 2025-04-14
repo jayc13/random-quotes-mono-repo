@@ -13,7 +13,9 @@ export const CategoryShow = () => {
 
   return (
     <Show isLoading={isLoading} title={`Category - ${record?.name}`} canEdit>
-      <QuoteList categoryId={record?.id}/>
+      {
+        record && record.id && <QuoteList categoryId={record.id.toString()}/>
+      }
     </Show>
   );
 };
