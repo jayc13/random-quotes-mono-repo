@@ -119,6 +119,7 @@ function App() {
                 {
                   name: "categories",
                   list: "/categories",
+                  show: "/categories/:id",
                   options: {
                     label: "Categories",
                     icon: <TagsOutlined/>

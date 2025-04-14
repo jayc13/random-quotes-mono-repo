@@ -1,3 +1,5 @@
+import {D1QB} from 'workers-qb'
+
 export interface Quote {
 	id: number;
 	quote: string;
@@ -12,38 +14,57 @@ export interface QuoteInput {
 }
 
 export interface GetAllQuotesOptions {
-	limit?: number;
-	offset?: number;
-}
-
-export const getCountQuotes = async (db: D1Database): Promise<number> => {
-	const {results} = await db.prepare(
-		"SELECT COUNT(*) as count FROM Quotes"
-	).all();
-
-	if (results.length === 0) {
-		return 0;
+	pagination?: {
+		limit?: number;
+		offset?: number;
+	},
+	filter?: {
+		categoryId?: number;
 	}
-
-	return results[0].count as number;
 }
 
-export const getAllQuotes = async (db: D1Database, options?: GetAllQuotesOptions): Promise<Quote[]> => {
+export const getAllQuotes = async (db: D1Database, options?: GetAllQuotesOptions): Promise => {
+	const qb = new D1QB(db);
 	const {
-		limit = 10,
-		offset = 0,
+		pagination = {limit: 10, offset: 0},
+		filter = {},
 	} = options || {};
 
-	const {results} = await db.prepare(
-		"SELECT * FROM Quotes LIMIT ? OFFSET ?"
-	).bind(limit, offset).all();
+	const {limit, offset} = pagination;
+	const {categoryId} = filter;
 
-	return results.map(r => ({
-		id: r.QuoteId as number,
-		quote: r.QuoteText as string,
-		author: r.QuoteAuthor as string,
-		categoryId: r.QuoteCategoryId as number,
-	}));
+	let where = undefined;
+
+	if (categoryId) {
+		where = {
+			conditions: "QuoteCategoryId = ?1",
+			params: [categoryId],
+		};
+	}
+
+	const query = await qb.fetchAll<Quote>({
+		tableName: "Quotes",
+		fields: "*",
+		where,
+		limit,
+		offset,
+	});
+
+	const count = await query.count();
+	const {results} = await query.execute();
+
+	return {
+		quotes: results.map(r => ({
+			id: r.QuoteId as number,
+			quote: r.QuoteText as string,
+			author: r.QuoteAuthor as string,
+			categoryId: r.QuoteCategoryId as number,
+		})),
+		meta: {
+			count: results.length,
+			total: count.results?.total ?? 0,
+		},
+	}
 };
 
 export const getQuoteById = async (db: D1Database, id: number): Promise<Quote | null> => {

@@ -1,16 +1,15 @@
 import {Outlet, Route, Routes} from "react-router";
-import {Authenticated, CanAccess, usePermissions} from "@refinedev/core";
+import {Authenticated, CanAccess} from "@refinedev/core";
 import {CatchAllNavigate, NavigateToResource} from "@refinedev/react-router";
 import {ErrorComponent, ThemedLayoutV2, ThemedSiderV2} from "@refinedev/antd";
 import {Header} from "./components";
-import {CategoryList} from "./pages/categories";
+import {CategoryList, CategoryShow,} from "./pages/categories";
 import {QuoteList} from "./pages/quotes";
 import Dashboard from "./pages/dashboard";
 import {Login} from "./pages/login";
 import React from "react";
 
 const AppRouter = () => {
-  const {data: permissionsData} = usePermissions();
 
   return <Routes>
     <Route
@@ -35,6 +34,7 @@ const AppRouter = () => {
       />
       <Route path="/categories">
         <Route index element={<CategoryList/>}/>
+        <Route path=":id" element={<CategoryShow/>}/>
       </Route>
       <Route path="/quotes">
         <Route index element={<QuoteList/>}/>

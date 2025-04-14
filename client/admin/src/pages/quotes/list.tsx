@@ -66,9 +66,25 @@ const modalShowStyles = {
   },
 };
 
-export const QuoteList = () => {
+export interface QuoteListProps {
+  categoryId?: number;
+}
+
+export const QuoteList = ({categoryId}: QuoteListProps) => {
   const {tableProps} = useTable<IQuote>({
     syncWithLocation: true,
+    resource: "quotes",
+    filters: {
+      mode: "server",
+      permanent: [
+        {
+          field: "categoryId",
+          operator: "equal",
+          value: categoryId,
+        },
+      ],
+    },
+
   });
   // Create Modal
   const {
@@ -123,6 +139,7 @@ export const QuoteList = () => {
             createModalShow();
           },
         }}
+        title="Quotes"
       >
         <Table {...tableProps} rowKey="id">
           <Table.Column dataIndex="id" title={"#"}/>
