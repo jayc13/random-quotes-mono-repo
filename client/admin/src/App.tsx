@@ -1,31 +1,30 @@
 import React from "react";
-import {AuthBindings, Authenticated, Refine} from "@refinedev/core";
+import {AuthBindings, Refine} from "@refinedev/core";
 import {RefineKbarProvider} from "@refinedev/kbar";
-
-import {ErrorComponent, ThemedLayoutV2, ThemedSiderV2, useNotificationProvider,} from "@refinedev/antd";
-
-import {useAuth0} from "@auth0/auth0-react";
-import routerBindings, {
-  CatchAllNavigate,
-  DocumentTitleHandler,
-  NavigateToResource,
-  UnsavedChangesNotifier,
-} from "@refinedev/react-router";
-import dataProvider from "@refinedev/simple-rest";
+import {useNotificationProvider,} from "@refinedev/antd";
 import {App as AntdApp} from "antd";
+import {DashboardOutlined, MessageOutlined, TagsOutlined} from "@ant-design/icons";
+import routerBindings, {DocumentTitleHandler, UnsavedChangesNotifier,} from "@refinedev/react-router";
+import {useAuth0} from "@auth0/auth0-react";
+import dataProvider from "@refinedev/simple-rest";
 import axios from "axios";
-import {BrowserRouter, Outlet, Route, Routes} from "react-router";
-import {AppIcon} from "./components/app-icon";
-import {Header} from "./components";
 import {ColorModeContextProvider} from "./contexts/color-mode";
-import {CategoryList} from "./pages/categories";
-import {Login} from "./pages/login";
+import {BrowserRouter} from "react-router";
+import {AppIcon} from "./components/app-icon";
+
 import "@refinedev/antd/dist/reset.css";
+import AppRouter from "./router";
+import Dashboard from "./pages/dashboard";
 
 const API_URL = import.meta.env.VITE_API_URL as string;
 
+const NON_ADMIN_RESOURCES = [
+  'dashboard',
+];
+
 function App() {
   const {isLoading, user, logout, getIdTokenClaims} = useAuth0();
+
   if (isLoading) {
     return <span>loading...</span>;
   }
@@ -60,6 +59,7 @@ function App() {
         };
         return {
           authenticated: true,
+          redirectTo: "/",
         };
       } catch {
         return {
@@ -97,15 +97,40 @@ function App() {
               dataProvider={dataProvider(API_URL, axios)}
               notificationProvider={useNotificationProvider}
               routerProvider={routerBindings}
+              accessControlProvider={{
+                can: async ({resource}) => {
+                  const roles: string[] = user['random_quotes/roles'] ?? [];
+
+                  if (NON_ADMIN_RESOURCES.includes(resource) || roles.includes('Admin')) {
+                    return {can: true};
+                  }
+
+                  return {can: false};
+                },
+              }}
               resources={[
+                {
+                  name: "dashboard",
+                  list: "/",
+                  options: {
+                    label: "Dashboard",
+                    icon: <DashboardOutlined/>
+                  },
+                },
                 {
                   name: "categories",
                   list: "/categories",
-                  create: "/categories/create",
-                  edit: "/categories/edit/:id",
-                  show: "/categories/show/:id",
-                  meta: {
-                    canDelete: true,
+                  options: {
+                    label: "Categories",
+                    icon: <TagsOutlined/>
+                  },
+                },
+                {
+                  name: "quotes",
+                  list: "/quotes",
+                  options: {
+                    label: "Quotes",
+                    icon: <MessageOutlined/>
                   },
                 },
               ]}
@@ -114,53 +139,13 @@ function App() {
                 warnWhenUnsavedChanges: true,
                 useNewQueryKeys: true,
                 breadcrumb: true,
+                catchAll: {
+                  element: <Dashboard/>,
+                },
                 title: {text: "Random Quotes Admin", icon: <AppIcon/>},
               }}
             >
-              <Routes>
-                <Route
-                  element={
-                    <Authenticated
-                      key="authenticated-inner"
-
-                      fallback={<CatchAllNavigate to="/login"/>}
-                    >
-                      <ThemedLayoutV2
-                        Header={Header}
-                        Sider={() => <ThemedSiderV2 fixed render={({
-                                                                     items,
-                                                                   }) => <>
-                          {items}
-                        </>}/>}
-                      >
-                        <Outlet/>
-                      </ThemedLayoutV2>
-                    </Authenticated>
-                  }
-                >
-                  <Route
-                    index
-                    element={<NavigateToResource resource="categories"/>}
-                  />
-                  <Route path="/categories">
-                    <Route index element={<CategoryList/>}/>
-                  </Route>
-                  <Route path="*" element={<ErrorComponent/>}/>
-                </Route>
-                <Route
-                  element={
-                    <Authenticated
-                      key="authenticated-outer"
-                      fallback={<Outlet/>}
-                    >
-                      <NavigateToResource/>
-                    </Authenticated>
-                  }
-                >
-                  <Route path="/login" element={<Login/>}/>
-                </Route>
-              </Routes>
-
+              <AppRouter/>
               <UnsavedChangesNotifier/>
               <DocumentTitleHandler/>
             </Refine>

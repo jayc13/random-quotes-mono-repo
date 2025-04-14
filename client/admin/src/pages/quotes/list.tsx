@@ -1,14 +1,17 @@
 import {DeleteButton, EditButton, List, ShowButton, useModalForm, useTable,} from "@refinedev/antd";
-import {type BaseRecord, CanAccess, useShow} from "@refinedev/core";
-import {Form, Input, Modal, Space, Spin, Table, Typography} from "antd";
+import {type BaseRecord, HttpError, useList, useSelect, useShow} from "@refinedev/core";
+import {Card, Form, Input, Modal, Select, Space, Spin, Table, Tag, Typography} from "antd";
+import {ICategory} from '../categories'
 import {useState} from "react";
 
-const {Title, Text} = Typography;
+const {Title, Text, Paragraph} = Typography;
 
 
-export interface ICategory {
+interface IQuote {
   id: number;
-  name: string;
+  quote: string;
+  author: string;
+  categoryId: number;
 }
 
 const modalFormStyles = {
@@ -45,9 +48,10 @@ const modalShowStyles = {
   header: {
     margin: 0,
     minHeight: '60px',
+    padding: '8px 16px',
     display: 'flex',
+    flexDirection: 'row',
     alignItems: 'center',
-    padding: '8px 16px'
   },
   body: {
     padding: "16px",
@@ -63,8 +67,8 @@ const modalShowStyles = {
   },
 };
 
-export const CategoryList = () => {
-  const {tableProps} = useTable<ICategory>({
+export const QuoteList = () => {
+  const {tableProps} = useTable<IQuote>({
     syncWithLocation: true,
   });
   // Create Modal
@@ -73,7 +77,7 @@ export const CategoryList = () => {
     formProps: createFormProps,
     show: createModalShow,
     formLoading: createFormLoading,
-  } = useModalForm<ICategory>({
+  } = useModalForm<IQuote>({
     action: "create",
     syncWithLocation: true,
     warnWhenUnsavedChanges: true,
@@ -85,7 +89,7 @@ export const CategoryList = () => {
     formProps: editFormProps,
     show: editModalShow,
     formLoading: editFormLoading,
-  } = useModalForm<ICategory>({
+  } = useModalForm<IQuote>({
     action: "edit",
     syncWithLocation: true,
     warnWhenUnsavedChanges: true,
@@ -94,13 +98,26 @@ export const CategoryList = () => {
   // Show Modal
   const [visibleShowModal, setVisibleShowModal] = useState<boolean>(false);
 
-  const {query: queryResult, setShowId} = useShow<ICategory>();
+  const {query: queryResult, setShowId} = useShow<IQuote>();
+
+  const useSelectCategories = useSelect<ICategory>({
+    resource: "categories",
+    optionLabel: "name",
+    optionValue: "id",
+  });
+
+  const {
+    data: dataCategories,
+    isLoading: isLoadingCategories,
+  } = useList<ICategory, HttpError>({
+    resource: "categories"
+  });
 
   const {data: showQueryResult} = queryResult;
   const record = showQueryResult?.data;
 
   return (
-    <CanAccess resource="categories">
+    <>
       <List
         createButtonProps={{
           onClick: () => {
@@ -110,7 +127,17 @@ export const CategoryList = () => {
       >
         <Table {...tableProps} rowKey="id">
           <Table.Column dataIndex="id" title={"#"}/>
-          <Table.Column dataIndex="name" title={"Name"}/>
+          <Table.Column dataIndex="quote" title={"Quote"}/>
+          <Table.Column dataIndex="author" title={"Author"}/>
+          <Table.Column
+            dataIndex={["categoryId"]}
+            title="Category"
+            render={(value) => {
+              if (isLoadingCategories) return "loading...";
+              const label = dataCategories?.data?.find((p: ICategory) => p.id === value)?.name;
+              return <Tag>{label}</Tag>
+            }}
+          />
           <Table.Column
             title={"Actions"}
             width={100}
@@ -146,11 +173,28 @@ export const CategoryList = () => {
         <Spin spinning={createFormLoading}>
           <Form {...createFormProps} layout="vertical">
             <Form.Item
-              label="Name"
-              name="name"
+              label="Quote"
+              name="quote"
               rules={[{required: true}]}
             >
-              <Input/>
+              <Input.TextArea rows={3} maxLength={250} style={{resize: 'none'}}/>
+            </Form.Item>
+            <Form.Item
+              label="Author"
+              name="author"
+              rules={[{required: true}]}
+            >
+              <Input maxLength={100}/>
+            </Form.Item>
+            <Form.Item
+              label="Category"
+              name="categoryId"
+              rules={[{required: true}]}
+            >
+              <Select
+                placeholder="Select a category"
+                {...useSelectCategories}
+              />
             </Form.Item>
           </Form>
         </Spin>
@@ -159,11 +203,28 @@ export const CategoryList = () => {
         <Spin spinning={editFormLoading}>
           <Form {...editFormProps} layout="vertical">
             <Form.Item
-              label="Name"
-              name="name"
+              label="Quote"
+              name="quote"
               rules={[{required: true}]}
             >
-              <Input/>
+              <Input.TextArea rows={3} maxLength={250} style={{resize: 'none'}}/>
+            </Form.Item>
+            <Form.Item
+              label="Author"
+              name="author"
+              rules={[{required: true}]}
+            >
+              <Input maxLength={100}/>
+            </Form.Item>
+            <Form.Item
+              label="Category"
+              name="categoryId"
+              rules={[{required: true}]}
+            >
+              <Select
+                placeholder="Select a category"
+                {...useSelectCategories}
+              />
             </Form.Item>
           </Form>
         </Spin>
@@ -172,13 +233,21 @@ export const CategoryList = () => {
         open={visibleShowModal}
         footer={false}
         onCancel={() => setVisibleShowModal(false)}
-        title="Category Details"
-        styles={modalShowStyles}>
-        <Title level={5}>Id</Title>
-        <Text>{record?.id}</Text>
-        <Title level={5}>Name</Title>
-        <Text>{record?.name}</Text>
+        title={<div style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+          <Title level={5} style={{margin: 0, padding: 0}}>Quote</Title>
+          <Tag color="blue-inverse" style={{marginLeft: '8px'}}>
+            {dataCategories?.data?.find((p: ICategory) => p.id === record?.categoryId ?? '')?.name}
+          </Tag>
+        </div>}
+        styles={modalShowStyles}
+      >
+        <Card>
+          <Space direction="vertical">
+            <Text italic>  &quot;{record?.quote}  &quot;</Text>
+            <Text type="secondary">{record?.author}</Text>
+          </Space>
+        </Card>
       </Modal>
-    </CanAccess>
+    </>
   );
 };

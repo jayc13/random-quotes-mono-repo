@@ -17,6 +17,13 @@ import {
 	getCategoryByIdHandler,
 	updateCategoryHandler,
 } from "./controller/category.controller";
+import {
+	createQuoteHandler,
+	deleteQuoteHandler,
+	getAllQuotesHandler,
+	getQuoteByIdHandler,
+	updateQuoteHandler,
+} from "./controller/quote.controller";
 import {CategoryInput} from "./services/category.service";
 import {authenticationMiddleware, isAdmin} from "./middleware/authentication.middleware";
 
@@ -31,7 +38,7 @@ export interface Env {
 
 export const DEFAULT_CORS_HEADERS = {
 	'Access-Control-Allow-Origin': '*',
-	'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+	'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
 	'Access-Control-Allow-Headers': '*',
 	'Access-Control-Expose-Headers': '*',
 }
@@ -93,6 +100,7 @@ export default {
 			if (url.pathname.startsWith('/categories/')) {
 				const categoryId: number = parseInt(url.pathname.split('/')[2]);
 				switch (request.method) {
+					case 'PATCH':
 					case 'PUT':
 						const requestBody = await request.json<CategoryInput>();
 						if (!requestBody.name) {
@@ -106,6 +114,36 @@ export default {
 				}
 			}
 
+			if (url.pathname === '/quotes') {
+				switch (request.method) {
+					case 'GET':
+						return getAllQuotesHandler(env.DB);
+					case 'POST':
+						try {
+							const requestBody = await request.json<QuoteInput>();
+							return createQuoteHandler(env.DB, requestBody);
+						} catch {
+							return Response.json('Invalid JSON', {
+								status: 400,
+								headers: DEFAULT_CORS_HEADERS
+							});
+						}
+				}
+			}
+
+			if (url.pathname.startsWith('/quotes/')) {
+				const quoteId: number = parseInt(url.pathname.split('/')[2]);
+				switch (request.method) {
+					case 'PATCH':
+					case 'PUT':
+						const requestBody = await request.json<QuoteInput>();
+						return updateQuoteHandler(env.DB, quoteId, requestBody);
+					case 'GET':
+						return getQuoteByIdHandler(env.DB, quoteId);
+					case 'DELETE':
+						return deleteQuoteHandler(env.DB, quoteId);
+				}
+			}
 		} catch (error) {
 			console.error('Error handling request:', error);
 			return Response.json({
