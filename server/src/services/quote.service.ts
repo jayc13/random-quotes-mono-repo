@@ -76,58 +76,6 @@ export const createQuote = async (db: D1Database, input: QuoteInput): Promise<Qu
 	};
 };
 
-export const getAllQuotes = async (db: D1Database): Promise<Quote[]> => {
-	const {results} = await db.prepare(
-		"SELECT * FROM Quotes"
-	).all();
-
-	return results.map(r => ({
-		id: r.QuoteId as number,
-		quote: r.QuoteText as string,
-		author: r.QuoteAuthor as string,
-		categoryId: r.QuoteCategoryId as number,
-	}));
-};
-
-export const getQuoteById = async (db: D1Database, id: number): Promise<Quote | null> => {
-	const {results} = await db.prepare(
-		"SELECT * FROM Quotes WHERE QuoteId = ?"
-	).bind(id).all();
-
-	if (results.length === 0) {
-		return null;
-	}
-
-	const r = results[0];
-	return {
-		id: r.QuoteId as number,
-		quote: r.QuoteText as string,
-		author: r.QuoteAuthor as string,
-		categoryId: r.QuoteCategoryId as number,
-	};
-};
-
-export const createQuote = async (db: D1Database, input: QuoteInput): Promise<Quote> => {
-	const {quote, author, categoryId} = input;
-
-	if (!validateQuoteInput(input)) {
-		throw new Error('Invalid quote input');
-	}
-
-	const result = await db.prepare(
-		"INSERT INTO Quotes (QuoteText, QuoteAuthor, QuoteCategoryId) VALUES (?, ?, ?)"
-	).bind(quote, author, categoryId).run();
-
-	const id: number = result.meta.last_row_id as number;
-
-	return {
-		id,
-		quote,
-		author,
-		categoryId,
-	};
-};
-
 export const updateQuote = async (db: D1Database, id: number, input: QuoteInput): Promise<Quote | null> => {
 	const {quote, author, categoryId} = input;
 
