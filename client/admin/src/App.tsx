@@ -14,7 +14,6 @@ import {AppIcon} from "./components/app-icon";
 
 import "@refinedev/antd/dist/reset.css";
 import AppRouter from "./router";
-import Dashboard from "./pages/dashboard";
 
 const API_URL = import.meta.env.VITE_API_URL as string;
 
@@ -99,9 +98,9 @@ function App() {
               routerProvider={routerBindings}
               accessControlProvider={{
                 can: async ({resource}) => {
-                  const roles: string[] = user['random_quotes/roles'] ?? [];
+                  const roles: string[] = user?.['random_quotes/roles'] ?? [];
 
-                  if (NON_ADMIN_RESOURCES.includes(resource) || roles.includes('Admin')) {
+                  if (NON_ADMIN_RESOURCES.includes(resource ?? '') || roles.includes('Admin')) {
                     return {can: true};
                   }
 
@@ -139,9 +138,6 @@ function App() {
                 warnWhenUnsavedChanges: true,
                 useNewQueryKeys: true,
                 breadcrumb: true,
-                catchAll: {
-                  element: <Dashboard/>,
-                },
                 title: {text: "Random Quotes Admin", icon: <AppIcon/>},
               }}
             >

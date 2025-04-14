@@ -1,5 +1,5 @@
 import {DeleteButton, EditButton, List, ShowButton, useModalForm, useTable,} from "@refinedev/antd";
-import {type BaseRecord, CanAccess, useShow} from "@refinedev/core";
+import {type BaseRecord, useShow} from "@refinedev/core";
 import {Form, Input, Modal, Space, Spin, Table, Typography} from "antd";
 import {useState} from "react";
 
@@ -100,7 +100,7 @@ export const CategoryList = () => {
   const record = showQueryResult?.data;
 
   return (
-    <CanAccess resource="categories">
+    <>
       <List
         createButtonProps={{
           onClick: () => {
@@ -179,6 +179,6 @@ export const CategoryList = () => {
         <Title level={5}>Name</Title>
         <Text>{record?.name}</Text>
       </Modal>
-    </CanAccess>
+    </>
   );
 };

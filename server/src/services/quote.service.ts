@@ -11,10 +11,32 @@ export interface QuoteInput {
 	categoryId: number;
 }
 
-export const getAllQuotes = async (db: D1Database): Promise<Quote[]> => {
+export interface GetAllQuotesOptions {
+	limit?: number;
+	offset?: number;
+}
+
+export const getCountQuotes = async (db: D1Database): Promise<number> => {
 	const {results} = await db.prepare(
-		"SELECT * FROM Quotes"
+		"SELECT COUNT(*) as count FROM Quotes"
 	).all();
+
+	if (results.length === 0) {
+		return 0;
+	}
+
+	return results[0].count as number;
+}
+
+export const getAllQuotes = async (db: D1Database, options?: GetAllQuotesOptions): Promise<Quote[]> => {
+	const {
+		limit = 10,
+		offset = 0,
+	} = options || {};
+
+	const {results} = await db.prepare(
+		"SELECT * FROM Quotes LIMIT ? OFFSET ?"
+	).bind(limit, offset).all();
 
 	return results.map(r => ({
 		id: r.QuoteId as number,
