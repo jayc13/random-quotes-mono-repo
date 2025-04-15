@@ -19,6 +19,7 @@ jobs:
         with:
           node-version: 22
           cache: 'npm'
+          cache-dependency-path: ./client/admin/package-lock.json
       - name: Install dependencies (client/admin)
         run: npm install
       - name: Build
@@ -37,6 +38,7 @@ jobs:
         with:
           node-version: 22
           cache: 'npm'
+          cache-dependency-path: ./server/package-lock.json
       - name: Install dependencies
         run: npm install
       - name: Build
