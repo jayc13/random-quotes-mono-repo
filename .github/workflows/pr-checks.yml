@@ -12,6 +12,7 @@ concurrency:
 jobs:
   client-admin:
     runs-on: ubuntu-latest
+    name: Check - Admin Client
     defaults:
       run:
         working-directory: ./client/admin
@@ -31,6 +32,7 @@ jobs:
 
   server:
     runs-on: ubuntu-latest
+    name: Check - Server
     defaults:
       run:
         working-directory: ./server
