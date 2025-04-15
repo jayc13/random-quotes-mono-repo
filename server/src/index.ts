@@ -26,6 +26,7 @@ import {
 } from "./controller/quote.controller";
 import {CategoryInput} from "./services/category.service";
 import {authenticationMiddleware, isAdmin} from "./middleware/authentication.middleware";
+import {QuoteInput} from "./services/quote.service";
 
 export interface Env {
 	// If you set another name in the Wrangler config file for the value for 'binding',
