@@ -71,7 +71,7 @@ jobs:
       - name: Start server
         run: |
           cd server
-          npm run start
+          npm run start &
       - name: Install dependencies (integration tests)
         run: |
           cd test/integration-tests
