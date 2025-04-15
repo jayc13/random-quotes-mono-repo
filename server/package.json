@@ -6,6 +6,7 @@
 		"deploy": "wrangler deploy",
 		"dev": "wrangler dev",
 		"start": "wrangler dev",
+		"build": "tsc",
 		"test": "vitest --config ./vitest.config.mts",
 		"cf-typegen": "wrangler types"
 	},

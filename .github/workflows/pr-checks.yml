@@ -1,0 +1,84 @@
+name: Pull Request Checks
+
+on:
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  client-admin:
+    runs-on: ubuntu-latest
+    name: "Check - Admin Client"
+    defaults:
+      run:
+        working-directory: ./client/admin
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 23
+          cache: 'npm'
+          cache-dependency-path: ./client/admin/package-lock.json
+      - name: Install dependencies (client/admin)
+        run: npm install
+      - name: Build
+        run: npm run build
+
+  server:
+    runs-on: ubuntu-latest
+    name: "Check - Server"
+    defaults:
+      run:
+        working-directory: ./server
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 23
+          cache: 'npm'
+          cache-dependency-path: ./server/package-lock.json
+      - name: Install dependencies
+        run: npm install
+      - name: Build
+        run: npm run build
+      - name: Run unit tests
+        run: npm test
+  integration-tests:
+    name: "Integration Tests"
+    needs:
+      - client-admin
+      - server
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 23
+          cache: 'npm'
+          cache-dependency-path: ./test/integration-tests/package-lock.json
+      - name: Install dependencies (server)
+        run: |
+          cd server
+          npm install
+      - name: Start server
+        run: |
+          cd server
+          npm run start &
+      - name: Install dependencies (integration tests)
+        run: |
+          cd test/integration-tests
+          npm install
+      - name: Run integration tests
+        run: |
+          cd test/integration-tests
+          npm run test

@@ -1,11 +1,4 @@
-import {
-	createQuote,
-	deleteQuote,
-	getAllQuotes,
-	getCountQuotes,
-	getQuoteById,
-	updateQuote,
-} from "../services/quote.service";
+import {createQuote, deleteQuote, getAllQuotes, getQuoteById, updateQuote,} from "../services/quote.service";
 import {DEFAULT_CORS_HEADERS} from "../index";
 
 export const getAllQuotesHandler = async (request: Request, db: D1Database) => {

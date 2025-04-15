@@ -23,7 +23,7 @@ export interface GetAllQuotesOptions {
 	}
 }
 
-export const getAllQuotes = async (db: D1Database, options?: GetAllQuotesOptions): Promise => {
+export const getAllQuotes = async (db: D1Database, options?: GetAllQuotesOptions) => {
 	const qb = new D1QB(db);
 	const {
 		pagination = {limit: 10, offset: 0},
@@ -42,7 +42,7 @@ export const getAllQuotes = async (db: D1Database, options?: GetAllQuotesOptions
 		};
 	}
 
-	const query = await qb.fetchAll<Quote>({
+	const query = await qb.fetchAll({
 		tableName: "Quotes",
 		fields: "*",
 		where,
@@ -54,14 +54,14 @@ export const getAllQuotes = async (db: D1Database, options?: GetAllQuotesOptions
 	const {results} = await query.execute();
 
 	return {
-		quotes: results.map(r => ({
+		quotes: results?.map(r => ({
 			id: r.QuoteId as number,
 			quote: r.QuoteText as string,
 			author: r.QuoteAuthor as string,
 			categoryId: r.QuoteCategoryId as number,
-		})),
+		})) ?? [],
 		meta: {
-			count: results.length,
+			count: results?.length ?? 0,
 			total: count.results?.total ?? 0,
 		},
 	}
