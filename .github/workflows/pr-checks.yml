@@ -63,6 +63,7 @@ jobs:
         with:
           node-version: 22
           cache: 'npm'
+          cache-dependency-path: ./test/integration-tests/package-lock.json
       - name: Install dependencies (server)
         run: |
           cd server
