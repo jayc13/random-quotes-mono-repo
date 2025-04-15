@@ -21,7 +21,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 22
+          node-version: 23
           cache: 'npm'
           cache-dependency-path: ./client/admin/package-lock.json
       - name: Install dependencies (client/admin)
@@ -40,7 +40,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 22
+          node-version: 23
           cache: 'npm'
           cache-dependency-path: ./server/package-lock.json
       - name: Install dependencies
@@ -61,17 +61,17 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 22
+          node-version: 23
           cache: 'npm'
           cache-dependency-path: ./test/integration-tests/package-lock.json
       - name: Install dependencies (server)
         run: |
           cd server
           npm install
-      - name: Build (server)
+      - name: Start server
         run: |
           cd server
-          npm run build
+          npm run start
       - name: Install dependencies (integration tests)
         run: |
           cd test/integration-tests
