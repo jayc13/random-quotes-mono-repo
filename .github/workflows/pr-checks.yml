@@ -12,7 +12,7 @@ concurrency:
 jobs:
   client-admin:
     runs-on: ubuntu-latest
-    name: Check - Admin Client
+    name: "Check - Admin Client"
     defaults:
       run:
         working-directory: ./client/admin
@@ -32,7 +32,7 @@ jobs:
 
   server:
     runs-on: ubuntu-latest
-    name: Check - Server
+    name: "Check - Server"
     defaults:
       run:
         working-directory: ./server
@@ -52,7 +52,7 @@ jobs:
       - name: Run unit tests
         run: npm test
   integration-tests:
-    name: Integration Tests
+    name: "Integration Tests"
     needs:
       - client-admin
       - server
