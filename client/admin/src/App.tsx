@@ -1,28 +1,33 @@
-import React from "react";
-import {AuthBindings, Refine} from "@refinedev/core";
-import {RefineKbarProvider} from "@refinedev/kbar";
-import {useNotificationProvider,} from "@refinedev/antd";
-import {App as AntdApp} from "antd";
-import {DashboardOutlined, MessageOutlined, TagsOutlined} from "@ant-design/icons";
-import routerBindings, {DocumentTitleHandler, UnsavedChangesNotifier,} from "@refinedev/react-router";
-import {useAuth0} from "@auth0/auth0-react";
+import {
+  DashboardOutlined,
+  MessageOutlined,
+  TagsOutlined,
+} from "@ant-design/icons";
+import { useAuth0 } from "@auth0/auth0-react";
+import { useNotificationProvider } from "@refinedev/antd";
+import { type AuthBindings, Refine } from "@refinedev/core";
+import { RefineKbarProvider } from "@refinedev/kbar";
+import routerBindings, {
+  DocumentTitleHandler,
+  UnsavedChangesNotifier,
+} from "@refinedev/react-router";
 import dataProvider from "@refinedev/simple-rest";
+import { App as AntdApp } from "antd";
 import axios from "axios";
-import {ColorModeContextProvider} from "./contexts/color-mode";
-import {BrowserRouter} from "react-router";
-import {AppIcon} from "./components/app-icon";
+import React from "react";
+import { BrowserRouter } from "react-router";
+import { AppIcon } from "./components/app-icon";
+import { ColorModeContextProvider } from "./contexts/color-mode";
 
 import "@refinedev/antd/dist/reset.css";
 import AppRouter from "./router";
 
 const API_URL = import.meta.env.VITE_API_URL as string;
 
-const NON_ADMIN_RESOURCES = [
-  'dashboard',
-];
+const NON_ADMIN_RESOURCES = ["dashboard"];
 
 function App() {
-  const {isLoading, user, logout, getIdTokenClaims} = useAuth0();
+  const { isLoading, user, logout, getIdTokenClaims } = useAuth0();
 
   if (isLoading) {
     return <span>loading...</span>;
@@ -34,14 +39,14 @@ function App() {
       };
     },
     logout: async () => {
-      await logout({logoutParams: {returnTo: window.location.origin}});
+      await logout({ logoutParams: { returnTo: window.location.origin } });
       return {
         success: true,
       };
     },
     onError: async (error) => {
       console.error(error);
-      return {error};
+      return { error };
     },
     check: async () => {
       try {
@@ -51,7 +56,7 @@ function App() {
             authenticated: false,
             redirectTo: "/login",
             error: new Error("Token not found"),
-          }
+          };
         }
         axios.defaults.headers.common = {
           Authorization: `Bearer ${token.__raw}`,
@@ -65,12 +70,12 @@ function App() {
           authenticated: false,
           redirectTo: "/login",
           error: new Error("Token not found"),
-        }
+        };
       }
     },
     getPermissions: async (params) => {
-      if (user && Object.keys(user).includes('random_quotes/roles')) {
-        return user['random_quotes/roles'];
+      if (user && Object.keys(user).includes("random_quotes/roles")) {
+        return user["random_quotes/roles"];
       }
       return [];
     },
@@ -79,7 +84,7 @@ function App() {
         return {
           ...user,
           avatar: user.picture,
-          roles: user['random_quotes/roles'] ?? [],
+          roles: user["random_quotes/roles"] ?? [],
         };
       }
       return null;
@@ -97,14 +102,17 @@ function App() {
               notificationProvider={useNotificationProvider}
               routerProvider={routerBindings}
               accessControlProvider={{
-                can: async ({resource}) => {
-                  const roles: string[] = user?.['random_quotes/roles'] ?? [];
+                can: async ({ resource }) => {
+                  const roles: string[] = user?.["random_quotes/roles"] ?? [];
 
-                  if (NON_ADMIN_RESOURCES.includes(resource ?? '') || roles.includes('Admin')) {
-                    return {can: true};
+                  if (
+                    NON_ADMIN_RESOURCES.includes(resource ?? "") ||
+                    roles.includes("Admin")
+                  ) {
+                    return { can: true };
                   }
 
-                  return {can: false};
+                  return { can: false };
                 },
               }}
               resources={[
@@ -113,7 +121,7 @@ function App() {
                   list: "/",
                   options: {
                     label: "Dashboard",
-                    icon: <DashboardOutlined/>
+                    icon: <DashboardOutlined />,
                   },
                 },
                 {
@@ -122,7 +130,7 @@ function App() {
                   show: "/categories/:id",
                   options: {
                     label: "Categories",
-                    icon: <TagsOutlined/>
+                    icon: <TagsOutlined />,
                   },
                 },
                 {
@@ -130,7 +138,7 @@ function App() {
                   list: "/quotes",
                   options: {
                     label: "Quotes",
-                    icon: <MessageOutlined/>
+                    icon: <MessageOutlined />,
                   },
                 },
               ]}
@@ -139,12 +147,12 @@ function App() {
                 warnWhenUnsavedChanges: true,
                 useNewQueryKeys: true,
                 breadcrumb: true,
-                title: {text: "Random Quotes Admin", icon: <AppIcon/>},
+                title: { text: "Random Quotes Admin", icon: <AppIcon /> },
               }}
             >
-              <AppRouter/>
-              <UnsavedChangesNotifier/>
-              <DocumentTitleHandler/>
+              <AppRouter />
+              <UnsavedChangesNotifier />
+              <DocumentTitleHandler />
             </Refine>
           </AntdApp>
         </ColorModeContextProvider>

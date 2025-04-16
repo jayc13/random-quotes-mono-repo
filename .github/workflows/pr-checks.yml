@@ -27,6 +27,8 @@ jobs:
           cache-dependency-path: ./client/admin/package-lock.json
       - name: Install dependencies (client/admin)
         run: npm install
+      - name: Lint check
+        run: npm run lint
       - name: Build
         run: npm run build
 
