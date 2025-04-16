@@ -141,12 +141,12 @@ export default {
         {
           error: 'Internal Server Error',
           message:
-            'An unexpected error occurred while processing your request.'
+            'An unexpected error occurred while processing your request.',
         },
         {
           status: 500,
           headers: DEFAULT_CORS_HEADERS
-        }
+        },
       );
     }
 

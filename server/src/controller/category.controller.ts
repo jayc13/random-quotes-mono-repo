@@ -14,7 +14,7 @@ export const getAllCategoriesHandler = async (db: D1Database) => {
       ...DEFAULT_CORS_HEADERS,
       'Content-Range': `categories 0-${categories.length}/${categories.length}`,
       'X-Total-Count': `${categories.length}`
-    }
+    },
   });
 };
 
