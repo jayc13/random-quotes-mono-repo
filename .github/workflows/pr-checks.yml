@@ -96,3 +96,31 @@ jobs:
         run: |
           cd test/integration-tests
           npm run test-ci
+
+  deploy-preview:
+    runs-on: ubuntu-latest
+    needs: integration-tests
+    name: "Deploy Preview"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 23 # Assuming the same Node version as other jobs
+          # Add cache settings if needed later, e.g., for build steps
+      - name: Deploy Client to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: ${{ secrets.CLOUDFLARE_PROJECT_NAME }}
+          directory: client/admin/dist
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+      - name: Deploy Server to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy --env preview
+          workingDirectory: server
