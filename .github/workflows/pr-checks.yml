@@ -47,6 +47,8 @@ jobs:
           cache-dependency-path: ./server/package-lock.json
       - name: Install dependencies
         run: npm install
+      - name: Lint check
+        run: npm run lint
       - name: Build
         run: npm run build
       - name: Run unit tests
