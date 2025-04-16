@@ -7,6 +7,7 @@
 		"dev": "wrangler dev",
 		"start": "wrangler dev",
 		"build": "tsc",
+        "lint": "biome lint ./src",
 		"test": "vitest --config ./vitest.config.mts",
 		"cf-typegen": "wrangler types"
 	},
@@ -20,6 +21,7 @@
 		"wrangler": "^4.9.1"
 	},
 	"devDependencies": {
+        "@biomejs/biome": "latest",
 		"@types/node": "^22.14.0",
 		"@vitest/coverage-istanbul": "3.0.9"
 	}

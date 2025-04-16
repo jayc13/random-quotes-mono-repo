@@ -79,10 +79,9 @@ export default {
 			if (url.pathname === '/categories') {
 				switch (request.method) {
 					case 'GET':
-						if (url.pathname === '/categories') {
-							return getAllCategoriesHandler(env.DB);
-						}
-						break;
+						// The outer check already confirmed pathname is /categories
+						return getAllCategoriesHandler(env.DB);
+					// No break needed here if we return directly
 					case 'POST':
 						try {
 							const requestBody = await request.json<CategoryInput>();
