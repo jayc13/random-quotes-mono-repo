@@ -75,6 +75,7 @@ jobs:
           AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
           AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
         run: |
+          ./scripts/db_scripts.sh --apply-migration
           cd server
           echo "AUTH0_DOMAIN=${{ secrets.AUTH0_DOMAIN }}" > .dev.vars
           echo "AUTH0_CLIENT_ID=${{ secrets.AUTH0_CLIENT_ID }}" >> .dev.vars
