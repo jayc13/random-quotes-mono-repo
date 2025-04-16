@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "test": "node --env-file=.env ./node_modules/mocha/bin/mocha --no-warnings"
+    "test": "node --env-file=.env ./node_modules/mocha/bin/mocha --no-warnings",
+    "test-ci": "mocha --no-warnings"
   },
   "license": "MIT",
   "dependencies": {
