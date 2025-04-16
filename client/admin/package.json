@@ -39,7 +39,8 @@
     "build": "tsc && refine build",
     "start": "refine start --port 3000",
     "refine": "refine",
-    "lint": "biome lint ./src"
+    "lint": "biome check ./src",
+    "lint-fix": "biome check --write ./src"
   },
   "browserslist": {
     "production": [
