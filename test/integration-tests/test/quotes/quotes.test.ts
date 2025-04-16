@@ -72,7 +72,7 @@ describe('Quotes API Integration Tests', () => {
   });
 
   it('should fetch all quotes successfully', async () => {
-    const response = await server.get('/quotes'); // Assuming '/quotes' is the correct endpoint
+    const response = await server.get('/quotes').set('Authorization', adminToken); // Assuming '/quotes' is the correct endpoint
 
     expect(response.status).to.equal(200);
     expect(response.body).to.be.an('array');
@@ -80,7 +80,9 @@ describe('Quotes API Integration Tests', () => {
   });
 
   it('should fetch quotes filtered by a valid categoryId', async () => {
-    const response = await server.get(`/quotes?categoryId=${categoryId}`);
+    const response = await server
+      .get(`/quotes?categoryId=${categoryId}`)
+      .set('Authorization', adminToken);
     
     expect(response.status).to.equal(200);
     expect(response.body).to.be.an('array');
@@ -95,7 +97,9 @@ describe('Quotes API Integration Tests', () => {
 
   it('should return an empty array when filtering by a non-existent categoryId', async () => {
     const nonExistentCategoryId = 999999; // An ID that is unlikely to exist
-    const response = await server.get(`/quotes?categoryId=${nonExistentCategoryId}`);
+    const response = await server
+      .get(`/quotes?categoryId=${nonExistentCategoryId}`)
+      .set('Authorization', adminToken);
     
     expect(response.status).to.equal(200); // Expect success status code
     expect(response.body).to.be.an('array');
@@ -104,8 +108,8 @@ describe('Quotes API Integration Tests', () => {
 
   it('should handle invalid categoryId format gracefully', async () => {
     const invalidCategoryId = 'abc'; // Invalid format
-    const response = await server.get(`/quotes?categoryId=${invalidCategoryId}`);
-    
+    const response = await server.get(`/quotes?categoryId=${invalidCategoryId}`)
+      .set('Authorization', adminToken);
     expect(response.status).to.equal(200); // Expect success status code (graceful handling)
     expect(response.body).to.be.an('array'); 
     // We cannot be certain about the content without knowing how NaN/0 is handled
