@@ -5,6 +5,7 @@ usage() {
   echo "Usage: $0 [--reset | --execute <file> | --query <sql> | --help]"
   echo "  --reset             Reset the database using the schema file"
   echo "  --create-migration  Create a new migration file"
+  echo "  --apply-migration   Apply the migrations"
   echo "  --execute <file>    Execute a specific SQL file"
   echo "  --query <sql>       Run an interactive SQL query"
   echo "  --help              Display this help message"
