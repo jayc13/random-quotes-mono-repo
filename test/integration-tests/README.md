@@ -41,5 +41,3 @@ Run all integration tests:
 - Chai - Assertion library
 - SuperTest - HTTP testing
 - TypeScript - Language
-
-```
