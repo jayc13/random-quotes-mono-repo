@@ -8,7 +8,7 @@
     "start": "wrangler dev",
     "build": "tsc",
     "lint": "biome check ./src",
-    "lint-fix": "biome check ./src --write",
+    "lint-fix": "biome check --write ./src",
     "test": "vitest --config ./vitest.config.mts",
     "cf-typegen": "wrangler types"
   },
