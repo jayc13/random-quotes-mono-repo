@@ -32,7 +32,7 @@ export async function authenticationMiddleware(request: Request, env: Env, ctx: 
 
 	const result: any = await parseJwt({
 		jwt: token,
-		issuer: env.AUTH0_DOMAIN,
+		issuer: `https://${env.AUTH0_DOMAIN}/`,
 		audience: env.AUTH0_CLIENT_ID,
 	});
 

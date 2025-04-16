@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "test": "mocha --no-warnings "
+    "test": "node --env-file=.env ./node_modules/mocha/bin/mocha --no-warnings",
+    "test-ci": "mocha --no-warnings"
   },
   "license": "MIT",
   "dependencies": {
@@ -11,11 +12,16 @@
     "@types/supertest": "^6.0.3",
     "chai": "^5.2.0",
     "mocha": "^11.1.0",
+    "sinon": "^14.0.0",
     "supertest": "^7.1.0"
   },
   "devDependencies": {
+    "@types/chai": "^5.2.1",
     "@types/mocha": "^10.0.10",
+    "@types/sinon": "^10.0.12",
+    "jsdom-global": "^3.0.2",
     "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.8.3"
   }
 }
