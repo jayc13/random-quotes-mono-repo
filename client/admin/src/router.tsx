@@ -1,13 +1,14 @@
-import {Outlet, Route, Routes} from "react-router";
-import {Authenticated, CanAccess} from "@refinedev/core";
-import {CatchAllNavigate, NavigateToResource} from "@refinedev/react-router";
-import {ErrorComponent, ThemedLayoutV2, ThemedSiderV2} from "@refinedev/antd";
-import {Header} from "./components";
-import {CategoryList, CategoryShow,} from "./pages/categories";
-import {QuoteList} from "./pages/quotes";
-import Dashboard from "./pages/dashboard";
-import {Login} from "./pages/login";
+import { Outlet, Route, Routes } from "react-router";
+import { Authenticated } from "@refinedev/core"; // Removed CanAccess
+import { CatchAllNavigate } from "@refinedev/react-router"; // Removed NavigateToResource
+import { ErrorComponent, ThemedLayoutV2, ThemedSiderV2 } from "@refinedev/antd";
+import { Header } from "./components";
+import { CategoryList, CategoryShow } from "./pages/categories";
+import { QuoteList } from "./pages/quotes";
+// Removed Dashboard import
+import { Login } from "./pages/login";
 import React from "react";
+import { HomePage } from "./pages/home"; // Added HomePage import
 
 const AppRouter = () => {
 
@@ -21,36 +22,32 @@ const AppRouter = () => {
           <ThemedLayoutV2
             Header={Header}
             Sider={() =>
-              <ThemedSiderV2 fixed render={({items,}) => <>{items}</>}/>
+              <ThemedSiderV2 fixed render={({ items }) => <>{items}</>} />
             }
           >
-            <CanAccess fallback={<Dashboard/>}><Outlet/></CanAccess>
+            <Outlet /> 
           </ThemedLayoutV2>
         </Authenticated>
       }
     >
-      <Route path=""
-             element={<NavigateToResource resource="dashboard"/>}
-      />
+      {/* Removed NavigateToResource for dashboard */}
       <Route path="/categories">
-        <Route index element={<CategoryList/>}/>
+        <Route index element={<CategoryList />} />
         <Route path=":id" element={<CategoryShow/>}/>
       </Route>
       <Route path="/quotes">
-        <Route index element={<QuoteList/>}/>
+        <Route index element={<QuoteList />} />
       </Route>
-      <Route path="/">
-        <Route index element={<Dashboard/>}/>
-      </Route>
-      <Route path="*" element={<ErrorComponent/>}/>
+      <Route path="/" element={<HomePage />} /> {/* Changed route to render HomePage */}
+      <Route path="*" element={<ErrorComponent />} />
     </Route>
     <Route
       element={
         <Authenticated
           key="authenticated-outer"
-          fallback={<Outlet/>}
+          fallback={<Outlet />}
         >
-          <NavigateToResource/>
+          {/* Removed NavigateToResource */}
         </Authenticated>
       }
     >
