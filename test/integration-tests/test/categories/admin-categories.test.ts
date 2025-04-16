@@ -2,8 +2,7 @@ import {describe, it} from 'mocha';
 import {expect} from 'chai';
 import request from 'supertest';
 import {getUserAuthToken} from "../../src/utils/authentication.ts";
-
-const API_BASE_URL:string = 'http://localhost:8787';
+import {API_BASE_URL} from '../../src/utils/config.ts';
 
 describe('Categories API Integration Tests', () => {
   const server = request(API_BASE_URL);
