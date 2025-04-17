@@ -6,7 +6,5 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "random-quotes-admin",
   "compatibility_date": "2025-03-10",
-  "assets": {
-    "directory": "./dist"
-  }
+  "pages_build_output_dir": "./dist"
 }
