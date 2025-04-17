@@ -100,6 +100,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: integration-tests
     name: "Deploy Preview - Server"
+    outputs:
+      server-preview-url: ${{ steps.deploy.outputs.deployment-url  }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -116,10 +118,6 @@ jobs:
           wranglerVersion: "4.12.0"
           workingDirectory: "./server"
           command: versions upload
-      - name: print deployment-url
-        env:
-          DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment-url }}
-        run: echo $DEPLOYMENT_URL
   deploy-client-admin-preview:
     runs-on: ubuntu-latest
     needs: deploy-server-preview
@@ -138,7 +136,7 @@ jobs:
         run: npm install
       - name: Build
         env:
-          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_API_URL: ${{needs.deploy-server-preview.outputs.server-preview-url}}
           VITE_AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
           VITE_AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
         run: npm run build
