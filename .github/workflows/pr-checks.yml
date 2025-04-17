@@ -113,7 +113,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 23
-      - name: Deploy Client to Cloudflare Pages
+      - name: Deploy Server to Cloudflare Pages
         id: deploy
         uses: cloudflare/wrangler-action@v3
         with:
