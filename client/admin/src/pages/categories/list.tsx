@@ -1,10 +1,16 @@
-import {DeleteButton, EditButton, List, ShowButton, useModalForm, useTable,} from "@refinedev/antd";
-import {type BaseRecord, useShow} from "@refinedev/core";
-import {Form, Input, Modal, Space, Spin, Table, Typography} from "antd";
-import {useState} from "react";
+import {
+  DeleteButton,
+  EditButton,
+  List,
+  ShowButton,
+  useModalForm,
+  useTable,
+} from "@refinedev/antd";
+import { type BaseRecord, useShow } from "@refinedev/core";
+import { Form, Input, Modal, Space, Spin, Table, Typography } from "antd";
+import { useState } from "react";
 
-const {Title, Text} = Typography;
-
+const { Title, Text } = Typography;
 
 export interface ICategory {
   id: number;
@@ -25,10 +31,10 @@ const modalFormStyles = {
   },
   header: {
     margin: 0,
-    minHeight: '60px',
-    display: 'flex',
-    alignItems: 'center',
-    padding: '8px 16px'
+    minHeight: "60px",
+    display: "flex",
+    alignItems: "center",
+    padding: "8px 16px",
   },
   body: {
     padding: "16px",
@@ -37,17 +43,17 @@ const modalFormStyles = {
     borderBottom: "1px solid #f0f0f0",
   },
   footer: {
-    padding: '8px 16px'
+    padding: "8px 16px",
   },
 };
 
 const modalShowStyles = {
   header: {
     margin: 0,
-    minHeight: '60px',
-    display: 'flex',
-    alignItems: 'center',
-    padding: '8px 16px'
+    minHeight: "60px",
+    display: "flex",
+    alignItems: "center",
+    padding: "8px 16px",
   },
   body: {
     padding: "16px",
@@ -64,7 +70,7 @@ const modalShowStyles = {
 };
 
 export const CategoryList = () => {
-  const {tableProps} = useTable<ICategory>({
+  const { tableProps } = useTable<ICategory>({
     syncWithLocation: true,
   });
   // Create Modal
@@ -94,9 +100,9 @@ export const CategoryList = () => {
   // Show Modal
   const [visibleShowModal, setVisibleShowModal] = useState<boolean>(false);
 
-  const {query: queryResult, setShowId} = useShow<ICategory>();
+  const { query: queryResult, setShowId } = useShow<ICategory>();
 
-  const {data: showQueryResult} = queryResult;
+  const { data: showQueryResult } = queryResult;
   const record = showQueryResult?.data;
 
   return (
@@ -108,27 +114,23 @@ export const CategoryList = () => {
           },
         }}
       >
-        <Table {...tableProps} rowKey="id">
-          <Table.Column dataIndex="id" title={"#"}/>
-          <Table.Column dataIndex="name" title={"Name"}/>
+        <Table {...tableProps} rowKey='id'>
+          <Table.Column dataIndex='id' title={"#"} />
+          <Table.Column dataIndex='name' title={"Name"} />
           <Table.Column
             title={"Actions"}
             width={100}
-            dataIndex="actions"
+            dataIndex='actions'
             render={(_, record: BaseRecord) => (
               <Space>
                 <EditButton
                   hideText
-                  size="small"
+                  size='small'
                   recordItemId={record.id}
                   onClick={() => editModalShow(record.id)}
                 />
-                <ShowButton hideText size="small" recordItemId={record.id}/>
-                <DeleteButton
-                  hideText
-                  size="small"
-                  recordItemId={record.id}
-                />
+                <ShowButton hideText size='small' recordItemId={record.id} />
+                <DeleteButton hideText size='small' recordItemId={record.id} />
               </Space>
             )}
           />
@@ -136,26 +138,18 @@ export const CategoryList = () => {
       </List>
       <Modal {...createModalProps} styles={modalFormStyles}>
         <Spin spinning={createFormLoading}>
-          <Form {...createFormProps} layout="vertical">
-            <Form.Item
-              label="Name"
-              name="name"
-              rules={[{required: true}]}
-            >
-              <Input/>
+          <Form {...createFormProps} layout='vertical'>
+            <Form.Item label='Name' name='name' rules={[{ required: true }]}>
+              <Input />
             </Form.Item>
           </Form>
         </Spin>
       </Modal>
       <Modal {...editModalProps} styles={modalFormStyles}>
         <Spin spinning={editFormLoading}>
-          <Form {...editFormProps} layout="vertical">
-            <Form.Item
-              label="Name"
-              name="name"
-              rules={[{required: true}]}
-            >
-              <Input/>
+          <Form {...editFormProps} layout='vertical'>
+            <Form.Item label='Name' name='name' rules={[{ required: true }]}>
+              <Input />
             </Form.Item>
           </Form>
         </Spin>
@@ -164,8 +158,9 @@ export const CategoryList = () => {
         open={visibleShowModal}
         footer={false}
         onCancel={() => setVisibleShowModal(false)}
-        title="Category Details"
-        styles={modalShowStyles}>
+        title='Category Details'
+        styles={modalShowStyles}
+      >
         <Title level={5}>Id</Title>
         <Text>{record?.id}</Text>
         <Title level={5}>Name</Title>
