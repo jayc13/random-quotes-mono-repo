@@ -99,7 +99,8 @@ export const validateQuoteInput = (input: QuoteInput): boolean => {
     !input.author ||
     input.author.trim().length === 0 ||
     input.author.length > 100 ||
-    !input.categoryId
+    !input.categoryId ||
+    typeof input.categoryId !== "number"
   );
 };
 
