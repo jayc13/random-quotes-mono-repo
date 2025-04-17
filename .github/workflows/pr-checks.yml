@@ -128,6 +128,7 @@ jobs:
     name: "Deploy Preview - Admin Client"
     outputs:
       client-admin-preview-url: ${{ steps.deploy.outputs.deployment-url  }}
+      server-preview-url: ${{needs.deploy-server-preview.outputs.server-preview-url}}
     defaults:
       run:
         working-directory: ./client/admin
@@ -172,4 +173,4 @@ jobs:
             ### 🌐 Admin Client Preview
             - [${{ needs.deploy-client-admin-preview.outputs.client-admin-preview-url }}](${{ needs.deploy-client-admin-preview.outputs.client-admin-preview-url }})
             ### 🖥️ Server Preview
-            - [${{ needs.deploy-server-preview.outputs.server-preview-url }}](${{ needs.deploy-server-preview.outputs.server-preview-url }})
+            - [${{ needs.deploy-client-admin-preview.outputs.server-preview-url }}](${{ needs.deploy-client-admin-preview.outputs.server-preview-url }})
