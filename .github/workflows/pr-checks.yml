@@ -114,8 +114,8 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: "server"
-          command: versions upload
+          workingDirectory: "./server"
+          command: versions upload --script ./server
       - name: print wrangler command output
         env:
           CMD_OUTPUT: ${{ steps.deploy.outputs.command-output }}
