@@ -20,7 +20,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 23
           cache: 'npm'
@@ -42,7 +42,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 23
           cache: 'npm'
@@ -65,7 +65,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 23
           cache: 'npm'
@@ -113,7 +113,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 23
-      - name: Deploy Server to Cloudflare Pages
+      - name: Deploy Server to Cloudflare
         id: deploy
         uses: cloudflare/wrangler-action@v3
         with:
@@ -147,7 +147,7 @@ jobs:
           VITE_AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
           VITE_AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
         run: npm run build
-      - name: Deploy Client to Cloudflare Pages
+      - name: Deploy Client to Cloudflare
         id: deploy
         uses: cloudflare/wrangler-action@v3
         with:
