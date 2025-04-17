@@ -109,12 +109,12 @@ jobs:
           node-version: 23
       - name: Deploy Client to Cloudflare Pages
         id: deploy
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: "./server"
-          command: versions upload --script ./src/index.ts
+          command: versions upload
       - name: print wrangler command output
         env:
           CMD_OUTPUT: ${{ steps.deploy.outputs.command-output }}
