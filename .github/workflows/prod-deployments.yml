@@ -27,7 +27,7 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           wranglerVersion: "4.12.0"
           workingDirectory: "./server"
-          command: deploy --env production
+          command: deploy
   deploy-client-admin:
     name: "Deploy - Client Admin"
     runs-on: ubuntu-latest
