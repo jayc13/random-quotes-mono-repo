@@ -96,9 +96,32 @@ jobs:
         run: |
           cd test/integration-tests
           npm run test-ci
-  deploy-client-admin-preview:
+  deploy-server-preview:
     runs-on: ubuntu-latest
     needs: integration-tests
+    name: "Deploy Preview - Server"
+    environment: Preview
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 23
+      - name: Deploy Client to Cloudflare Pages
+        id: deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: "server"
+      - name: print wrangler command output
+        env:
+          CMD_OUTPUT: ${{ steps.deploy.outputs.command-output }}
+        run: echo $CMD_OUTPUT
+  deploy-client-admin-preview:
+    runs-on: ubuntu-latest
+    needs: deploy-server-preview
     name: "Deploy Preview - Admin Client"
     environment: Preview
     steps:
