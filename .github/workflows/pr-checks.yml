@@ -167,7 +167,6 @@ jobs:
         with:
           issue: ${{ github.event.pull_request.number }}
           message-id: 'preview-links-${{ github.event.pull_request.number }}'
-          update-only: true
           message: |
             ## 🔗 Preview Links
             ### 🌐 Admin Client Preview

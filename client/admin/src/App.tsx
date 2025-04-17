@@ -1,8 +1,4 @@
-import {
-  DashboardOutlined,
-  MessageOutlined,
-  TagsOutlined,
-} from "@ant-design/icons";
+import { HomeOutlined, MessageOutlined, TagsOutlined } from "@ant-design/icons";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useNotificationProvider } from "@refinedev/antd";
 import { type AuthBindings, Refine } from "@refinedev/core";
@@ -24,7 +20,7 @@ import AppRouter from "./router";
 
 const API_URL = import.meta.env.VITE_API_URL as string;
 
-const NON_ADMIN_RESOURCES = ["dashboard"];
+const NON_ADMIN_RESOURCES = ["home"];
 
 function App() {
   const { isLoading, user, logout, getIdTokenClaims } = useAuth0();
@@ -117,11 +113,11 @@ function App() {
               }}
               resources={[
                 {
-                  name: "dashboard",
+                  name: "home",
                   list: "/",
                   options: {
-                    label: "Dashboard",
-                    icon: <DashboardOutlined />,
+                    label: "Home",
+                    icon: <HomeOutlined />,
                   },
                 },
                 {

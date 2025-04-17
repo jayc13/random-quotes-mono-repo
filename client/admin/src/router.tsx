@@ -1,11 +1,11 @@
 import { ErrorComponent, ThemedLayoutV2, ThemedSiderV2 } from "@refinedev/antd";
-import { Authenticated, CanAccess } from "@refinedev/core";
-import { CatchAllNavigate, NavigateToResource } from "@refinedev/react-router";
+import { Authenticated } from "@refinedev/core";
+import { CatchAllNavigate } from "@refinedev/react-router";
 import React from "react";
 import { Outlet, Route, Routes } from "react-router";
 import { Header } from "./components";
 import { CategoryList, CategoryShow } from "./pages/categories";
-import Dashboard from "./pages/dashboard";
+import { HomePage } from "./pages/home";
 import { Login } from "./pages/login";
 import { QuoteList } from "./pages/quotes";
 
@@ -24,14 +24,11 @@ const AppRouter = () => {
                 <ThemedSiderV2 fixed render={({ items }) => <>{items}</>} />
               )}
             >
-              <CanAccess fallback={<Dashboard />}>
-                <Outlet />
-              </CanAccess>
+              <Outlet />
             </ThemedLayoutV2>
           </Authenticated>
         }
       >
-        <Route path='' element={<NavigateToResource resource='dashboard' />} />
         <Route path='/categories'>
           <Route index element={<CategoryList />} />
           <Route path=':id' element={<CategoryShow />} />
@@ -39,16 +36,12 @@ const AppRouter = () => {
         <Route path='/quotes'>
           <Route index element={<QuoteList />} />
         </Route>
-        <Route path='/'>
-          <Route index element={<Dashboard />} />
-        </Route>
+        <Route path='/' element={<HomePage />} />
         <Route path='*' element={<ErrorComponent />} />
       </Route>
       <Route
         element={
-          <Authenticated key='authenticated-outer' fallback={<Outlet />}>
-            <NavigateToResource />
-          </Authenticated>
+          <Authenticated key='authenticated-outer' fallback={<Outlet />} />
         }
       >
         <Route path='/login' element={<Login />} />
