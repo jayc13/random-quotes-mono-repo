@@ -1,6 +1,6 @@
-import React from "react";
+import { Alert, Box, CircularProgress, Typography } from "@mui/material";
 import { useShow } from "@refinedev/core";
-import { Typography, Box, CircularProgress, Alert } from "@mui/material";
+import type React from "react";
 
 export const HomePage: React.FC = () => {
   const { queryResult } = useShow({
@@ -12,7 +12,14 @@ export const HomePage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
         <CircularProgress />
       </Box>
     );
@@ -21,7 +28,7 @@ export const HomePage: React.FC = () => {
   if (isError) {
     return (
       <Box sx={{ padding: 2 }}>
-        <Alert severity="error">
+        <Alert severity='error'>
           Error fetching quote: {error?.message || "An unknown error occurred"}
         </Alert>
       </Box>
@@ -33,17 +40,13 @@ export const HomePage: React.FC = () => {
 
   return (
     <Box sx={{ padding: 2 }}>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant='h4' gutterBottom>
         Quote of the Moment
       </Typography>
       {quoteText ? (
-        <Typography variant="body1">
-          "{quoteText}"
-        </Typography>
+        <Typography variant='body1'>"{quoteText}"</Typography>
       ) : (
-        <Typography variant="body1">
-          Could not load quote.
-        </Typography>
+        <Typography variant='body1'>Could not load quote.</Typography>
       )}
     </Box>
   );
