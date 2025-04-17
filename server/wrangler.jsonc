@@ -13,15 +13,38 @@
 	"observability": {
 		"enabled": true
 	},
+	"preview_urls": true,
 	"d1_databases": [
 		{
 			"binding": "DB",
 			"database_name": "prod-random-quotes",
 			"database_id": "18896754-8df8-44de-9711-1dfdb5078448",
-			"preview_database_id": "3698514b-4d80-406f-9bfa-017317db8672",
-			"migrations_dir": "./database/migrations"
+			"migrations_dir": "./database/migrations",
+			"preview_database_id": "3698514b-4d80-406f-9bfa-017317db8672"
 		}
 	],
+	"env": {
+		"preview": {
+			"d1_databases": [
+				{
+					"binding": "DB",
+					"database_name": "preview-random-quotes",
+					"database_id": "3698514b-4d80-406f-9bfa-017317db8672",
+					"migrations_dir": "./database/migrations"
+				}
+			]
+		},
+		"production": {
+			"d1_databases": [
+				{
+					"binding": "DB",
+					"database_name": "prod-random-quotes",
+					"database_id": "18896754-8df8-44de-9711-1dfdb5078448",
+					"migrations_dir": "./database/migrations"
+				}
+			]
+		}
+	}
 	/**
 	 * Smart Placement
 	 * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement

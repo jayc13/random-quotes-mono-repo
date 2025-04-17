@@ -100,3 +100,77 @@ jobs:
         run: |
           cd test/integration-tests
           npm run test-ci
+  deploy-server-preview:
+    runs-on: ubuntu-latest
+    needs: integration-tests
+    name: "Deploy Preview - Server"
+    outputs:
+      server-preview-url: ${{ steps.deploy.outputs.deployment-url  }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 23
+      - name: Deploy Client to Cloudflare Pages
+        id: deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: "4.12.0"
+          workingDirectory: "./server"
+          command: versions upload --env preview
+  deploy-client-admin-preview:
+    runs-on: ubuntu-latest
+    needs: deploy-server-preview
+    name: "Deploy Preview - Admin Client"
+    outputs:
+      client-admin-preview-url: ${{ steps.deploy.outputs.deployment-url  }}
+      server-preview-url: ${{needs.deploy-server-preview.outputs.server-preview-url}}
+    defaults:
+      run:
+        working-directory: ./client/admin
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 23
+      - name: Install dependencies
+        run: npm install
+      - name: Build
+        env:
+          VITE_API_URL: ${{needs.deploy-server-preview.outputs.server-preview-url}}
+          VITE_AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
+          VITE_AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
+        run: npm run build
+      - name: Deploy Client to Cloudflare Pages
+        id: deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: "4.12.0"
+          workingDirectory: "./client/admin"
+          command: pages deploy --branch ${{ github.head_ref }} --commit-hash  ${{ github.sha }}
+  pull-request-comment:
+    runs-on: ubuntu-latest
+    needs: deploy-client-admin-preview
+    name: "Post PR Comment"
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: mshick/add-pr-comment@v2
+        with:
+          issue: ${{ github.event.pull_request.number }}
+          message-id: 'preview-links-${{ github.event.pull_request.number }}'
+          update-only: true
+          message: |
+            ## 🔗 Preview Links
+            ### 🌐 Admin Client Preview
+            - [${{ needs.deploy-client-admin-preview.outputs.client-admin-preview-url }}](${{ needs.deploy-client-admin-preview.outputs.client-admin-preview-url }})
+            ### 🖥️ Server Preview
+            - [${{ needs.deploy-client-admin-preview.outputs.server-preview-url }}](${{ needs.deploy-client-admin-preview.outputs.server-preview-url }})
