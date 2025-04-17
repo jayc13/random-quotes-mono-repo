@@ -117,7 +117,7 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           wranglerVersion: "4.12.0"
           workingDirectory: "./server"
-          command: versions upload
+          command: versions upload --env preview
   deploy-client-admin-preview:
     runs-on: ubuntu-latest
     needs: deploy-server-preview
@@ -149,7 +149,3 @@ jobs:
           wranglerVersion: "4.12.0"
           workingDirectory: "./client/admin"
           command: pages deploy --branch ${{ github.head_ref }} --commit-hash  ${{ github.sha }}
-      - name: print wrangler command output
-        env:
-          CMD_OUTPUT: ${{ steps.deploy.outputs.command-output }}
-        run: echo $CMD_OUTPUT
