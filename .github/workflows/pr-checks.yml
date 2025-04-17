@@ -160,10 +160,8 @@ jobs:
     needs: deploy-client-admin-preview
     name: "Post PR Comment"
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
       - name: Post comment on PR
-        uses: peter-evans/pull-request-comment@v2
+        uses: peter-evans/create-or-update-comment@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           issue-number: ${{ github.event.pull_request.number }}
