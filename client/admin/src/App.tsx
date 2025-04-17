@@ -8,7 +8,7 @@ import routerBindings, {
   UnsavedChangesNotifier,
 } from "@refinedev/react-router";
 import dataProvider from "@refinedev/simple-rest";
-import { App as AntdApp } from "antd";
+import { App as AntdApp, Layout, Spin } from 'antd';
 import axios from "axios";
 import React from "react";
 import { BrowserRouter } from "react-router";
@@ -26,7 +26,16 @@ function App() {
   const { isLoading, user, logout, getIdTokenClaims } = useAuth0();
 
   if (isLoading) {
-    return <span>loading...</span>;
+    return <Layout
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100vh",
+      }}
+    >
+      <Spin />
+    </Layout>
   }
   const authProvider: AuthBindings = {
     login: async () => {
