@@ -1,26 +1,29 @@
 {
-	"name": "server",
-	"version": "0.0.0",
-	"private": true,
-	"scripts": {
-		"deploy": "wrangler deploy",
-		"dev": "wrangler dev",
-		"start": "wrangler dev",
-		"build": "tsc",
-		"test": "vitest --config ./vitest.config.mts",
-		"cf-typegen": "wrangler types"
-	},
-	"dependencies": {
-		"@cfworker/jwt": "^7.0.4",
-		"@cloudflare/vitest-pool-workers": "^0.8.15",
-		"@tsndr/cloudflare-worker-jwt": "^3.1.4",
-		"typescript": "^5.2.2",
-		"vitest": "3.0.9",
-		"workers-qb": "^1.10.2",
-		"wrangler": "^4.9.1"
-	},
-	"devDependencies": {
-		"@types/node": "^22.14.0",
-		"@vitest/coverage-istanbul": "3.0.9"
-	}
+  "name": "server",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "start": "wrangler dev",
+    "build": "tsc",
+    "lint": "biome check ./src",
+    "lint-fix": "biome check --write ./src",
+    "test": "vitest --config ./vitest.config.mts",
+    "cf-typegen": "wrangler types"
+  },
+  "dependencies": {
+    "@cfworker/jwt": "^7.0.4",
+    "@cloudflare/vitest-pool-workers": "^0.8.15",
+    "@tsndr/cloudflare-worker-jwt": "^3.1.4",
+    "typescript": "^5.2.2",
+    "vitest": "3.0.9",
+    "workers-qb": "^1.10.2",
+    "wrangler": "^4.9.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "latest",
+    "@types/node": "^22.14.0",
+    "@vitest/coverage-istanbul": "3.0.9"
+  }
 }
