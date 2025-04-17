@@ -7,8 +7,8 @@ import {
     updateQuote,
     deleteQuote,
 } from '../../src/services/quote.service';
-import { D1QB, QB } from 'workers-qb'; // Import D1QB & QB if it's used for mocking
-import { QuoteInput, Quote } from '../../src/models/models'; // Import QuoteInput and Quote
+import { D1QB } from 'workers-qb'; // Import D1QB & QB if it's used for mocking
+import { QuoteInput, Quote } from '../../src/services/quote.service'; // Import QuoteInput and Quote
 
 // Mock the D1Database
 const mockDb = {
@@ -30,9 +30,8 @@ const mockQbMethods = {
 
 // Mock the D1QB constructor to return our mock instance
 vi.mock('workers-qb', () => {
-    const QB = vi.fn(() => mockQbMethods); // Mock the QB class constructor
-    const D1QB = QB; // Alias QB as D1QB if your code uses D1QB
-    return { QB, D1QB };
+    const D1QB = vi.fn(() => mockQbMethods); // Alias QB as D1QB if your code uses D1QB
+    return { D1QB };
 });
 
 
@@ -45,22 +44,80 @@ describe('quote.service', () => {
     });
 
     describe('getAllQuotes', () => {
-        // [ ... existing getAllQuotes tests ... ]
+        it('should handle empty results', async () => {
+            mockQbMethods.execute.mockResolvedValue({ results: null });
+            mockQbMethods.count.mockResolvedValue({ results: { total: 0 } });
+
+            const result = await getAllQuotes(mockDb);
+
+            expect(result).toEqual({
+                quotes: [],
+                meta: {
+                    count: 0,
+                    total: 0
+                }
+            });
+        });
         it('should handle errors during count query', async () => {
-            const mockQuotes = [{ id: 1, text: 'Quote 1' }];
             const errorMessage = 'Count query error';
-            mockQbMethods.execute.mockResolvedValueOnce({ results: mockQuotes, success: true });
             mockQbMethods.execute.mockRejectedValueOnce(new Error(errorMessage));
             await expect(getAllQuotes(mockDb)).rejects.toThrow(errorMessage);
-            expect(QB).toHaveBeenCalledWith(mockDb);
+            expect(D1QB).toHaveBeenCalledWith(mockDb);
             expect(mockQbMethods.fetchAll).toHaveBeenCalledTimes(1);
             expect(mockQbMethods.count).toHaveBeenCalledTimes(1);
-            expect(mockQbMethods.execute).toHaveBeenCalledTimes(2);
+            expect(mockQbMethods.execute).toHaveBeenCalledTimes(1);
+        });
+        it('should handle filter by categoryId', async () => {
+            const categoryId = 1;
+            const mockQuotes = [{
+                QuoteId: 1,
+                QuoteText: "Test",
+                QuoteAuthor: "Author",
+                QuoteCategoryId: categoryId
+            }];
+
+            mockQbMethods.execute.mockResolvedValue({ results: mockQuotes });
+            mockQbMethods.count.mockResolvedValue({ results: { total: 1 } });
+
+            const result = await getAllQuotes(mockDb, {
+                filter: { categoryId }
+            });
+
+            expect(mockQbMethods.fetchAll).toHaveBeenCalledWith({
+                tableName: "Quotes",
+                fields: "*",
+                where: {
+                    conditions: "QuoteCategoryId = ?1",
+                    params: [categoryId]
+                },
+                limit: 10,
+                offset: 0
+            });
+            expect(result.quotes).toHaveLength(1);
         });
     });
 
     describe('getQuoteById', () => {
-        // [ ... existing getQuoteById tests ... ]
+        it('should correctly map quote fields', async () => {
+            const mockQuote = {
+                QuoteId: 1,
+                QuoteText: "Test quote",
+                QuoteAuthor: "Author",
+                QuoteCategoryId: 2
+            };
+            const mockAllFn = vi.fn().mockResolvedValue({ results: [mockQuote] });
+            const mockBindFn = vi.fn().mockReturnValue({ all: mockAllFn });
+            mockDb.prepare.mockReturnValue({ bind: mockBindFn });
+
+            const result = await getQuoteById(mockDb, 1);
+
+            expect(result).toEqual({
+                id: 1,
+                quote: "Test quote",
+                author: "Author",
+                categoryId: 2
+            });
+        });
         it('should handle errors during database query', async () => {
             const quoteId = 500;
             const errorMessage = 'Database query failed';
@@ -73,20 +130,53 @@ describe('quote.service', () => {
             expect(mockBindFn).toHaveBeenCalledWith(quoteId);
             expect(mockAllFn).toHaveBeenCalledTimes(1);
         });
+        it('should return null for non-existent quote', async () => {
+            const mockAllFn = vi.fn().mockResolvedValue({ results: [] });
+            const mockBindFn = vi.fn().mockReturnValue({ all: mockAllFn });
+            mockDb.prepare.mockReturnValue({ bind: mockBindFn });
+
+            const result = await getQuoteById(mockDb, 999);
+
+            expect(result).toBeNull();
+        });
     });
 
     describe('validateQuoteInput', () => {
-        // [ ... existing validateQuoteInput tests ... ]
-        const MAX_QUOTE_LENGTH = 250;
-        const MAX_AUTHOR_LENGTH = 100;
         let validInput: QuoteInput;
-        beforeEach(() => { validInput = { quote: 'Valid', author: 'Valid', categoryId: 1 }; });
-        it('should return true for valid input', () => { expect(validateQuoteInput(validInput)).toBe(true); });
-        it('should return false if categoryId is not a number', () => { validInput.categoryId = '1' as any; expect(validateQuoteInput(validInput)).toBe(false); });
+        beforeEach(() => {
+            validInput = { quote: 'Valid', author: 'Valid', categoryId: 1 };
+        });
+        it('should return true for valid input', () => {
+            expect(validateQuoteInput(validInput)).toBe(true);
+        });
+        it('should return false if categoryId is not a number', () => {
+            validInput.categoryId = 'A' as any; expect(validateQuoteInput(validInput)).toBe(false);
+        });
+        it('should return false for empty input', () => {
+            expect(validateQuoteInput(null as any)).toBe(false);
+            expect(validateQuoteInput(undefined as any)).toBe(false);
+        });
+
+        it('should return false for empty strings after trim', () => {
+            const input = {
+                quote: "   ",
+                author: "  ",
+                categoryId: 1
+            };
+            expect(validateQuoteInput(input)).toBe(false);
+        });
+
+        it('should validate string length limits', () => {
+            const longInput = {
+                quote: "a".repeat(251),
+                author: "a".repeat(101),
+                categoryId: 1
+            };
+            expect(validateQuoteInput(longInput)).toBe(false);
+        });
     });
 
     describe('createQuote', () => {
-        // [ ... existing createQuote tests ... ]
         let validInput: QuoteInput;
         let mockRunFn: ReturnType<typeof vi.fn>;
         let mockBindFn: ReturnType<typeof vi.fn>;
@@ -116,10 +206,20 @@ describe('quote.service', () => {
             expect(mockBindFn).toHaveBeenCalledTimes(1);
             expect(mockRunFn).toHaveBeenCalledTimes(1);
         });
+        it('should throw error for invalid input', async () => {
+            const invalidInput = {
+                quote: "",
+                author: "",
+                categoryId: 1
+            };
+            await expect(createQuote(mockDb, invalidInput))
+              .rejects
+              .toThrow('Invalid quote input');
+            expect(mockDb.prepare).not.toHaveBeenCalled();
+        });
     });
 
     describe('updateQuote', () => {
-        // [ ... existing updateQuote tests ... ]
         let validUpdateInput: QuoteInput;
         const quoteId = 101;
         let mockRunUpdateFn: ReturnType<typeof vi.fn>;
@@ -165,16 +265,25 @@ describe('quote.service', () => {
              expect(mockBindSelectFn).toHaveBeenCalledTimes(1);
              expect(mockAllSelectFn).toHaveBeenCalledTimes(1);
          });
+        it('should throw error for invalid input', async () => {
+            const invalidInput = {
+                quote: "",
+                author: "",
+                categoryId: 1
+            };
+            await expect(updateQuote(mockDb, 1, invalidInput))
+              .rejects
+              .toThrow('Invalid quote input');
+            expect(mockDb.prepare).not.toHaveBeenCalled();
+        });
     });
 
-    // --- NEW TESTS FOR deleteQuote ---
     describe('deleteQuote', () => {
         let mockRunFn: ReturnType<typeof vi.fn>;
         let mockBindFn: ReturnType<typeof vi.fn>;
         let mockStatement: { bind: ReturnType<typeof vi.fn>; run: ReturnType<typeof vi.fn> };
 
         beforeEach(() => {
-            // Setup mock chain for db.prepare().bind().run()
             mockRunFn = vi.fn();
             mockBindFn = vi.fn().mockReturnValue({ run: mockRunFn });
             mockStatement = { bind: mockBindFn, run: mockRunFn };
@@ -244,6 +353,5 @@ describe('quote.service', () => {
             expect(mockRunFn).toHaveBeenCalledTimes(1); // Run was called, but it threw
         });
     });
-    // --- END NEW TESTS ---
 
 });
