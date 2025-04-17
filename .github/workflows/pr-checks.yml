@@ -115,7 +115,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: "client/admin"
-          command: pages deploy --branch ${{ github.head_ref }} --commit ${{ github.sha }}
+          command: pages deploy --branch ${{ github.head_ref }} --commit-hash  ${{ github.sha }}
       - name: print wrangler command output
         env:
           CMD_OUTPUT: ${{ steps.deploy.outputs.command-output }}
