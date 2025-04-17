@@ -166,6 +166,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           issue-number: ${{ github.event.pull_request.number }}
           body: |
-            ### Preview Links
-            - [Admin Client Preview](${{ needs.deploy-client-admin-preview.outputs.client-admin-preview-url }})
-            - [Server Preview](${{ needs.deploy-server-preview.outputs.server-preview-url }})
+            ### 🔗 Preview Links
+            - **Admin Client Preview**: [View Here](${{ needs.deploy-client-admin-preview.outputs.client-admin-preview-url }})
+            - **Server Preview**: [View Here](${{ needs.deploy-server-preview.outputs.server-preview-url }})
