@@ -19,7 +19,7 @@ jobs:
           node-version: 23
           cache: 'npm'
           cache-dependency-path: ./server/package-lock.json
-      - name: Deploy Server to Cloudflare Pages
+      - name: Deploy Server to Cloudflare
         id: deploy
         uses: cloudflare/wrangler-action@v3
         with:
@@ -51,7 +51,7 @@ jobs:
           VITE_AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
           VITE_AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
         run: npm run build
-      - name: Deploy Client to Cloudflare Pages
+      - name: Deploy Client to Cloudflare
         id: deploy
         uses: cloudflare/wrangler-action@v3
         with:
@@ -59,4 +59,4 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           wranglerVersion: "4.12.0"
           workingDirectory: "./client/admin"
-          command: pages deploy --env production
+          command: pages deploy
