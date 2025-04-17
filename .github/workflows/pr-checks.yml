@@ -116,10 +116,10 @@ jobs:
           wranglerVersion: "4.12.0"
           workingDirectory: "./server"
           command: versions upload
-      - name: print wrangler command output
+      - name: print deployment-url
         env:
-          CMD_OUTPUT: ${{ steps.deploy.outputs.command-output }}
-        run: echo $CMD_OUTPUT
+          DEPLOYMENT_URL: ${{ steps.deploy-server-preview.outputs.deployment-url }}
+        run: echo $DEPLOYMENT_URL
   deploy-client-admin-preview:
     runs-on: ubuntu-latest
     needs: deploy-server-preview
@@ -137,7 +137,8 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: "client/admin"
+          wranglerVersion: "4.12.0"
+          workingDirectory: "./client/admin"
           command: pages deploy --branch ${{ github.head_ref }} --commit-hash  ${{ github.sha }}
       - name: print wrangler command output
         env:
