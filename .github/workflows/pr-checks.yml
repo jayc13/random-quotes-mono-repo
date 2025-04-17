@@ -169,5 +169,5 @@ jobs:
           message-id: 'preview-links-${{ github.event.pull_request.number }}'
           message: |
             ### 🔗 Preview Links
-            - **Admin Client Preview**: [View Here](${{ needs.deploy-client-admin-preview.outputs.client-admin-preview-url }})
-            - **Server Preview**: [View Here](${{ needs.deploy-server-preview.outputs.server-preview-url }})
+            - **🌐 Admin Client Preview**: [View here](${{ needs.deploy-client-admin-preview.outputs.client-admin-preview-url }})
+            - **🖥️ Server Preview**: [View here](${{ needs.deploy-server-preview.outputs.server-preview-url }})
