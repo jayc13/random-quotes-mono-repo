@@ -11,16 +11,14 @@ jobs:
     name: "Deploy - Server"
     runs-on: ubuntu-latest
     environment: production
-    defaults:
-      run:
-        working-directory: ./server
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '23'
+          node-version: 23
           cache: 'npm'
+          cache-dependency-path: ./server/package-lock.json
       - name: Deploy Server to Cloudflare Pages
         id: deploy
         uses: cloudflare/wrangler-action@v3
@@ -39,11 +37,12 @@ jobs:
         working-directory: ./client/admin
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '23'
+          node-version: 23
           cache: 'npm'
+          cache-dependency-path: ./client/admin/package-lock.json
       - name: Install dependencies
         run: npm ci
       - name: Build
