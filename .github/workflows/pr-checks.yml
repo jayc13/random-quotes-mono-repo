@@ -126,6 +126,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: deploy-server-preview
     name: "Deploy Preview - Admin Client"
+    outputs:
+      client-admin-preview-url: ${{ steps.deploy.outputs.deployment-url  }}
     defaults:
       run:
         working-directory: ./client/admin
@@ -153,3 +155,19 @@ jobs:
           wranglerVersion: "4.12.0"
           workingDirectory: "./client/admin"
           command: pages deploy --branch ${{ github.head_ref }} --commit-hash  ${{ github.sha }}
+  pull-request-comment:
+    runs-on: ubuntu-latest
+    needs: deploy-client-admin-preview
+    name: "Post PR Comment"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Post comment on PR
+        uses: peter-evans/pull-request-comment@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            ### Preview Links
+            - [Admin Client Preview](${{ needs.deploy-client-admin-preview.outputs.client-admin-preview-url }})
+            - [Server Preview](${{ needs.deploy-server-preview.outputs.server-preview-url }})
