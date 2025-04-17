@@ -159,13 +159,15 @@ jobs:
     runs-on: ubuntu-latest
     needs: deploy-client-admin-preview
     name: "Post PR Comment"
+    permissions:
+      pull-requests: write
     steps:
-      - name: Post comment on PR
-        uses: peter-evans/create-or-update-comment@v4
+      - uses: mshick/add-pr-comment@v2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          issue-number: ${{ github.event.pull_request.number }}
-          body: |
+          refresh-message-position: true
+          issue: ${{ github.event.pull_request.number }}
+          message-id: 'preview-links-${{ github.event.pull_request.number }}'
+          message: |
             ### 🔗 Preview Links
             - **Admin Client Preview**: [View Here](${{ needs.deploy-client-admin-preview.outputs.client-admin-preview-url }})
             - **Server Preview**: [View Here](${{ needs.deploy-server-preview.outputs.server-preview-url }})
