@@ -154,7 +154,9 @@ jobs:
           cd test/e2e-tests
           npm install
       - name: Setup Playwright
-        run: npx playwright install
+        run: |
+          cd test/e2e-tests
+          npx playwright install
       - name: Run E2E tests
         env:
           ADMIN_USER_EMAIL: ${{ secrets.ADMIN_USER_EMAIL }}
