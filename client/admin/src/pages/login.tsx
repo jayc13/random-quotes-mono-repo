@@ -26,6 +26,7 @@ export const Login: React.FC = () => {
           style={{ width: "240px", marginBottom: "32px" }}
           type='primary'
           size='middle'
+          data-testid='login-button'
           onClick={() =>
             loginWithRedirect({
               appState: {
