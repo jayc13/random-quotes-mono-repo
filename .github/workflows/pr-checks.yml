@@ -100,9 +100,84 @@ jobs:
         run: |
           cd test/integration-tests
           npm run test-ci
+  e2e-tests:
+    name: "E2E Tests"
+    needs:
+      - client-admin
+      - server
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 23
+          cache: 'npm'
+          cache-dependency-path: ./test/e2e-tests/package-lock.json
+      - name: Install dependencies (server)
+        run: |
+          cd server
+          npm install
+      - name: Populate database
+        run: |
+          ./scripts/db_scripts.sh --apply-migration
+          ./scripts/db_scripts.sh --execute ../backup/categories.sql
+          ./scripts/db_scripts.sh --execute ../backup/quotes.sql
+      - name: Start server
+        env:
+          AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
+          AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
+        run: |
+          cd server
+          echo "AUTH0_DOMAIN=${{ secrets.AUTH0_DOMAIN }}" > .dev.vars
+          echo "AUTH0_CLIENT_ID=${{ secrets.AUTH0_CLIENT_ID }}" >> .dev.vars
+          npm run start &
+      - name: Install dependencies (client/admin)
+        run: |
+          cd client/admin
+          npm ci
+      - name: Build (client/admin)
+        env:
+          VITE_API_URL: ${{ secrets.API_URL }}
+          VITE_AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
+          VITE_AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
+        run: |
+          cd client/admin
+          npm run build
+      - name: Start Admin (client/admin)
+        run: |
+          cd client/admin
+          npm run start &
+      - name: Install dependencies (E2E tests)
+        run: |
+          cd test/e2e-tests
+          npm install
+      - name: Setup Playwright
+        run: |
+          cd test/e2e-tests
+          npx playwright install chromium
+      - name: Run E2E tests
+        env:
+          ADMIN_USER_EMAIL: ${{ secrets.ADMIN_USER_EMAIL }}
+          ADMIN_USER_PASSWORD: ${{ secrets.ADMIN_USER_PASSWORD }}
+          REGULAR_USER_EMAIL: ${{ secrets.REGULAR_USER_EMAIL }}
+          REGULAR_USER_PASSWORD: ${{ secrets.REGULAR_USER_PASSWORD }}
+        run: |
+          cd test/e2e-tests
+          npm run test
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        if: ${{ failure() || cancelled() }}
+        with:
+          name: playwright-report
+          path: test/e2e-tests/playwright-report/
+          retention-days: 30
   deploy-server-preview:
     runs-on: ubuntu-latest
-    needs: integration-tests
+    needs:
+      - integration-tests
+      - e2e-tests
     name: "Deploy Preview - Server"
     outputs:
       server-preview-url: ${{ steps.deploy.outputs.deployment-url  }}
