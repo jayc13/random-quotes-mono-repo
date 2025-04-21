@@ -5,7 +5,6 @@ import type React from "react";
 const { Title, Text, Paragraph } = Typography;
 
 export const HomePage: React.FC = () => {
-
   return (
     <Layout
       style={{
@@ -25,7 +24,8 @@ export const HomePage: React.FC = () => {
         <Card>
           <Space direction='vertical'>
             <Text italic style={{ fontSize: "1.5rem" }}>
-              &quot;Happiness is not something ready-made. It comes from your own actions.&quot;
+              &quot;Happiness is not something ready-made. It comes from your
+              own actions.&quot;
             </Text>
             <Text
               type='secondary'
@@ -34,7 +34,9 @@ export const HomePage: React.FC = () => {
                 justifyContent: "flex-end",
                 fontSize: "1.2rem",
               }}
-            >Dalai Lama XIV</Text>
+            >
+              Dalai Lama XIV
+            </Text>
           </Space>
         </Card>
       </div>
