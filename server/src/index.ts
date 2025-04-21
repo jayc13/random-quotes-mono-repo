@@ -4,20 +4,20 @@ import {
   getAllCategoriesHandler,
   getCategoryByIdHandler,
   updateCategoryHandler,
-} from "./controller/category.controller";
+} from "@/controllers/category.controller";
 import {
   createQuoteHandler,
   deleteQuoteHandler,
   getAllQuotesHandler,
   getQuoteByIdHandler,
   updateQuoteHandler,
-} from "./controller/quote.controller";
+} from "@/controllers/quote.controller";
 import {
   authenticationMiddleware,
   isAdmin,
-} from "./middleware/authentication.middleware";
-import type { CategoryInput } from "./services/category.service";
-import type { QuoteInput } from "./services/quote.service";
+} from "@/middlewares/authentication.middleware";
+import type { CategoryInput } from "@/types/category.types";
+import type { QuoteInput } from "@/types/quote.types";
 
 export interface Env {
   DB: D1Database;

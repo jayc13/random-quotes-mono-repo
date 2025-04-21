@@ -1,11 +1,4 @@
-export interface Category {
-  id: number;
-  name: string;
-}
-
-export interface CategoryInput {
-  name: string;
-}
+import type { Category, CategoryInput } from "@/types/category.types";
 
 export const getAllCategories = async (db: D1Database): Promise<Category[]> => {
   const { results } = await db.prepare("SELECT * FROM Categories").all();

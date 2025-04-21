@@ -8,7 +8,7 @@ import {
     deleteQuote,
 } from '../../src/services/quote.service';
 import { D1QB } from 'workers-qb'; // Import D1QB & QB if it's used for mocking
-import { QuoteInput, Quote } from '../../src/services/quote.service'; // Import QuoteInput and Quote
+import { QuoteInput, Quote } from '../../src/types/quote.types';
 
 // Mock the D1Database
 const mockDb = {
