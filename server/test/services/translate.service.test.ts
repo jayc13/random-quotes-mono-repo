@@ -22,8 +22,7 @@ describe('translateText', () => {
 
       expect(result).toEqual(mockResponse.response.translated_text);
     });
-    it('should return the text to translate if the api signature is no as expected', async () => {
-      const options = { sourceLang: 'en', targetLang: 'fr', text: 'Hello' };
+    it('should return the text to translate if the API signature is not as expected', async () => {
       const mockResponse = { bad: { jsonFormat: 'not ok' } };
 
       fetch.mockResolvedValue({
@@ -75,7 +74,7 @@ describe('translateText', () => {
     it('throws an error if there is a network error', async () => {
       const options = { sourceLang: 'en', targetLang: 'fr', text: 'Hello' };
 
-      fetch.mockResolvedValue(new Error('Network Error'));
+      fetch.mockRejectedValue(new Error('Network Error'));
 
       await expect(translateText(options)).rejects.toThrow('Translation failed after trying all endpoints.');
     });
