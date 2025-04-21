@@ -23,6 +23,7 @@ describe('translateText', () => {
       expect(result).toEqual(mockResponse.response.translated_text);
     });
     it('should return the text to translate if the API signature is not as expected', async () => {
+      const options = { sourceLang: 'en', targetLang: 'fr', text: 'Hello' };
       const mockResponse = { bad: { jsonFormat: 'not ok' } };
 
       fetch.mockResolvedValue({
