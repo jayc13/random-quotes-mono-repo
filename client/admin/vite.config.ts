@@ -10,7 +10,6 @@ export default defineConfig({
         manualChunks: {
           react: ['react', 'react-dom'],
           antdLib: ['antd/lib'],
-          antdEs: ['antd/es'],
           refinedevCore: ['@refinedev/core'],
           refinedevAntd: ['@refinedev/antd'],
           quotesPage: ['src/pages/quotes/list.tsx'], // Quotes page

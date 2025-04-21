@@ -3,6 +3,15 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "refine dev --port 3000",
+    "build": "tsc && refine build",
+    "start": "refine start --port 3000",
+    "refine": "refine",
+    "lint": "biome check ./src",
+    "lint-fix": "biome check --write ./src"
+  },
   "dependencies": {
     "@ant-design/icons": "^5.6.1",
     "@auth0/auth0-react": "^2.3.0",
@@ -32,15 +41,6 @@
     "typescript": "^5.4.2",
     "vite": "^4.5.13",
     "wrangler": "^4.9.1"
-  },
-  "scripts": {
-    "deploy": "wrangler deploy",
-    "dev": "refine dev --port 3000",
-    "build": "tsc && refine build",
-    "start": "refine start --port 3000",
-    "refine": "refine",
-    "lint": "biome check ./src",
-    "lint-fix": "biome check --write ./src"
   },
   "browserslist": {
     "production": [
