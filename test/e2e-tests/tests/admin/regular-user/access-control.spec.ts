@@ -17,13 +17,15 @@ test.describe('Regular users - Access Control', () => {
   test('/categories path requires admin login', async () => {
     await page.goto(`${ADMIN_BASE_URL}/categories`);
     const mainContainer =  page.locator('header');
-    await mainContainer.waitFor({ state: 'visible', timeout: 3 * 60 * 1000 });
+    await mainContainer.waitFor({ state: 'visible' });
+    await page.getByTestId('home-page').waitFor({ state: 'visible' });
     await onlyHomePageAccessible(page);
   });
   test('/quotes path requires admin login', async () => {
     await page.goto(`${ADMIN_BASE_URL}/quotes`);
     const mainContainer =  page.locator('header');
-    await mainContainer.waitFor({ state: 'visible', timeout: 3 * 60 * 1000 });
+    await mainContainer.waitFor({ state: 'visible' });
+    await page.getByTestId('home-page').waitFor({ state: 'visible' });
     await onlyHomePageAccessible(page);
   });
 });

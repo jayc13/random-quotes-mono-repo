@@ -1,5 +1,5 @@
 import { ErrorComponent, ThemedLayoutV2, ThemedSiderV2 } from "@refinedev/antd";
-import { Authenticated } from "@refinedev/core";
+import { Authenticated, CanAccess } from "@refinedev/core";
 import { CatchAllNavigate } from "@refinedev/react-router";
 import React from "react";
 import { Outlet, Route, Routes } from "react-router";
@@ -24,7 +24,9 @@ const AppRouter = () => {
                 <ThemedSiderV2 fixed render={({ items }) => <>{items}</>} />
               )}
             >
-              <Outlet />
+              <CanAccess fallback={<HomePage />}>
+                <Outlet />
+              </CanAccess>
             </ThemedLayoutV2>
           </Authenticated>
         }
