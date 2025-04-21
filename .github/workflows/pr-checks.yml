@@ -156,7 +156,7 @@ jobs:
           REGULAR_USER_EMAIL: ${{ secrets.REGULAR_USER_EMAIL }}
           REGULAR_USER_PASSWORD: ${{ secrets.REGULAR_USER_PASSWORD }}
         run: |
-          cd test/integration-tests
+          cd test/e2e-tests
           npm run test-ci
   deploy-server-preview:
     runs-on: ubuntu-latest
