@@ -9,9 +9,6 @@ export default defineConfig({
       output: {
         manualChunks: {
           react: ['react', 'react-dom'],
-          antdLib: ['antd/lib'],
-          refinedevCore: ['@refinedev/core'],
-          refinedevAntd: ['@refinedev/antd'],
           quotesPage: ['src/pages/quotes/list.tsx'], // Quotes page
           indexCategoriesPage: ['src/pages/categories/list.tsx'], // Categories List page
           showCategoriesPage: ['src/pages/categories/show.tsx'], // Categories Show page
