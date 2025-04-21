@@ -119,12 +119,16 @@ jobs:
         run: |
           cd server
           npm install
+      - name: Populate database
+        run: |
+          ./scripts/db_scripts.sh --apply-migration
+          ./scripts/db_scripts.sh --execute ../backup/categories.sql
+          ./scripts/db_scripts.sh --execute ../backup/quotes.sql
       - name: Start server
         env:
           AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
           AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
         run: |
-          ./scripts/db_scripts.sh --apply-migration
           cd server
           echo "AUTH0_DOMAIN=${{ secrets.AUTH0_DOMAIN }}" > .dev.vars
           echo "AUTH0_CLIENT_ID=${{ secrets.AUTH0_CLIENT_ID }}" >> .dev.vars
@@ -157,7 +161,9 @@ jobs:
           ADMIN_USER_PASSWORD: ${{ secrets.ADMIN_USER_PASSWORD }}
           REGULAR_USER_EMAIL: ${{ secrets.REGULAR_USER_EMAIL }}
           REGULAR_USER_PASSWORD: ${{ secrets.REGULAR_USER_PASSWORD }}
-        run: npm run test
+        run: |
+          cd test/e2e-tests
+          npm run test
       - name: Upload results
         uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
