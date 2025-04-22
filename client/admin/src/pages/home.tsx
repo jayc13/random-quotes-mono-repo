@@ -1,4 +1,4 @@
-import { useCustom, useShow } from "@refinedev/core";
+import { useCustom } from "@refinedev/core";
 import { Alert, Card, Layout, Space, Spin, Typography } from "antd";
 import type React from "react";
 import { useEffect, useState } from "react";
@@ -20,18 +20,50 @@ export const HomePage: React.FC = () => {
     },
   });
 
-  // Effect to fetch data on mount
   useEffect(() => {
-    refetch();
-  }, [refetch]); // Dependency array includes refetch
+    refetch().then();
+  }, [refetch]);
 
-  // Effect to update state when data is fetched
   useEffect(() => {
     if (data?.data) {
       setQuote(data.data.quote);
       setAuthor(data.data.author);
     }
-  }, [data]); // Dependency array includes data
+  }, [data]);
+
+  if (isLoading) {
+    return (
+      <Layout
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "calc(100vh - 64px - 48px)",
+          padding: 2,
+        }}
+        data-testid='home-page'
+      >
+        <Spin />
+      </Layout>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Layout
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "calc(100vh - 64px - 48px)",
+          padding: 2,
+        }}
+        data-testid='home-page'
+      >
+        <Alert message='Error fetching quote' type='error' />
+      </Layout>
+    );
+  }
 
   return (
     <Layout
@@ -44,40 +76,31 @@ export const HomePage: React.FC = () => {
       }}
       data-testid='home-page'
     >
-      {isLoading ? (
-        <Spin />
-      ) : isError ? (
-        <Alert message='Error fetching quote' type='error' />
-      ) : (
-        <div>
-          <Title level={2} style={{ textAlign: "center", opacity: 0.3 }}>
-            Quote of the Moment
-          </Title>
+      <Title level={2} style={{ textAlign: "center", opacity: 0.3 }}>
+        Quote of the Moment
+      </Title>
 
-          <Card>
-            {quote && author ? (
-              <Space direction='vertical'>
-                <Text italic style={{ fontSize: "1.5rem" }}>
-                  &quot;{quote}&quot;
-                </Text>
-                <Text
-                  type='secondary'
-                  style={{
-                    display: "flex",
-                    justifyContent: "flex-end",
-                    fontSize: "1.2rem",
-                  }}
-                >
-                  {author}
-                </Text>
-              </Space>
-            ) : (
-              // Optional: Fallback if quote/author are null/empty after loading
-              <Text type='secondary'>Could not load quote.</Text>
-            )}
-          </Card>
-        </div>
-      )}
+      <Card>
+        {quote && author ? (
+          <Space direction='vertical'>
+            <Text italic style={{ fontSize: "1.5rem" }}>
+              &quot;{quote}&quot;
+            </Text>
+            <Text
+              type='secondary'
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                fontSize: "1.2rem",
+              }}
+            >
+              {author}
+            </Text>
+          </Space>
+        ) : (
+          <Text type='secondary'>Could not load quote.</Text>
+        )}
+      </Card>
     </Layout>
   );
 };
