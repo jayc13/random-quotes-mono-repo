@@ -14,7 +14,7 @@ export function generateQuoteSvg(
   const { theme, width, height } = options;
 
   // Theme-based colors
-  const bgColor = theme === "dark" ? "#121212" : "#f0f0f0"; // Use theme from options
+  const bgColor = theme === "dark" ? "#121212" : "#ffffff"; // Use theme from options
   const textColor = theme === "dark" ? "#f0f0f0" : "#121212";
   const authorColor = theme === "dark" ? "#a0a0a0" : "#555555"; // Slightly different color for author
 
