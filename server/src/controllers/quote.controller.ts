@@ -1,11 +1,16 @@
-import { DEFAULT_CORS_HEADERS } from "../index";
 import {
   createQuote,
   deleteQuote,
   getAllQuotes,
   getQuoteById,
+  getRandomQuote,
   updateQuote,
-} from "../services/quote.service";
+} from "@/services/quote.service";
+import {
+  DEFAULT_LANG,
+  getSupportedLanguages,
+} from "@/services/translate.service";
+import { DEFAULT_CORS_HEADERS } from "@/utils/constants";
 
 export const getAllQuotesHandler = async (request: Request, db: D1Database) => {
   const url = new URL(request.url);
@@ -34,6 +39,53 @@ export const getAllQuotesHandler = async (request: Request, db: D1Database) => {
       "X-Total-Count": `${total}`,
     },
   });
+};
+
+export const getRandomQuoteHandler = async (
+  request: Request,
+  db: D1Database,
+): Promise<Response> => {
+  try {
+    const url = new URL(request.url);
+    const categoryIdStr = url.searchParams.get("categoryId");
+    let categoryId: number | undefined = undefined;
+
+    if (categoryIdStr && !Number.isNaN(Number(categoryIdStr))) {
+      categoryId = Number(categoryIdStr);
+    }
+
+    // Validate language
+    const requestedLang = url.searchParams.get("lang");
+    let finalLang: string = DEFAULT_LANG;
+    if (requestedLang && getSupportedLanguages().includes(requestedLang)) {
+      finalLang = requestedLang;
+    }
+
+    const quote = await getRandomQuote(db, { categoryId, lang: finalLang });
+
+    if (!quote) {
+      return Response.json(
+        { error: "No quote found matching the criteria" },
+        {
+          status: 404,
+          headers: DEFAULT_CORS_HEADERS,
+        },
+      );
+    }
+
+    return Response.json(quote, {
+      headers: DEFAULT_CORS_HEADERS,
+    });
+  } catch (error) {
+    console.error("Error in getRandomQuoteHandler:", error);
+    return Response.json(
+      { error: "An internal error occurred" },
+      {
+        status: 500,
+        headers: DEFAULT_CORS_HEADERS,
+      },
+    );
+  }
 };
 
 export const getQuoteByIdHandler = async (db: D1Database, id: number) => {

@@ -20,3 +20,8 @@ export interface GetAllQuotesOptions {
     categoryId?: number;
   };
 }
+
+export interface GetRandomQuoteOptions {
+  categoryId?: number;
+  lang?: string;
+}

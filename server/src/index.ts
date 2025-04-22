@@ -10,6 +10,7 @@ import {
   deleteQuoteHandler,
   getAllQuotesHandler,
   getQuoteByIdHandler,
+  getRandomQuoteHandler,
   updateQuoteHandler,
 } from "@/controllers/quote.controller";
 import {
@@ -18,19 +19,13 @@ import {
 } from "@/middlewares/authentication.middleware";
 import type { CategoryInput } from "@/types/category.types";
 import type { QuoteInput } from "@/types/quote.types";
+import { DEFAULT_CORS_HEADERS } from "@/utils/constants";
 
 export interface Env {
   DB: D1Database;
   AUTH0_DOMAIN: string;
   AUTH0_CLIENT_ID: string;
 }
-
-export const DEFAULT_CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "*",
-  "Access-Control-Expose-Headers": "*",
-};
 
 export default {
   async fetch(request, env, ctx): Promise<Response> {
@@ -42,7 +37,12 @@ export default {
       });
     }
 
-    // Unauthenticated user
+    // --- Public Routes (No Authentication Required) ---
+    if (url.pathname === "/random" && request.method === "GET") {
+      return getRandomQuoteHandler(request, env.DB);
+    }
+
+    // --- Authentication Middleware ---
 
     try {
       await authenticationMiddleware(request, env, ctx);
