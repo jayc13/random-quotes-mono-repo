@@ -13,6 +13,8 @@ import {
   getRandomQuoteHandler,
   updateQuoteHandler,
 } from "@/controllers/quote.controller";
+// Remove getQuoteSvgHandler import as it's no longer used
+import { getRandomQuoteSvgHandler } from "@/controllers/quote-svg.controller";
 import {
   authenticationMiddleware,
   isAdmin,
@@ -40,6 +42,11 @@ export default {
     // --- Public Routes (No Authentication Required) ---
     if (url.pathname === "/random" && request.method === "GET") {
       return getRandomQuoteHandler(request, env.DB);
+    }
+
+    // New route for random SVG generation
+    if (url.pathname === "/random.svg" && request.method === "GET") {
+      return getRandomQuoteSvgHandler(request, env.DB);
     }
 
     // --- Authentication Middleware ---
