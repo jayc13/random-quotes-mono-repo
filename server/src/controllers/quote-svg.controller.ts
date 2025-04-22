@@ -57,12 +57,11 @@ export async function getRandomQuoteSvgHandler(
   }
 
   // Language (default: DEFAULT_LANG)
-  const langParam = params.get("lang");
+  const langParam = params.get("lang") ?? DEFAULT_LANG;
   const supportedLanguages = getSupportedLanguages();
-  const lang =
-    langParam && supportedLanguages.includes(langParam)
-      ? langParam
-      : DEFAULT_LANG;
+  const lang = supportedLanguages.includes(langParam)
+    ? langParam
+    : DEFAULT_LANG;
 
   // Category ID (optional)
   const categoryIdParam = params.get("categoryId");
