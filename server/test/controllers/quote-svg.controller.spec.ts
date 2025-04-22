@@ -1,5 +1,3 @@
-// server/test/controllers/quote-svg.controller.spec.ts
-
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 // Import only the remaining handler
 import { getRandomQuoteSvgHandler } from '@/controllers/quote-svg.controller';
@@ -9,7 +7,6 @@ import { generateQuoteSvg } from '@/services/quote-svg.service';
 // Import language utils
 import { DEFAULT_LANG, getSupportedLanguages } from '@/services/translate.service';
 import { DEFAULT_CORS_HEADERS } from '@/utils/constants';
-import type { D1Database } from '@cloudflare/workers-types';
 import type { Quote } from '@/types/quote.types';
 
 // --- Mocks ---
@@ -27,18 +24,13 @@ vi.mock('@/services/translate.service', async (importOriginal) => {
         getSupportedLanguages: vi.fn(() => ['en', 'es']), // Mock supported languages
     };
 });
-// vi.mock('@/utils/constants', () => ({
-//   DEFAULT_CORS_HEADERS: { 'Access-Control-Allow-Origin': '*' }
-// }));
 
 // Sample data
 const sampleQuote: Quote = {
   id: 1,
   quote: 'Test Quote',
   author: 'Test Author',
-  category_id: 1,
-  created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString(),
+  categoryId: 1,
 };
 
 const mockDb = {} as D1Database; // Mock D1Database (can be empty object for these tests)
@@ -153,7 +145,7 @@ describe('getRandomQuoteSvgHandler Controller', () => {
 
     expect(response.status).toBe(404);
     expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
-    expect(responseBody).toContain('No quotes found');
+    expect(responseBody).toContain('No quote found matching the criteria');
   });
 
    it('should return 404 if no random quote is found for a specific category', async () => {
@@ -170,7 +162,7 @@ describe('getRandomQuoteSvgHandler Controller', () => {
     expect(generateQuoteSvg).not.toHaveBeenCalled();
 
     expect(response.status).toBe(404);
-    expect(responseBody).toContain('No quotes found for category ID 99');
+    expect(responseBody).toContain('No quote found matching the criteria');
   });
 
   it('should return 500 if getRandomQuote throws an error', async () => {

@@ -25,3 +25,9 @@ export interface GetRandomQuoteOptions {
   categoryId?: number;
   lang?: string;
 }
+
+export interface QuoteSvgOptions {
+  theme: "light" | "dark";
+  width: number;
+  height: number;
+}

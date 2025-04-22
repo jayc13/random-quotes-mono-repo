@@ -5,6 +5,8 @@ import {
   getCategoryByIdHandler,
   updateCategoryHandler,
 } from "@/controllers/category.controller";
+// Remove getQuoteSvgHandler import as it's no longer used
+import { getRandomQuoteSvgHandler } from "@/controllers/quote-svg.controller";
 import {
   createQuoteHandler,
   deleteQuoteHandler,
@@ -13,8 +15,6 @@ import {
   getRandomQuoteHandler,
   updateQuoteHandler,
 } from "@/controllers/quote.controller";
-// Remove getQuoteSvgHandler import as it's no longer used
-import { getRandomQuoteSvgHandler } from "@/controllers/quote-svg.controller";
 import {
   authenticationMiddleware,
   isAdmin,
