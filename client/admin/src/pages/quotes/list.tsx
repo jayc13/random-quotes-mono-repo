@@ -158,7 +158,7 @@ export const QuoteList = ({ categoryId }: QuoteListProps) => {
   const record = showQueryResult?.data;
 
   return (
-    <>
+    <div data-testid='quotes-page'>
       <List
         createButtonProps={{
           onClick: () => {
@@ -167,7 +167,7 @@ export const QuoteList = ({ categoryId }: QuoteListProps) => {
         }}
         title='Quotes'
       >
-        <Table {...tableProps} rowKey='id'>
+        <Table {...tableProps} rowKey='id' id="quotes-table">
           <Table.Column dataIndex='id' title={"#"} />
           <Table.Column
             dataIndex='quote'
@@ -306,6 +306,6 @@ export const QuoteList = ({ categoryId }: QuoteListProps) => {
           </Space>
         </Card>
       </Modal>
-    </>
+    </div>
   );
 };

@@ -106,15 +106,17 @@ export const CategoryList = () => {
   const record = showQueryResult?.data;
 
   return (
-    <>
+    <div data-testid='categories-page'>
       <List
         createButtonProps={{
+          id: "add-category-btn",
           onClick: () => {
             createModalShow();
           },
         }}
+        title="Categories"
       >
-        <Table {...tableProps} rowKey='id'>
+        <Table {...tableProps} rowKey='id' id="categories-table">
           <Table.Column dataIndex='id' title={"#"} />
           <Table.Column dataIndex='name' title={"Name"} />
           <Table.Column
@@ -139,7 +141,7 @@ export const CategoryList = () => {
       <Modal {...createModalProps} styles={modalFormStyles}>
         <Spin spinning={createFormLoading}>
           <Form {...createFormProps} layout='vertical'>
-            <Form.Item label='Name' name='name' rules={[{ required: true }]}>
+            <Form.Item label='Name' name='name' data-testid="categoryName" rules={[{ required: true }]}>
               <Input />
             </Form.Item>
           </Form>
@@ -148,7 +150,7 @@ export const CategoryList = () => {
       <Modal {...editModalProps} styles={modalFormStyles}>
         <Spin spinning={editFormLoading}>
           <Form {...editFormProps} layout='vertical'>
-            <Form.Item label='Name' name='name' rules={[{ required: true }]}>
+            <Form.Item label='Name' name='name' data-testid="categoryName" rules={[{ required: true }]}>
               <Input />
             </Form.Item>
           </Form>
@@ -166,6 +168,6 @@ export const CategoryList = () => {
         <Title level={5}>Name</Title>
         <Text>{record?.name}</Text>
       </Modal>
-    </>
+    </div>
   );
 };
