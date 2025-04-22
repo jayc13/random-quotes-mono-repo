@@ -1,4 +1,3 @@
-import { DEFAULT_CORS_HEADERS } from "@/utils/constants";
 import {
   createQuote,
   deleteQuote,
@@ -11,6 +10,7 @@ import {
   DEFAULT_LANG,
   getSupportedLanguages,
 } from "@/services/translate.service";
+import { DEFAULT_CORS_HEADERS } from "@/utils/constants";
 
 export const getAllQuotesHandler = async (request: Request, db: D1Database) => {
   const url = new URL(request.url);
