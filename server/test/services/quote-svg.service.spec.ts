@@ -38,7 +38,7 @@ describe('generateQuoteSvg Service', () => {
     expect(svg).toContain('</svg>');
 
     // Theme checks
-    expect(svg).toContain('style="background-color: #f0f0f0;'); // Check light background
+    expect(svg).toContain('style="background-color: #ffffff;'); // Check light background
     expect(svg).toContain('fill="#121212"'); // Check light theme quote text color
     expect(svg).toContain('fill="#555555"'); // Check light theme author color
 
