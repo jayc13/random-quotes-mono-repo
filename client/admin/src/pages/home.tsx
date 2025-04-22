@@ -1,7 +1,7 @@
-import { useShow, useCustom } from "@refinedev/core";
+import { useCustom, useShow } from "@refinedev/core";
 import { Alert, Card, Layout, Space, Spin, Typography } from "antd";
 import type React from "react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -9,7 +9,10 @@ export const HomePage: React.FC = () => {
   const [quote, setQuote] = useState<string | null>(null);
   const [author, setAuthor] = useState<string | null>(null);
 
-  const { data, isLoading, isError, refetch } = useCustom<{ quote: string; author: string }>({
+  const { data, isLoading, isError, refetch } = useCustom<{
+    quote: string;
+    author: string;
+  }>({
     url: "/random",
     method: "get",
     queryOptions: {
