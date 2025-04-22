@@ -19,6 +19,7 @@ import {
 } from "@/middlewares/authentication.middleware";
 import type { CategoryInput } from "@/types/category.types";
 import type { QuoteInput } from "@/types/quote.types";
+import { DEFAULT_CORS_HEADERS } from "@/utils/constants";
 
 export interface Env {
   DB: D1Database;
