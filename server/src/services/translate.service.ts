@@ -81,7 +81,15 @@ export async function translateText(
     url.search = new URLSearchParams(params).toString();
 
     try {
-      const response: Response = await fetch(url);
+      const response: Response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          "user-agent":
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
+        },
+      });
       if (response.ok) {
         result = await response.json();
         break;
@@ -90,6 +98,7 @@ export async function translateText(
         `Error at ${url}: ${response.status} - ${response.statusText}`,
       );
     } catch (error) {
+      console.log(error);
       console.error(`Request exception at ${url}:`, error);
     }
   }
