@@ -1,4 +1,4 @@
-import { DEFAULT_CORS_HEADERS } from "../index";
+import { DEFAULT_CORS_HEADERS } from "@/utils/constants";
 import {
   createQuote,
   deleteQuote,
@@ -6,8 +6,11 @@ import {
   getQuoteById,
   getRandomQuote,
   updateQuote,
-} from "../services/quote.service";
-import { DEFAULT_LANG, getSupportedLanguages } from "../services/translate.service"; // <-- Import getSupportedLanguages
+} from "@/services/quote.service";
+import {
+  DEFAULT_LANG,
+  getSupportedLanguages,
+} from "@/services/translate.service";
 
 export const getAllQuotesHandler = async (request: Request, db: D1Database) => {
   const url = new URL(request.url);
@@ -47,26 +50,18 @@ export const getRandomQuoteHandler = async (
     const categoryIdStr = url.searchParams.get("categoryId");
     let categoryId: number | undefined = undefined;
 
-    if (categoryIdStr) {
-      const parsedId = Number.parseInt(categoryIdStr, 10);
-      if (!isNaN(parsedId)) {
-        categoryId = parsedId;
-      }
+    if (categoryIdStr && !Number.isNaN(Number(categoryIdStr))) {
+      categoryId = Number(categoryIdStr);
     }
 
     // Validate language
     const requestedLang = url.searchParams.get("lang");
-    let finalLang = DEFAULT_LANG; // Default to DEFAULT_LANG
-
-    if (requestedLang) {
-      // Check if the requested language is supported
-      if (getSupportedLanguages().includes(requestedLang)) {
-        finalLang = requestedLang; // Use the supported requested language
-      }
-      // If requestedLang exists but is not supported, finalLang remains DEFAULT_LANG
+    let finalLang: string = DEFAULT_LANG;
+    if (requestedLang && getSupportedLanguages().includes(requestedLang)) {
+      finalLang = requestedLang;
     }
 
-    const quote = await getRandomQuote(db, { categoryId, lang: finalLang }); // <-- Use finalLang
+    const quote = await getRandomQuote(db, { categoryId, lang: finalLang });
 
     if (!quote) {
       return Response.json(

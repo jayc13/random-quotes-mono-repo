@@ -1,11 +1,11 @@
-import { DEFAULT_CORS_HEADERS } from "../index";
+import { DEFAULT_CORS_HEADERS } from "@/utils/constants";
 import {
   createCategory,
   deleteCategory,
   getAllCategories,
   getCategoryById,
   updateCategory,
-} from "../services/category.service";
+} from '@/services/category.service';
 
 export const getAllCategoriesHandler = async (db: D1Database) => {
   const categories = await getAllCategories(db);

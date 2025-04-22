@@ -1,11 +1,11 @@
+import { DEFAULT_LANG, translateText } from "@/services/translate.service";
 import type {
   GetAllQuotesOptions,
-  GetRandomQuoteOptions, // <-- Add import
+  GetRandomQuoteOptions,
   Quote,
   QuoteInput,
 } from "@/types/quote.types";
 import { D1QB } from "workers-qb";
-import { translateText, DEFAULT_LANG } from "@/services/translate.service";
 
 export const getAllQuotes = async (
   db: D1Database,
@@ -150,7 +150,7 @@ export const deleteQuote = async (
 
 export const getRandomQuote = async (
   db: D1Database,
-  options?: GetRandomQuoteOptions, // <-- Update type annotation
+  options?: GetRandomQuoteOptions,
 ): Promise<Quote | null> => {
   const qb = new D1QB(db);
   const { categoryId, lang = DEFAULT_LANG } = options || {};
@@ -168,6 +168,8 @@ export const getRandomQuote = async (
     tableName: "Quotes",
     fields: "*",
     where,
+    orderBy: "RANDOM()",
+    limit: 1,
   });
 
   const { results } = await query.execute();
@@ -176,27 +178,22 @@ export const getRandomQuote = async (
     return null;
   }
 
-  const randomIndex = Math.floor(Math.random() * results.length);
-  const rawQuote = results[randomIndex];
-
-  let selectedQuote: Quote = {
-    id: rawQuote.QuoteId as number,
-    quote: rawQuote.QuoteText as string,
-    author: rawQuote.QuoteAuthor as string,
-    categoryId: rawQuote.QuoteCategoryId as number,
+  const selectedQuote = {
+    id: results[0].QuoteId as number,
+    quote: results[0].QuoteText as string,
+    author: results[0].QuoteAuthor as string,
+    categoryId: results[0].QuoteCategoryId as number,
   };
 
   if (lang !== DEFAULT_LANG) {
     try {
-      const translatedText = await translateText({
+      selectedQuote.quote = await translateText({
         text: selectedQuote.quote,
         sourceLang: DEFAULT_LANG,
         targetLang: lang,
       });
-      selectedQuote.quote = translatedText;
     } catch (error) {
       console.error(`Translation failed for quote ${selectedQuote.id}:`, error);
-      // Proceed with the default language quote if translation fails
     }
   }
 

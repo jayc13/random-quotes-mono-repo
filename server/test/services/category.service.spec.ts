@@ -5,7 +5,7 @@ import {
 	getAllCategories,
 	getCategoryById,
 	updateCategory
-} from '../../src/services/category.service';
+} from '@/services/category.service';
 
 describe('category.service', () => {
 	const mockDb = {
