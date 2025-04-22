@@ -2,8 +2,17 @@ import { useCustom } from "@refinedev/core";
 import { Alert, Card, Layout, Space, Spin, Typography } from "antd";
 import type React from "react";
 import { useEffect, useState } from "react";
+import { API_URL } from "../utils/constants";
 
 const { Title, Text, Paragraph } = Typography;
+
+const layoutStyles = {
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  height: "calc(100vh - 64px - 48px)",
+  padding: 2,
+} as const;
 
 export const HomePage: React.FC = () => {
   const [quote, setQuote] = useState<string | null>(null);
@@ -13,10 +22,10 @@ export const HomePage: React.FC = () => {
     quote: string;
     author: string;
   }>({
-    url: "/random",
+    url: `${API_URL}/random`,
     method: "get",
     queryOptions: {
-      enabled: false, // Prevent automatic fetching
+      enabled: false,
     },
   });
 
@@ -33,16 +42,7 @@ export const HomePage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Layout
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "calc(100vh - 64px - 48px)",
-          padding: 2,
-        }}
-        data-testid='home-page'
-      >
+      <Layout style={layoutStyles} data-testid='home-page'>
         <Spin />
       </Layout>
     );
@@ -50,32 +50,14 @@ export const HomePage: React.FC = () => {
 
   if (isError) {
     return (
-      <Layout
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "calc(100vh - 64px - 48px)",
-          padding: 2,
-        }}
-        data-testid='home-page'
-      >
+      <Layout style={layoutStyles} data-testid='home-page'>
         <Alert message='Error fetching quote' type='error' />
       </Layout>
     );
   }
 
   return (
-    <Layout
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "calc(100vh - 64px - 48px)",
-        padding: 2,
-      }}
-      data-testid='home-page'
-    >
+    <Layout style={layoutStyles} data-testid='home-page'>
       <Title level={2} style={{ textAlign: "center", opacity: 0.3 }}>
         Quote of the Moment
       </Title>
