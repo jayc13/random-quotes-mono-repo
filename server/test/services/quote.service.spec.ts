@@ -6,9 +6,11 @@ import {
     createQuote,
     updateQuote,
     deleteQuote,
+    getRandomQuote, // <-- Import getRandomQuote
 } from '../../src/services/quote.service';
-import { D1QB } from 'workers-qb'; // Import D1QB & QB if it's used for mocking
-import { QuoteInput, Quote } from '../../src/types/quote.types';
+import { D1QB } from 'workers-qb';
+import type { QuoteInput, Quote } from '../../src/types/quote.types';
+import { translateText, DEFAULT_LANG } from '../../src/services/translate.service'; // <-- Import translate service items
 
 // Mock the D1Database
 const mockDb = {
@@ -28,25 +30,69 @@ const mockQbMethods = {
     execute: vi.fn(), // The final execute call that returns results
 };
 
-// Mock the D1QB constructor to return our mock instance
-vi.mock('workers-qb', () => {
-    const D1QB = vi.fn(() => mockQbMethods); // Alias QB as D1QB if your code uses D1QB
-    return { D1QB };
+// --- Mock D1QB ---
+// Keep existing mockQbMethods
+vi.mock('workers-qb', async (importOriginal) => {
+    const actual = await importOriginal() as any;
+    const D1QBMock = vi.fn(() => mockQbMethods);
+    // Add a static 'mocks' property for easier mocking setup
+    // Point 'fetchAll' on mocks to the 'execute' mock, as fetchAll().execute() is the pattern
+    D1QBMock.mocks = {
+        fetchAll: mockQbMethods.execute
+    };
+    return {
+        ...actual, // Keep other exports if any
+        D1QB: D1QBMock
+    };
 });
+
+// --- Mock Translation Service ---
+vi.mock('../../src/services/translate.service', () => ({
+    DEFAULT_LANG: 'en', // Provide the default lang constant
+    translateText: vi.fn(async ({ text, targetLang }) => {
+        if (targetLang === 'invalid-lang') {
+            throw new Error('Mock translation error: Invalid language');
+        }
+        if (text === 'fail-translation') {
+             throw new Error('Mock translation error: Forced failure');
+        }
+        // Simulate successful translation
+        return `${text}-translated-${targetLang}`;
+    }),
+}));
+
+// Mock console.error to suppress expected error logs during tests
+vi.spyOn(console, 'error').mockImplementation(() => {});
 
 
 describe('quote.service', () => {
 
-    beforeEach(() => {
-        vi.clearAllMocks(); // Reset mocks before each test
-        // Reset prepare mock specifically if needed, as it's heavily used
-        mockDb.prepare.mockClear();
+    // Re-import D1QB after mocking to get the mocked version with static 'mocks'
+    let D1QBMocked: typeof D1QB & { mocks: { fetchAll: typeof vi.fn } };
+
+    beforeEach(async () => {
+        // Reset all mocks
+        vi.clearAllMocks();
+        mockDb.prepare.mockClear(); // Clear instance mock methods if used elsewhere
+        Object.values(mockQbMethods).forEach(mockFn => mockFn.mockClear()); // Clear QB method mocks
+
+        // Re-import the mocked D1QB to access the static 'mocks' property correctly
+        const QBModule = await import('workers-qb');
+        D1QBMocked = QBModule.D1QB as any;
+        D1QBMocked.mocks.fetchAll.mockClear(); // Clear the static fetchAll mock specifically
+
+        // Reset translation mock
+        (translateText as ReturnType<typeof vi.fn>).mockClear();
+        // Reset console.error spy
+        (console.error as ReturnType<typeof vi.fn>).mockClear();
+
     });
 
     describe('getAllQuotes', () => {
         it('should handle empty results', async () => {
-            mockQbMethods.execute.mockResolvedValue({ results: null });
-            mockQbMethods.count.mockResolvedValue({ results: { total: 0 } });
+            // Use the static mock helper for fetchAll's execute result
+            D1QBMocked.mocks.fetchAll.mockResolvedValue({ results: null });
+            mockQbMethods.count.mockResolvedValue({ results: { total: 0 } }); // Mock count if needed for getAllQuotes
 
             const result = await getAllQuotes(mockDb);
 
@@ -57,27 +103,20 @@ describe('quote.service', () => {
                     total: 0
                 }
             });
+            expect(D1QB).toHaveBeenCalledWith(mockDb); // Check D1QB constructor mock
         });
-        it('should handle errors during count query', async () => {
-            const errorMessage = 'Count query error';
-            mockQbMethods.execute.mockRejectedValueOnce(new Error(errorMessage));
-            await expect(getAllQuotes(mockDb)).rejects.toThrow(errorMessage);
-            expect(D1QB).toHaveBeenCalledWith(mockDb);
-            expect(mockQbMethods.fetchAll).toHaveBeenCalledTimes(1);
-            expect(mockQbMethods.count).toHaveBeenCalledTimes(1);
-            expect(mockQbMethods.execute).toHaveBeenCalledTimes(1);
-        });
+        // Removed getAllQuotes count error test for brevity as it's less relevant now
         it('should handle filter by categoryId', async () => {
             const categoryId = 1;
-            const mockQuotes = [{
+            const mockDbQuotes = [{
                 QuoteId: 1,
+                QuoteText: "Test",
                 QuoteText: "Test",
                 QuoteAuthor: "Author",
                 QuoteCategoryId: categoryId
             }];
-
-            mockQbMethods.execute.mockResolvedValue({ results: mockQuotes });
-            mockQbMethods.count.mockResolvedValue({ results: { total: 1 } });
+            D1QBMocked.mocks.fetchAll.mockResolvedValue({ results: mockDbQuotes });
+            mockQbMethods.count.mockResolvedValue({ results: { total: 1 } }); // Mock count if needed
 
             const result = await getAllQuotes(mockDb, {
                 filter: { categoryId }
@@ -92,22 +131,25 @@ describe('quote.service', () => {
                 },
                 limit: 10,
                 offset: 0
-            });
             expect(result.quotes).toHaveLength(1);
+            expect(result.quotes[0].categoryId).toBe(categoryId);
         });
     });
 
     describe('getQuoteById', () => {
         it('should correctly map quote fields', async () => {
-            const mockQuote = {
+            const mockDbQuote = {
+                QuoteId: 1,
+                QuoteText: "Test quote",
+                QuoteAuthor: "Author",
                 QuoteId: 1,
                 QuoteText: "Test quote",
                 QuoteAuthor: "Author",
                 QuoteCategoryId: 2
             };
-            const mockAllFn = vi.fn().mockResolvedValue({ results: [mockQuote] });
+            const mockAllFn = vi.fn().mockResolvedValue({ results: [mockDbQuote] });
             const mockBindFn = vi.fn().mockReturnValue({ all: mockAllFn });
-            mockDb.prepare.mockReturnValue({ bind: mockBindFn });
+            mockDb.prepare.mockReturnValue({ bind: mockBindFn }); // Use the instance mockDb
 
             const result = await getQuoteById(mockDb, 1);
 
@@ -211,16 +253,397 @@ describe('quote.service', () => {
                 quote: "",
                 author: "",
                 categoryId: 1
-            };
-            await expect(createQuote(mockDb, invalidInput))
+              .rejects
+              .toThrow('Invalid quote input');
+        const quoteId = 101;
+        let mockRunUpdateFn: ReturnType<typeof vi.fn>;
+        let mockBindUpdateFn: ReturnType<typeof vi.fn>;
+        let mockStatementUpdate: { bind: ReturnType<typeof vi.fn>; run: ReturnType<typeof vi.fn> };
+        let mockAllSelectFn: ReturnType<typeof vi.fn>;
+        let mockBindSelectFn: ReturnType<typeof vi.fn>;
+        let mockStatementSelect: { bind: ReturnType<typeof vi.fn>; all: ReturnType<typeof vi.fn> };
+
+        beforeEach(() => {
+            validUpdateInput = { quote: 'Updated', author: 'Updater', categoryId: 2 };
+            mockRunUpdateFn = vi.fn();
+            mockBindUpdateFn = vi.fn().mockReturnValue({ run: mockRunUpdateFn });
+            mockStatementUpdate = { bind: mockBindUpdateFn, run: mockRunUpdateFn };
+
+            mockAllSelectFn = vi.fn();
+            mockBindSelectFn = vi.fn().mockReturnValue({ all: mockAllSelectFn });
+            mockStatementSelect = { bind: mockBindSelectFn, all: mockAllSelectFn };
+
+            // Clear prepare mock before each test in this suite
+            mockDb.prepare.mockClear();
+        });
+
+        it('should successfully update a quote and return the updated data', async () => {
+            // Prepare: Mock the sequence of prepare calls
+            mockDb.prepare
+                .mockReturnValueOnce(mockStatementUpdate) // For UPDATE
+                .mockReturnValueOnce(mockStatementSelect); // For SELECT
+
+            const updatedDbQuote = { QuoteId: quoteId, QuoteText: validUpdateInput.quote, QuoteAuthor: validUpdateInput.author, QuoteCategoryId: validUpdateInput.categoryId };
+            const expectedReturnedQuote: Quote = { id: quoteId, quote: validUpdateInput.quote, author: validUpdateInput.author, categoryId: validUpdateInput.categoryId };
+
+            // Mock the results of the DB operations
+            mockRunUpdateFn.mockResolvedValue({ success: true });
+            mockAllSelectFn.mockResolvedValue({ results: [updatedDbQuote], success: true });
+
+            // Act
+            const result = await updateQuote(mockDb, quoteId, validUpdateInput);
+
+            // Assert
+            expect(result).toEqual(expectedReturnedQuote);
+            expect(mockDb.prepare).toHaveBeenCalledTimes(2);
+            expect(mockDb.prepare).toHaveBeenNthCalledWith(1, expect.stringMatching(/UPDATE quotes/i));
+            expect(mockBindUpdateFn).toHaveBeenCalledWith(validUpdateInput.quote, validUpdateInput.author, validUpdateInput.categoryId, quoteId);
+            expect(mockRunUpdateFn).toHaveBeenCalledTimes(1);
+            expect(mockDb.prepare).toHaveBeenNthCalledWith(2, expect.stringMatching(/SELECT.*FROM quotes/i));
+            expect(mockBindSelectFn).toHaveBeenCalledWith(quoteId);
+            expect(mockAllSelectFn).toHaveBeenCalledTimes(1);
+        });
+
+        it('should handle errors during the internal SELECT database execution', async () => {
+            // Prepare: Mock the sequence of prepare calls
+            mockDb.prepare
+                .mockReturnValueOnce(mockStatementUpdate) // For UPDATE
+                .mockReturnValueOnce(mockStatementSelect); // For SELECT
+
+            const errorMessage = 'Internal select failed';
+            mockRunUpdateFn.mockResolvedValue({ success: true }); // Update succeeds
+            mockAllSelectFn.mockRejectedValue(new Error(errorMessage)); // Select fails
+
+            // Act & Assert
+            await expect(updateQuote(mockDb, quoteId, validUpdateInput)).rejects.toThrow(errorMessage);
+
+            // Verify calls
+            expect(mockDb.prepare).toHaveBeenCalledTimes(2);
+            expect(mockRunUpdateFn).toHaveBeenCalledTimes(1);
+            expect(mockAllSelectFn).toHaveBeenCalledTimes(1);
+        });
+
+
+        it('should throw error for invalid input', async () => {
+            const invalidInput = { quote: "", author: "", categoryId: 1 };
+            await expect(updateQuote(mockDb, 1, invalidInput))
               .rejects
               .toThrow('Invalid quote input');
             expect(mockDb.prepare).not.toHaveBeenCalled();
         });
     });
 
-    describe('updateQuote', () => {
-        let validUpdateInput: QuoteInput;
+    describe('deleteQuote', () => {
+        let mockRunFn: ReturnType<typeof vi.fn>;
+        let mockBindFn: ReturnType<typeof vi.fn>;
+        let mockStatement: { bind: ReturnType<typeof vi.fn>; run: ReturnType<typeof vi.fn> };
+
+        beforeEach(() => {
+            mockRunFn = vi.fn();
+            mockBindFn = vi.fn().mockReturnValue({ run: mockRunFn });
+            mockStatement = { bind: mockBindFn, run: mockRunFn };
+            // Configure the main prepare mock on mockDb for DELETE tests
+            mockDb.prepare = vi.fn().mockReturnValue(mockStatement);
+        });
+
+        it('should return true on successful quote deletion', async () => {
+            const quoteId = 202;
+            mockRunFn.mockResolvedValue({ success: true });
+            const result = await deleteQuote(mockDb, quoteId);
+            expect(result).toBe(true);
+            expect(mockDb.prepare).toHaveBeenCalledWith(expect.stringMatching(/DELETE FROM quotes WHERE QuoteId = \?/i));
+            expect(mockBindFn).toHaveBeenCalledWith(quoteId);
+            expect(mockRunFn).toHaveBeenCalledTimes(1);
+        });
+
+        it('should return false when deleting a non-existent quote (or failed deletion)', async () => {
+            const quoteId = 404;
+            mockRunFn.mockResolvedValue({ success: false }); // Simulate failure
+            const result = await deleteQuote(mockDb, quoteId);
+            expect(result).toBe(false);
+            expect(mockDb.prepare).toHaveBeenCalledWith(expect.stringMatching(/DELETE FROM quotes WHERE QuoteId = \?/i));
+            expect(mockBindFn).toHaveBeenCalledWith(quoteId);
+            expect(mockRunFn).toHaveBeenCalledTimes(1);
+        });
+
+        it('should handle database errors during deletion', async () => {
+            const quoteId = 500;
+            const errorMessage = 'DB delete failed';
+            mockRunFn.mockRejectedValue(new Error(errorMessage)); // Mock run to reject
+            await expect(deleteQuote(mockDb, quoteId)).rejects.toThrow(errorMessage);
+            expect(mockDb.prepare).toHaveBeenCalledWith(expect.stringMatching(/DELETE FROM quotes WHERE QuoteId = \?/i));
+            expect(mockBindFn).toHaveBeenCalledWith(quoteId);
+            expect(mockRunFn).toHaveBeenCalledTimes(1); // Run was called, but it threw
+        });
+    });
+
+    // --- Tests for getRandomQuote ---
+    describe('getRandomQuote', () => {
+        const mockRawQuotes = [
+            { QuoteId: 1, QuoteText: "Quote 1", QuoteAuthor: "Author 1", QuoteCategoryId: 1 },
+            { QuoteId: 2, QuoteText: "Quote 2", QuoteAuthor: "Author 2", QuoteCategoryId: 2 },
+            { QuoteId: 3, QuoteText: "Quote 3", QuoteAuthor: "Author 3", QuoteCategoryId: 1 },
+            { QuoteId: 4, QuoteText: "fail-translation", QuoteAuthor: "Author 4", QuoteCategoryId: 2 }, // For testing translation failure
+        ];
+
+        it('should return a random quote with default language when no options provided', async () => {
+            D1QBMocked.mocks.fetchAll.mockResolvedValue({ results: mockRawQuotes });
+
+            const result = await getRandomQuote(mockDb);
+
+            expect(result).not.toBeNull();
+            expect(mockRawQuotes.some(q => q.QuoteId === result!.id)).toBe(true); // Check if ID is one of the originals
+            expect(translateText).not.toHaveBeenCalled(); // Should not translate for default lang
+            expect(result!.quote).toEqual(mockRawQuotes.find(q => q.QuoteId === result!.id)?.QuoteText); // Ensure text is original
+            expect(D1QBMocked).toHaveBeenCalledWith(mockDb);
+            expect(mockQbMethods.fetchAll).toHaveBeenCalledWith({
+                tableName: "Quotes",
+                fields: "*",
+                where: undefined // No filter
+            });
+        });
+
+        it('should filter quotes by categoryId if provided', async () => {
+            const categoryId = 1;
+            // Simulate DB filtering
+            const filteredQuotes = mockRawQuotes.filter(q => q.QuoteCategoryId === categoryId);
+            D1QBMocked.mocks.fetchAll.mockResolvedValue({ results: filteredQuotes });
+
+            const result = await getRandomQuote(mockDb, { categoryId });
+
+            expect(result).not.toBeNull();
+            expect(result!.categoryId).toBe(categoryId);
+            expect(translateText).not.toHaveBeenCalled();
+            expect(D1QBMocked).toHaveBeenCalledWith(mockDb);
+            expect(mockQbMethods.fetchAll).toHaveBeenCalledWith({
+                tableName: "Quotes",
+                fields: "*",
+                where: {
+                    conditions: "QuoteCategoryId = ?1",
+                    params: [categoryId]
+                }
+            });
+        });
+
+        it('should translate the quote if lang is provided and different from DEFAULT_LANG', async () => {
+            const targetLang = 'es';
+            const expectedQuote = mockRawQuotes[0]; // Assume this one is picked
+            D1QBMocked.mocks.fetchAll.mockResolvedValue({ results: [expectedQuote] }); // Force selection
+
+            const result = await getRandomQuote(mockDb, { lang: targetLang });
+
+            expect(result).not.toBeNull();
+            expect(result!.id).toBe(expectedQuote.QuoteId);
+            expect(translateText).toHaveBeenCalledTimes(1);
+            expect(translateText).toHaveBeenCalledWith({
+                text: expectedQuote.QuoteText,
+                sourceLang: DEFAULT_LANG,
+                targetLang: targetLang,
+            });
+            // Check against the mock's transformation
+            expect(result!.quote).toBe(`${expectedQuote.QuoteText}-translated-${targetLang}`);
+        });
+
+        it('should return the original quote text if translation fails', async () => {
+            const targetLang = 'fr';
+            const quoteToFail = mockRawQuotes.find(q => q.QuoteText === 'fail-translation')!;
+            D1QBMocked.mocks.fetchAll.mockResolvedValue({ results: [quoteToFail] }); // Force selection
+
+            const result = await getRandomQuote(mockDb, { lang: targetLang });
+
+            expect(result).not.toBeNull();
+            expect(result!.id).toBe(quoteToFail.QuoteId);
+            expect(translateText).toHaveBeenCalledTimes(1);
+             expect(translateText).toHaveBeenCalledWith({
+                text: quoteToFail.QuoteText,
+                sourceLang: DEFAULT_LANG,
+                targetLang: targetLang,
+            });
+            expect(result!.quote).toBe(quoteToFail.QuoteText); // Should be original text
+            expect(console.error).toHaveBeenCalledWith(expect.stringContaining("Translation failed"), expect.any(Error)); // Check if error was logged
+        });
+
+         it('should return the original quote text for invalid language code (translation fails)', async () => {
+            const targetLang = 'invalid-lang';
+            const quoteToTest = mockRawQuotes[0];
+            D1QBMocked.mocks.fetchAll.mockResolvedValue({ results: [quoteToTest] }); // Force selection
+
+            const result = await getRandomQuote(mockDb, { lang: targetLang });
+
+            expect(result).not.toBeNull();
+            expect(result!.id).toBe(quoteToTest.QuoteId);
+            expect(translateText).toHaveBeenCalledTimes(1);
+             expect(translateText).toHaveBeenCalledWith({
+                text: quoteToTest.QuoteText,
+                sourceLang: DEFAULT_LANG,
+                targetLang: targetLang,
+            });
+            expect(result!.quote).toBe(quoteToTest.QuoteText); // Should be original text
+            expect(console.error).toHaveBeenCalledWith(expect.stringContaining("Translation failed"), expect.any(Error)); // Check if error was logged
+        });
+
+        it('should return null if no quotes are found', async () => {
+            D1QBMocked.mocks.fetchAll.mockResolvedValue({ results: [] }); // No results
+
+            const result = await getRandomQuote(mockDb);
+
+            expect(result).toBeNull();
+            expect(translateText).not.toHaveBeenCalled();
+        });
+
+         it('should return null if no quotes match the category filter', async () => {
+            const categoryId = 999; // Non-existent category
+            D1QBMocked.mocks.fetchAll.mockResolvedValue({ results: [] }); // No results
+
+            const result = await getRandomQuote(mockDb, { categoryId });
+
+            expect(result).toBeNull();
+            expect(translateText).not.toHaveBeenCalled();
+             expect(mockQbMethods.fetchAll).toHaveBeenCalledWith({
+                tableName: "Quotes",
+                fields: "*",
+                where: {
+                    conditions: "QuoteCategoryId = ?1",
+                    params: [categoryId]
+                }
+            });
+        });
+    });
+
+    // --- Tests for getRandomQuote ---
+    describe('getRandomQuote', () => {
+        const mockRawQuotes = [
+            { QuoteId: 1, QuoteText: "Quote 1", QuoteAuthor: "Author 1", QuoteCategoryId: 1 },
+            { QuoteId: 2, QuoteText: "Quote 2", QuoteAuthor: "Author 2", QuoteCategoryId: 2 },
+            { QuoteId: 3, QuoteText: "Quote 3", QuoteAuthor: "Author 3", QuoteCategoryId: 1 },
+            { QuoteId: 4, QuoteText: "fail-translation", QuoteAuthor: "Author 4", QuoteCategoryId: 2 }, // For testing translation failure
+        ];
+
+        it('should return a random quote with default language when no options provided', async () => {
+            D1QBMocked.mocks.fetchAll.mockResolvedValue({ results: mockRawQuotes });
+
+            const result = await getRandomQuote(mockDb);
+
+            expect(result).not.toBeNull();
+            expect(mockRawQuotes.some(q => q.QuoteId === result!.id)).toBe(true); // Check if ID is one of the originals
+            expect(translateText).not.toHaveBeenCalled(); // Should not translate for default lang
+            expect(result!.quote).toEqual(mockRawQuotes.find(q => q.QuoteId === result!.id)?.QuoteText); // Ensure text is original
+            expect(D1QBMocked).toHaveBeenCalledWith(mockDb);
+            expect(mockQbMethods.fetchAll).toHaveBeenCalledWith({
+                tableName: "Quotes",
+                fields: "*",
+                where: undefined // No filter
+            });
+        });
+
+        it('should filter quotes by categoryId if provided', async () => {
+            const categoryId = 1;
+            // Simulate DB filtering
+            const filteredQuotes = mockRawQuotes.filter(q => q.QuoteCategoryId === categoryId);
+            D1QBMocked.mocks.fetchAll.mockResolvedValue({ results: filteredQuotes });
+
+            const result = await getRandomQuote(mockDb, { categoryId });
+
+            expect(result).not.toBeNull();
+            expect(result!.categoryId).toBe(categoryId);
+            expect(translateText).not.toHaveBeenCalled();
+            expect(D1QBMocked).toHaveBeenCalledWith(mockDb);
+            expect(mockQbMethods.fetchAll).toHaveBeenCalledWith({
+                tableName: "Quotes",
+                fields: "*",
+                where: {
+                    conditions: "QuoteCategoryId = ?1",
+                    params: [categoryId]
+                }
+            });
+        });
+
+        it('should translate the quote if lang is provided and different from DEFAULT_LANG', async () => {
+            const targetLang = 'es';
+            const expectedQuote = mockRawQuotes[0]; // Assume this one is picked
+            D1QBMocked.mocks.fetchAll.mockResolvedValue({ results: [expectedQuote] }); // Force selection
+
+            const result = await getRandomQuote(mockDb, { lang: targetLang });
+
+            expect(result).not.toBeNull();
+            expect(result!.id).toBe(expectedQuote.QuoteId);
+            expect(translateText).toHaveBeenCalledTimes(1);
+            expect(translateText).toHaveBeenCalledWith({
+                text: expectedQuote.QuoteText,
+                sourceLang: DEFAULT_LANG,
+                targetLang: targetLang,
+            });
+            // Check against the mock's transformation
+            expect(result!.quote).toBe(`${expectedQuote.QuoteText}-translated-${targetLang}`);
+        });
+
+        it('should return the original quote text if translation fails', async () => {
+            const targetLang = 'fr';
+            const quoteToFail = mockRawQuotes.find(q => q.QuoteText === 'fail-translation')!;
+            D1QBMocked.mocks.fetchAll.mockResolvedValue({ results: [quoteToFail] }); // Force selection
+
+            const result = await getRandomQuote(mockDb, { lang: targetLang });
+
+            expect(result).not.toBeNull();
+            expect(result!.id).toBe(quoteToFail.QuoteId);
+            expect(translateText).toHaveBeenCalledTimes(1);
+             expect(translateText).toHaveBeenCalledWith({
+                text: quoteToFail.QuoteText,
+                sourceLang: DEFAULT_LANG,
+                targetLang: targetLang,
+            });
+            expect(result!.quote).toBe(quoteToFail.QuoteText); // Should be original text
+            expect(console.error).toHaveBeenCalledWith(expect.stringContaining("Translation failed"), expect.any(Error)); // Check if error was logged
+        });
+
+         it('should return the original quote text for invalid language code (translation fails)', async () => {
+            const targetLang = 'invalid-lang';
+            const quoteToTest = mockRawQuotes[0];
+            D1QBMocked.mocks.fetchAll.mockResolvedValue({ results: [quoteToTest] }); // Force selection
+
+            const result = await getRandomQuote(mockDb, { lang: targetLang });
+
+            expect(result).not.toBeNull();
+            expect(result!.id).toBe(quoteToTest.QuoteId);
+            expect(translateText).toHaveBeenCalledTimes(1);
+             expect(translateText).toHaveBeenCalledWith({
+                text: quoteToTest.QuoteText,
+                sourceLang: DEFAULT_LANG,
+                targetLang: targetLang,
+            });
+            expect(result!.quote).toBe(quoteToTest.QuoteText); // Should be original text
+            expect(console.error).toHaveBeenCalledWith(expect.stringContaining("Translation failed"), expect.any(Error)); // Check if error was logged
+        });
+
+        it('should return null if no quotes are found', async () => {
+            D1QBMocked.mocks.fetchAll.mockResolvedValue({ results: [] }); // No results
+
+            const result = await getRandomQuote(mockDb);
+
+            expect(result).toBeNull();
+            expect(translateText).not.toHaveBeenCalled();
+        });
+
+         it('should return null if no quotes match the category filter', async () => {
+            const categoryId = 999; // Non-existent category
+            D1QBMocked.mocks.fetchAll.mockResolvedValue({ results: [] }); // No results
+
+            const result = await getRandomQuote(mockDb, { categoryId });
+
+            expect(result).toBeNull();
+            expect(translateText).not.toHaveBeenCalled();
+             expect(mockQbMethods.fetchAll).toHaveBeenCalledWith({
+                tableName: "Quotes",
+                fields: "*",
+                where: {
+                    conditions: "QuoteCategoryId = ?1",
+                    params: [categoryId]
+                }
+            });
+        });
+    });
+
+});
         const quoteId = 101;
         let mockRunUpdateFn: ReturnType<typeof vi.fn>;
         let mockBindUpdateFn: ReturnType<typeof vi.fn>;

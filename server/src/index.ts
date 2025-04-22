@@ -10,6 +10,7 @@ import {
   deleteQuoteHandler,
   getAllQuotesHandler,
   getQuoteByIdHandler,
+  getRandomQuoteHandler,
   updateQuoteHandler,
 } from "@/controllers/quote.controller";
 import {
@@ -42,7 +43,12 @@ export default {
       });
     }
 
-    // Unauthenticated user
+    // --- Public Routes (No Authentication Required) ---
+    if (url.pathname === "/random" && request.method === "GET") {
+      return getRandomQuoteHandler(request, env.DB);
+    }
+
+    // --- Authentication Middleware ---
 
     try {
       await authenticationMiddleware(request, env, ctx);

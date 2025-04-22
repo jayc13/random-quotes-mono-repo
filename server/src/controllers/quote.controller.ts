@@ -4,8 +4,10 @@ import {
   deleteQuote,
   getAllQuotes,
   getQuoteById,
+  getRandomQuote,
   updateQuote,
 } from "../services/quote.service";
+import { DEFAULT_LANG, getSupportedLanguages } from "../services/translate.service"; // <-- Import getSupportedLanguages
 
 export const getAllQuotesHandler = async (request: Request, db: D1Database) => {
   const url = new URL(request.url);
@@ -34,6 +36,61 @@ export const getAllQuotesHandler = async (request: Request, db: D1Database) => {
       "X-Total-Count": `${total}`,
     },
   });
+};
+
+export const getRandomQuoteHandler = async (
+  request: Request,
+  db: D1Database,
+): Promise<Response> => {
+  try {
+    const url = new URL(request.url);
+    const categoryIdStr = url.searchParams.get("categoryId");
+    let categoryId: number | undefined = undefined;
+
+    if (categoryIdStr) {
+      const parsedId = Number.parseInt(categoryIdStr, 10);
+      if (!isNaN(parsedId)) {
+        categoryId = parsedId;
+      }
+    }
+
+    // Validate language
+    const requestedLang = url.searchParams.get("lang");
+    let finalLang = DEFAULT_LANG; // Default to DEFAULT_LANG
+
+    if (requestedLang) {
+      // Check if the requested language is supported
+      if (getSupportedLanguages().includes(requestedLang)) {
+        finalLang = requestedLang; // Use the supported requested language
+      }
+      // If requestedLang exists but is not supported, finalLang remains DEFAULT_LANG
+    }
+
+    const quote = await getRandomQuote(db, { categoryId, lang: finalLang }); // <-- Use finalLang
+
+    if (!quote) {
+      return Response.json(
+        { error: "No quote found matching the criteria" },
+        {
+          status: 404,
+          headers: DEFAULT_CORS_HEADERS,
+        },
+      );
+    }
+
+    return Response.json(quote, {
+      headers: DEFAULT_CORS_HEADERS,
+    });
+  } catch (error) {
+    console.error("Error in getRandomQuoteHandler:", error);
+    return Response.json(
+      { error: "An internal error occurred" },
+      {
+        status: 500,
+        headers: DEFAULT_CORS_HEADERS,
+      },
+    );
+  }
 };
 
 export const getQuoteByIdHandler = async (db: D1Database, id: number) => {

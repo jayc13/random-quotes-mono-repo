@@ -1,9 +1,11 @@
 import type {
   GetAllQuotesOptions,
+  GetRandomQuoteOptions, // <-- Add import
   Quote,
   QuoteInput,
 } from "@/types/quote.types";
 import { D1QB } from "workers-qb";
+import { translateText, DEFAULT_LANG } from "@/services/translate.service";
 
 export const getAllQuotes = async (
   db: D1Database,
@@ -144,4 +146,59 @@ export const deleteQuote = async (
     .run();
 
   return result.success;
+};
+
+export const getRandomQuote = async (
+  db: D1Database,
+  options?: GetRandomQuoteOptions, // <-- Update type annotation
+): Promise<Quote | null> => {
+  const qb = new D1QB(db);
+  const { categoryId, lang = DEFAULT_LANG } = options || {};
+
+  let where = undefined;
+
+  if (categoryId) {
+    where = {
+      conditions: "QuoteCategoryId = ?1",
+      params: [categoryId],
+    };
+  }
+
+  const query = qb.fetchAll({
+    tableName: "Quotes",
+    fields: "*",
+    where,
+  });
+
+  const { results } = await query.execute();
+
+  if (!results || results.length === 0) {
+    return null;
+  }
+
+  const randomIndex = Math.floor(Math.random() * results.length);
+  const rawQuote = results[randomIndex];
+
+  let selectedQuote: Quote = {
+    id: rawQuote.QuoteId as number,
+    quote: rawQuote.QuoteText as string,
+    author: rawQuote.QuoteAuthor as string,
+    categoryId: rawQuote.QuoteCategoryId as number,
+  };
+
+  if (lang !== DEFAULT_LANG) {
+    try {
+      const translatedText = await translateText({
+        text: selectedQuote.quote,
+        sourceLang: DEFAULT_LANG,
+        targetLang: lang,
+      });
+      selectedQuote.quote = translatedText;
+    } catch (error) {
+      console.error(`Translation failed for quote ${selectedQuote.id}:`, error);
+      // Proceed with the default language quote if translation fails
+    }
+  }
+
+  return selectedQuote;
 };
