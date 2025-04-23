@@ -163,7 +163,7 @@ jobs:
           npm ci
       - name: Build (client/admin)
         env:
-          VITE_API_URL: ${{ secrets.API_URL }}
+          VITE_API_URL: "http://localhost:8787"
           VITE_AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
           VITE_AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
         run: |
@@ -173,6 +173,16 @@ jobs:
         run: |
           cd client/admin
           npm run start &
+      - name: Install dependencies (client/consumer)
+        run: |
+          cd client/consumer
+          npm ci
+      - name: Build (client/consumer)
+        env:
+          VITE_DATA_API: "http://localhost:8787"
+        run: |
+          cd client/consumer
+          npm run preview &
       - name: Install dependencies (E2E tests)
         run: |
           cd test/e2e-tests
@@ -242,7 +252,7 @@ jobs:
         run: npm install
       - name: Build
         env:
-          DATA_API: ${{needs.deploy-server-preview.outputs.server-preview-url}}
+          VITE_DATA_API: ${{needs.deploy-server-preview.outputs.server-preview-url}}
         run: npm run build
       - name: Deploy Consumer Client to Cloudflare
         id: deploy
