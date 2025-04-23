@@ -289,7 +289,9 @@ jobs:
           command: pages deploy --branch ${{ github.head_ref }} --commit-hash  ${{ github.sha }}
   pull-request-comment:
     runs-on: ubuntu-latest
-    needs: deploy-client-admin-preview
+    needs:
+      - deploy-client-consumer-preview
+      - deploy-client-admin-preview
     name: "Post PR Comment"
     permissions:
       pull-requests: write
