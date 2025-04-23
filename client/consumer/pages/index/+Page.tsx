@@ -1,40 +1,35 @@
-import { useState, useEffect } from 'react'; // Import useState and useEffect
-// Removed useData import
-import { fetchQuote, type Quote } from "./+data"; // Import fetchQuote and Quote type
-import LangSelector from '../components/LangSelector'; // Import LangSelector
+import { useState, useEffect } from "react";
+import { fetchQuote, type Quote } from "./+data";
+import LangSelector from "../../components/LangSelector";
 
 const DEFAULT_LANG = "en"; // Define the default language constant
 
 export default function Page() {
-	const [selectedLang, setSelectedLang] = useState(DEFAULT_LANG); // Use constant for initial state
-	const [quoteData, setQuoteData] = useState<Quote | null>(null); // Quote data state
-	const [isLoading, setIsLoading] = useState(true); // Loading state
-	const [error, setError] = useState<string | null>(null); // Error state
+	const [selectedLang, setSelectedLang] = useState(DEFAULT_LANG);
+	const [quoteData, setQuoteData] = useState<Quote | null>(null);
+	const [isLoading, setIsLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
 
-	// Effect to fetch quote when selectedLang changes
 	useEffect(() => {
 		const loadQuote = async () => {
 			setIsLoading(true);
 			setError(null);
-			setQuoteData(null); // Clear previous quote while loading new one
+			setQuoteData(null);
 			try {
-				console.log(`Fetching quote for lang: ${selectedLang}`); // Log language being fetched
 				const data = await fetchQuote(selectedLang);
 				setQuoteData(data);
-			} catch (err) {
-				console.error("Error in fetchQuote:", err); // Log the actual error
-				setError(err instanceof Error ? err.message : "Failed to fetch quote.");
+			} catch {
+				setError("Failed to fetch quote.");
 			} finally {
 				setIsLoading(false);
 			}
 		};
 
-		loadQuote();
-	}, [selectedLang]); // Dependency array includes selectedLang
+		loadQuote().then();
+	}, [selectedLang]);
 
 	return (
 		<div className="flex flex-col items-center justify-center h-screen">
-			{/* Language Selector */}
 			<div className="absolute top-4 right-4">
 				<LangSelector
 					currentLang={selectedLang}
@@ -46,7 +41,6 @@ export default function Page() {
 				Your daily dose of inspiration.
 			</h1>
 
-			{/* Conditional Rendering based on state */}
 			{isLoading && <p>Loading your inspiration...</p>}
 			{error && <p className="text-red-500">Error: {error}</p>}
 			{!isLoading && !error && quoteData && (
@@ -56,7 +50,7 @@ export default function Page() {
 						<p className="text-right italic">-{quoteData.author}</p>
 					</div>
 				</div>
-			</div>
+			)}
 		</div>
 	);
 }

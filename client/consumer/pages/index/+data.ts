@@ -10,7 +10,8 @@ const BASE_DATA_API = import.meta.env.VITE_DATA_API || "";
 export async function fetchQuote(lang?: string): Promise<Quote> {
 	// Construct the API URL based on the presence of the lang parameter
 	let apiUrl = `${BASE_DATA_API}/random`;
-	if (lang && lang !== 'en') { // Assuming 'en' is default and doesn't need param
+	if (lang && lang !== "en") {
+		// Assuming 'en' is default and doesn't need param
 		apiUrl += `?lang=${lang}`;
 	}
 
