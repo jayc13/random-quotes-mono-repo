@@ -1,5 +1,3 @@
-// server/test/services/quote-svg.service.spec.ts
-
 import { describe, it, expect } from 'vitest';
 import { generateQuoteSvg } from '@/services/quote-svg.service';
 import type { Quote } from '@/types/quote.types';
@@ -9,19 +7,14 @@ const sampleQuote: Quote = {
   id: 1,
   quote: 'This is a test quote.',
   author: 'Test Author',
-  category_id: 1,
-  // Add other fields if necessary based on the actual Quote type
-  created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString(),
+  categoryId: 1,
 };
 
 const longQuote: Quote = {
     id: 2,
     quote: 'This is a very long quote designed to test the truncation logic which should add ellipsis at the end if it exceeds the maximum length defined in the service.',
     author: 'Long Author',
-    category_id: 1,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+    categoryId: 1,
 }
 
 describe('generateQuoteSvg Service', () => {
@@ -97,7 +90,5 @@ describe('generateQuoteSvg Service', () => {
     expect(svg).toContain('<svg');
     expect(svg).toContain('xmlns="http://www.w3.org/2000/svg"');
   });
-
-
 
 });
