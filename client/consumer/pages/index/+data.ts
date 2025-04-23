@@ -1,16 +1,14 @@
 import type { Quote } from "./types.js";
 import { render } from "vike/abort";
-import type { PageContextServer } from 'vike/types'
-import {DEFAULT_LANG} from "../../components/LangSelector";
+import type { PageContextServer } from "vike/types";
+import { DEFAULT_LANG } from "../../components/LangSelector";
 
 export type Data = Awaited<ReturnType<typeof data>>;
 
 const BASE_DATA_API = import.meta.env.VITE_DATA_API || "";
 
 export const data = async (pageContext: PageContextServer) => {
-	const {
-		lang = DEFAULT_LANG
-	} = pageContext.urlParsed.search;
+	const { lang = DEFAULT_LANG } = pageContext.urlParsed.search;
 
 	let apiUrl = `${BASE_DATA_API}/random`;
 

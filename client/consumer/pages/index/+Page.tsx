@@ -1,23 +1,21 @@
 import React from "react";
 import { useData } from "vike-react/useData";
-import type {Data} from "./+data";
-import LangSelector, {DEFAULT_LANG} from "../../components/LangSelector";
-import {usePageContext} from "vike-react/usePageContext";
+import type { Data } from "./+data";
+import LangSelector, { DEFAULT_LANG } from "../../components/LangSelector";
+import { usePageContext } from "vike-react/usePageContext";
 
 export default function Page() {
 	const [isLoading, setIsLoading] = React.useState(false);
 	const { urlParsed } = usePageContext();
 
-	const {
-		lang = DEFAULT_LANG
-	} = urlParsed?.search || {};
+	const { lang = DEFAULT_LANG } = urlParsed?.search || {};
 
 	const quote = useData<Data>();
 
 	if (isLoading) {
 		return (
 			<div className="flex items-center justify-center h-screen">
-				<span className="loading loading-spinner loading-lg"></span>
+				<span className="loading loading-spinner loading-lg"/>
 			</div>
 		);
 	}

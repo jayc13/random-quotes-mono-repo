@@ -20,17 +20,23 @@ const LangSelector: React.FC<LangSelectorProps> = ({
 	currentLang,
 	onLangChange,
 }) => {
-
 	const actualLang = languages.find((lang) => lang.code === currentLang);
 
 	return (
 		<div className="inline-block relative">
 			<div className="dropdown dropdown-end">
-				<div tabIndex={0} role="button" className="btn m-1 btn-ghost">{actualLang?.flag ?? 'EN'}</div>
-				<ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-1 p-2 shadow-sm">
+				<button className="btn m-1 btn-ghost" type="button">
+					{actualLang?.flag ?? "EN"}
+				</button>
+				<ul className="dropdown-content menu bg-base-100 rounded-box z-1 p-2 shadow-sm">
 					{languages.map((lang) => (
-						<li key={lang.code} value={lang.code}>
-							<a onClick={() => onLangChange(lang.code)}>{lang.flag}</a>
+						<li
+							key={lang.code}
+							value={lang.code}
+							className="pointer cursor-pointer"
+							onKeyDown={() => onLangChange(lang.code)} onClick={() => onLangChange(lang.code)}
+						>
+							<button type="button" className="btn btn-ghost">{lang.flag}</button>
 						</li>
 					))}
 				</ul>
