@@ -15,7 +15,7 @@ export default function Page() {
 	if (isLoading) {
 		return (
 			<div className="flex items-center justify-center h-screen">
-				<span className="loading loading-spinner loading-lg"/>
+				<span className="loading loading-spinner loading-lg" />
 			</div>
 		);
 	}

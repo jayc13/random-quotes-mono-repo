@@ -34,9 +34,12 @@ const LangSelector: React.FC<LangSelectorProps> = ({
 							key={lang.code}
 							value={lang.code}
 							className="pointer cursor-pointer"
-							onKeyDown={() => onLangChange(lang.code)} onClick={() => onLangChange(lang.code)}
+							onKeyDown={() => onLangChange(lang.code)}
+							onClick={() => onLangChange(lang.code)}
 						>
-							<button type="button" className="btn btn-ghost">{lang.flag}</button>
+							<button type="button" className="btn btn-ghost">
+								{lang.flag}
+							</button>
 						</li>
 					))}
 				</ul>
