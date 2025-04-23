@@ -244,7 +244,7 @@ jobs:
         env:
           DATA_API: ${{needs.deploy-server-preview.outputs.server-preview-url}}
         run: npm run build
-      - name: Deploy Client to Cloudflare
+      - name: Deploy Consumer Client to Cloudflare
         id: deploy
         uses: cloudflare/wrangler-action@v3
         with:
@@ -278,7 +278,7 @@ jobs:
           VITE_AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
           VITE_AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
         run: npm run build
-      - name: Deploy Client to Cloudflare
+      - name: Deploy Admin Client to Cloudflare
         id: deploy
         uses: cloudflare/wrangler-action@v3
         with:
