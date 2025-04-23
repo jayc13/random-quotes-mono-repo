@@ -1,11 +1,9 @@
 import { test, expect } from '@playwright/test';
-
-// Assuming consumer app runs on port 5173 - adjust if necessary
-const CONSUMER_APP_URL = process.env.CONSUMER_APP_URL || 'http://localhost:5173';
+import {CONSUMER_BASE_URL} from "../../utils/config";
 
 test.describe('Consumer App: Quote Page', () => {
   test('should display the main heading and a quote in the default language', async ({ page }) => {
-    await page.goto(CONSUMER_APP_URL);
+    await page.goto(CONSUMER_BASE_URL);
 
     // Check for the main heading
     await expect(page.locator('h1')).toHaveText('Your daily dose of inspiration.');
@@ -24,7 +22,7 @@ test.describe('Consumer App: Quote Page', () => {
   });
 
   test('should allow changing the language and display a quote', async ({ page }) => {
-    await page.goto(CONSUMER_APP_URL);
+    await page.goto(CONSUMER_BASE_URL);
 
     // Locate and click the language dropdown
     const langDropdownButton = page.locator('.dropdown button.btn'); // Adjust selector if needed
