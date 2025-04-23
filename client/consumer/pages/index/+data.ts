@@ -1,29 +1,34 @@
 import type { Quote } from "./types.js";
-import { render } from "vike/abort"; // Keep render for potential server-side errors if needed elsewhere, or remove if purely client-side now
+import { render } from "vike/abort";
+import type { PageContextServer } from 'vike/types'
+import {DEFAULT_LANG} from "../../components/LangSelector";
 
-// Export the Quote type if not already exported from types.js
-export type { Quote };
+export type Data = Awaited<ReturnType<typeof data>>;
 
 const BASE_DATA_API = import.meta.env.VITE_DATA_API || "";
 
-// Rename and export the data fetching function directly
-export async function fetchQuote(lang?: string): Promise<Quote> {
-	// Construct the API URL based on the presence of the lang parameter
+export const data = async (pageContext: PageContextServer) => {
+	const {
+		lang = DEFAULT_LANG
+	} = pageContext.urlParsed.search;
+
 	let apiUrl = `${BASE_DATA_API}/random`;
+
 	if (lang && lang !== "en") {
-		// Assuming 'en' is default and doesn't need param
 		apiUrl += `?lang=${lang}`;
 	}
 
-	const response = await fetch(apiUrl); // Use the dynamically constructed URL
+	const response = await fetch(apiUrl);
 
 	if (!response.ok) {
-		// Restore Vike error handling and use the exact error message
 		throw render(500, "Error fetching quote");
 	}
 
-	// Assuming the API returns { id, quote, author } directly
-	const quoteData: Quote = await response.json();
+	const { id, quote, author } = await response.json();
 
-	return quoteData;
-}
+	return {
+		id,
+		quote,
+		author,
+	} as Quote;
+};

@@ -14,36 +14,26 @@ const languages = [
 	{ code: "pt", label: "Portuguese", flag: "🇵🇹" },
 ];
 
+export const DEFAULT_LANG = "en";
+
 const LangSelector: React.FC<LangSelectorProps> = ({
 	currentLang,
 	onLangChange,
 }) => {
-	const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-		onLangChange(event.target.value);
-	};
+
+	const actualLang = languages.find((lang) => lang.code === currentLang);
 
 	return (
-		<div className="inline-block relative w-64">
-			<select
-				value={currentLang}
-				onChange={handleChange}
-				className="block appearance-none w-full bg-white border border-gray-300 hover:border-gray-400 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline"
-			>
-				{languages.map((lang) => (
-					<option key={lang.code} value={lang.code}>
-						{lang.flag}
-					</option>
-				))}
-			</select>
-			<div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-				<svg
-					className="fill-current h-4 w-4"
-					xmlns="http://www.w3.org/2000/svg"
-					viewBox="0 0 20 20"
-				>
-					<title>Dropdown indicator</title>
-					<path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-				</svg>
+		<div className="inline-block relative">
+			<div className="dropdown dropdown-end">
+				<div tabIndex={0} role="button" className="btn m-1 btn-ghost">{actualLang?.flag ?? 'EN'}</div>
+				<ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-1 p-2 shadow-sm">
+					{languages.map((lang) => (
+						<li key={lang.code} value={lang.code}>
+							<a onClick={() => onLangChange(lang.code)}>{lang.flag}</a>
+						</li>
+					))}
+				</ul>
 			</div>
 		</div>
 	);

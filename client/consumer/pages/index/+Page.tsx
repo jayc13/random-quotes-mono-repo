@@ -1,39 +1,38 @@
-import { useState, useEffect } from "react";
-import { fetchQuote, type Quote } from "./+data";
-import LangSelector from "../../components/LangSelector";
-
-const DEFAULT_LANG = "en"; // Define the default language constant
+import React from "react";
+import { useData } from "vike-react/useData";
+import type {Data} from "./+data";
+import LangSelector, {DEFAULT_LANG} from "../../components/LangSelector";
+import {usePageContext} from "vike-react/usePageContext";
 
 export default function Page() {
-	const [selectedLang, setSelectedLang] = useState(DEFAULT_LANG);
-	const [quoteData, setQuoteData] = useState<Quote | null>(null);
-	const [isLoading, setIsLoading] = useState(true);
-	const [error, setError] = useState<string | null>(null);
+	const [isLoading, setIsLoading] = React.useState(false);
+	const { urlParsed } = usePageContext();
 
-	useEffect(() => {
-		const loadQuote = async () => {
-			setIsLoading(true);
-			setError(null);
-			setQuoteData(null);
-			try {
-				const data = await fetchQuote(selectedLang);
-				setQuoteData(data);
-			} catch {
-				setError("Failed to fetch quote.");
-			} finally {
-				setIsLoading(false);
-			}
-		};
+	const {
+		lang = DEFAULT_LANG
+	} = urlParsed?.search || {};
 
-		loadQuote().then();
-	}, [selectedLang]);
+	const quote = useData<Data>();
+
+	if (isLoading) {
+		return (
+			<div className="flex items-center justify-center h-screen">
+				<span className="loading loading-spinner loading-lg"></span>
+			</div>
+		);
+	}
 
 	return (
 		<div className="flex flex-col items-center justify-center h-screen">
-			<div className="absolute top-4 right-4">
+			<div className="absolute top-4 left-4">
 				<LangSelector
-					currentLang={selectedLang}
-					onLangChange={setSelectedLang}
+					currentLang={lang}
+					onLangChange={(langCode) => {
+						const newUrl = new URL(window.location.href);
+						newUrl.searchParams.set("lang", langCode);
+						window.location.href = newUrl.toString();
+						setIsLoading(true);
+					}}
 				/>
 			</div>
 
@@ -41,16 +40,12 @@ export default function Page() {
 				Your daily dose of inspiration.
 			</h1>
 
-			{isLoading && <p>Loading your inspiration...</p>}
-			{error && <p className="text-red-500">Error: {error}</p>}
-			{!isLoading && !error && quoteData && (
-				<div className="card shadow-md bg-base-100 max-w-lg">
-					<div className="card-body">
-						<h2 className="card-title text-center">{quoteData.quote}</h2>
-						<p className="text-right italic">-{quoteData.author}</p>
-					</div>
+			<div className="card shadow-md bg-base-100 max-w-lg">
+				<div className="card-body">
+					<h2 className="card-title text-center">{quote.quote}</h2>
+					<p className="text-right italic">-{quote.author}</p>
 				</div>
-			)}
+			</div>
 		</div>
 	);
 }
