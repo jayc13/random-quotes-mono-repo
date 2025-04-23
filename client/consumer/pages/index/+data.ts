@@ -8,12 +8,27 @@ export type Data = Awaited<ReturnType<typeof data>>;
 const BASE_DATA_API = import.meta.env.VITE_DATA_API || "";
 
 export const data = async (pageContext: PageContextServer) => {
-	const { lang = DEFAULT_LANG } = pageContext.urlParsed.search;
+	// Extract both lang and categoryId from search params
+	const { lang = DEFAULT_LANG, categoryId } = pageContext.urlParsed.search;
 
+	// Use URLSearchParams for cleaner query parameter handling
+	const searchParams = new URLSearchParams();
+
+	// Add lang if it's not the default
+	if (lang && lang !== DEFAULT_LANG) {
+		searchParams.set("lang", lang);
+	}
+
+	// Add categoryId if it exists
+	if (categoryId) {
+		searchParams.set("categoryId", categoryId);
+	}
+
+	// Construct the final API URL
 	let apiUrl = `${BASE_DATA_API}/random`;
-
-	if (lang && lang !== "en") {
-		apiUrl += `?lang=${lang}`;
+	const queryString = searchParams.toString();
+	if (queryString) {
+		apiUrl += `?${queryString}`;
 	}
 
 	const response = await fetch(apiUrl);

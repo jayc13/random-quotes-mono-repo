@@ -2,13 +2,15 @@ import React from "react";
 import { useData } from "vike-react/useData";
 import type { Data } from "./+data";
 import LangSelector, { DEFAULT_LANG } from "../../components/LangSelector";
+import CategoryFilter from "../../components/CategoryFilter"; // Import CategoryFilter
 import { usePageContext } from "vike-react/usePageContext";
 
 export default function Page() {
 	const [isLoading, setIsLoading] = React.useState(false);
 	const { urlParsed } = usePageContext();
 
-	const { lang = DEFAULT_LANG } = urlParsed?.search || {};
+	// Extract both lang and categoryId from search params
+	const { lang = DEFAULT_LANG, categoryId = null } = urlParsed?.search || {};
 
 	const quote = useData<Data>();
 
@@ -28,6 +30,20 @@ export default function Page() {
 					onLangChange={(langCode) => {
 						const newUrl = new URL(window.location.href);
 						newUrl.searchParams.set("lang", langCode);
+						window.location.href = newUrl.toString();
+						setIsLoading(true);
+					}}
+				/>
+				{/* Add CategoryFilter below LangSelector */}
+				<CategoryFilter
+					currentCategoryId={categoryId}
+					onCategoryChange={(newCategoryId) => {
+						const newUrl = new URL(window.location.href);
+						if (newCategoryId === null) {
+							newUrl.searchParams.delete("categoryId"); // Remove if "All Categories"
+						} else {
+							newUrl.searchParams.set("categoryId", newCategoryId); // Set otherwise
+						}
 						window.location.href = newUrl.toString();
 						setIsLoading(true);
 					}}
