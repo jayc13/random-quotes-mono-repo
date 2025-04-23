@@ -197,6 +197,8 @@ jobs:
           ADMIN_USER_PASSWORD: ${{ secrets.ADMIN_USER_PASSWORD }}
           REGULAR_USER_EMAIL: ${{ secrets.REGULAR_USER_EMAIL }}
           REGULAR_USER_PASSWORD: ${{ secrets.REGULAR_USER_PASSWORD }}
+          ADMIN_BASE_URL: "http://localhost:3000"
+          CONSUMER_BASE_URL: "http://localhost:8788"
         run: |
           cd test/e2e-tests
           npm run test
