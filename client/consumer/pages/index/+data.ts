@@ -3,7 +3,7 @@ import { render } from "vike/abort";
 
 export type Data = Awaited<ReturnType<typeof data>>;
 
-const BASE_DATA_API = import.meta.env.VITE_DATA_API || '';
+const BASE_DATA_API = import.meta.env.VITE_DATA_API || "";
 
 export const data = async () => {
 	const response = await fetch(`${BASE_DATA_API}/random`);
