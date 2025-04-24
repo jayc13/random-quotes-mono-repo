@@ -14,7 +14,7 @@ const CREDENTIALS = {
 	}
 }
 
-export const loginAs = async (page: Page, userType: UserType) => {
+export const loginAs = async (page: Page, userType: UserType): Promise<string> => {
 	const credentials = CREDENTIALS[userType];
 	await page.goto(`${ADMIN_BASE_URL}/login`);
 
@@ -30,6 +30,17 @@ export const loginAs = async (page: Page, userType: UserType) => {
 	await passwordInput.fill(credentials.password);
 	const submitButton = page.getByText('Continue', { exact: true });
 	await expect(submitButton).toBeVisible();
+	// Listen for the request to be sent
+	const loginRequestWatcher = page.waitForRequest((request) => {
+		return request.url().includes('/oauth/token') && request.method() === 'POST';
+	});
 	await submitButton.click();
+	const loginRequest =  await loginRequestWatcher;
 	await page.waitForURL(ADMIN_BASE_URL);
+	let response = await loginRequest.response();
+	if (!response) {
+		throw new Error('Login request failed');
+	}
+	const responseBody = await response.json();
+	return `Bearer ${responseBody.id_token}`;
 }
