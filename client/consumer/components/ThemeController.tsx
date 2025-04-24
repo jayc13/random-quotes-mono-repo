@@ -11,7 +11,7 @@ const ThemeController = () => {
 			).matches;
 			setIsDarkMode(prefersDarkMode);
 		}
-	});
+	}, []);
 
 	return (
 		<label className="swap swap-rotate">
