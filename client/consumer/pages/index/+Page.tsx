@@ -34,15 +34,17 @@ export default function Page() {
 				/>
 			</div>
 
-			<h1 className={"font-bold text-3xl pb-4"}>
+			<h1 className={"font-bold text-3xl pb-4"} data-testid="main-heading">
 				Your daily dose of inspiration.
 			</h1>
 
 			<div className="card shadow-md bg-base-100 max-w-lg">
-				<div className="card-body">
-					<h2 className="card-title text-center">{quote.quote}</h2>
-					<p className="text-right italic">-{quote.author}</p>
-				</div>
+				<h2 className="card-title text-center" data-testid="quote">
+					{quote.quote}
+				</h2>
+				<p className="text-right italic" data-testid="author">
+					-{quote.author}
+				</p>
 			</div>
 		</div>
 	);
