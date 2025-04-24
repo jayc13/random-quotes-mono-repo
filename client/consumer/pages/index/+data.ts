@@ -25,23 +25,28 @@ export const data = async (pageContext: PageContextServer) => {
 	}
 
 	// Construct the final API URL
-	let apiUrl = `${BASE_DATA_API}/random`;
+	let randomQuoteUrl = `${BASE_DATA_API}/random`;
 	const queryString = searchParams.toString();
 	if (queryString) {
-		apiUrl += `?${queryString}`;
+		randomQuoteUrl += `?${queryString}`;
 	}
 
-	const response = await fetch(apiUrl);
+	const randomQuoteResponse = await fetch(randomQuoteUrl);
+	const categoriesResponse = await fetch(`${BASE_DATA_API}/categories`);
 
-	if (!response.ok) {
+	if (!randomQuoteResponse.ok || !categoriesResponse.ok) {
 		throw render(500, "Error fetching quote");
 	}
 
-	const { id, quote, author } = await response.json();
+	const { id, quote, author } = await randomQuoteResponse.json();
+	const categories = await categoriesResponse.json();
 
 	return {
-		id,
-		quote,
-		author,
-	} as Quote;
+		quote: {
+			id,
+			quote,
+			author,
+		} as Quote,
+		categories,
+	};
 };

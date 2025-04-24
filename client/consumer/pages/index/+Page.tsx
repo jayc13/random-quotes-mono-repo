@@ -2,7 +2,8 @@ import React from "react";
 import { useData } from "vike-react/useData";
 import type { Data } from "./+data";
 import LangSelector, { DEFAULT_LANG } from "../../components/LangSelector";
-import CategoryFilter from "../../components/CategoryFilter"; // Import CategoryFilter
+import CategoryFilter from "../../components/CategoryFilter";
+import ThemeController from "../../components/ThemeController";
 import { usePageContext } from "vike-react/usePageContext";
 
 export default function Page() {
@@ -12,7 +13,7 @@ export default function Page() {
 	// Extract both lang and categoryId from search params
 	const { lang = DEFAULT_LANG, categoryId = null } = urlParsed?.search || {};
 
-	const quote = useData<Data>();
+	const { quote, categories } = useData<Data>();
 
 	if (isLoading) {
 		return (
@@ -34,7 +35,8 @@ export default function Page() {
 						setIsLoading(true);
 					}}
 				/>
-				{/* Add CategoryFilter below LangSelector */}
+			</div>
+			<div className="absolute top-4 right-4">
 				<CategoryFilter
 					currentCategoryId={categoryId}
 					onCategoryChange={(newCategoryId) => {
@@ -47,8 +49,12 @@ export default function Page() {
 						window.location.href = newUrl.toString();
 						setIsLoading(true);
 					}}
-					categories={[]}
+					categories={categories}
 				/>
+			</div>
+
+			<div className="absolute bottom-4 right-4">
+				<ThemeController />
 			</div>
 
 			<h1 className="font-bold pb-4" data-testid="main-heading">
@@ -63,7 +69,7 @@ export default function Page() {
 					<q>{quote.quote}</q>
 				</h2>
 				<p
-					className="text-center italic mt-4 color-secondary font-extralight"
+					className="text-center italic mt-4 text-2xl color-secondary font-extralight"
 					data-testid="author"
 				>
 					- {quote.author}
