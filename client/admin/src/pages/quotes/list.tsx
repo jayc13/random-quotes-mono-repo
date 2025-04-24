@@ -161,6 +161,7 @@ export const QuoteList = ({ categoryId }: QuoteListProps) => {
     <div data-testid='quotes-page'>
       <List
         createButtonProps={{
+          id: "add-quote-btn",
           onClick: () => {
             createModalShow();
           },
@@ -196,24 +197,26 @@ export const QuoteList = ({ categoryId }: QuoteListProps) => {
                   hideText
                   size='small'
                   recordItemId={record.id}
+                  data-testid={`edit-quote-${record.id}`}
                   onClick={() => editModalShow(record.id)}
                 />
                 <ShowButton
                   hideText
                   size='small'
                   recordItemId={record.id}
+                  data-testid={`show-quote-${record.id}`}
                   onClick={() => {
                     setShowId(record.id);
                     setVisibleShowModal(true);
                   }}
                 />
-                <DeleteButton hideText size='small' recordItemId={record.id} />
+                <DeleteButton hideText size='small' recordItemId={record.id} data-testid={`delete-quote-${record.id}`} />
               </Space>
             )}
           />
         </Table>
       </List>
-      <Modal {...createModalProps} styles={modalFormStyles}>
+      <Modal {...createModalProps} styles={modalFormStyles} data-testid='create-quote-modal'>
         <Spin spinning={createFormLoading}>
           <Form {...createFormProps} layout='vertical'>
             <Form.Item label='Quote' name='quote' rules={[{ required: true }]}>
@@ -221,11 +224,13 @@ export const QuoteList = ({ categoryId }: QuoteListProps) => {
                 rows={3}
                 maxLength={250}
                 style={{ resize: "none" }}
+                data-testid='quoteQuote'
               />
             </Form.Item>
             <Form.Item
               label='Author'
               name='author'
+              data-testid='quoteAuthor'
               rules={[{ required: true }]}
             >
               <Input maxLength={100} />
@@ -233,29 +238,36 @@ export const QuoteList = ({ categoryId }: QuoteListProps) => {
             <Form.Item
               label='Category'
               name='categoryId'
+              data-testid='quoteCategoryId'
               rules={[{ required: true }]}
             >
               <Select
+                showSearch
                 placeholder='Select a category'
+                filterOption={(input, option) =>
+                  (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                }
                 {...useSelectCategories}
               />
             </Form.Item>
           </Form>
         </Spin>
       </Modal>
-      <Modal {...editModalProps} styles={modalFormStyles}>
+      <Modal {...editModalProps} styles={modalFormStyles} data-testid='edit-quote-modal'>
         <Spin spinning={editFormLoading}>
           <Form {...editFormProps} layout='vertical'>
             <Form.Item label='Quote' name='quote' rules={[{ required: true }]}>
               <Input.TextArea
                 rows={3}
                 maxLength={250}
+                data-testid='quoteQuote'
                 style={{ resize: "none" }}
               />
             </Form.Item>
             <Form.Item
               label='Author'
               name='author'
+              data-testid='quoteAuthor'
               rules={[{ required: true }]}
             >
               <Input maxLength={100} />
@@ -263,6 +275,7 @@ export const QuoteList = ({ categoryId }: QuoteListProps) => {
             <Form.Item
               label='Category'
               name='categoryId'
+              data-testid='quoteCategoryId'
               rules={[{ required: true }]}
             >
               <Select
