@@ -118,10 +118,6 @@ jobs:
           npx playwright install chromium
       - name: Run E2E tests
         env:
-          ADMIN_USER_EMAIL: ${{ secrets.ADMIN_USER_EMAIL }}
-          ADMIN_USER_PASSWORD: ${{ secrets.ADMIN_USER_PASSWORD }}
-          REGULAR_USER_EMAIL: ${{ secrets.REGULAR_USER_EMAIL }}
-          REGULAR_USER_PASSWORD: ${{ secrets.REGULAR_USER_PASSWORD }}
           CONSUMER_BASE_URL: ${{ needs.deploy-client-consumer.outputs.client-consumer-production-url }}
         run: |
           cd test/e2e-tests
