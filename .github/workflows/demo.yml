@@ -26,7 +26,7 @@ jobs:
           npx playwright install chromium
       - name: Run E2E tests
         env:
-          CONSUMER_BASE_URL: "https://random-quotes.javiercaballero.info/"
+          CONSUMER_BASE_URL: "https://random-quotes.javiercaballero.info"
         run: |
           cd test/e2e-tests
           npm run test-consumer
