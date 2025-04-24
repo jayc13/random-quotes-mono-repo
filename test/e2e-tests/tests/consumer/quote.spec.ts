@@ -3,6 +3,7 @@ import {CONSUMER_BASE_URL} from "../../utils/config";
 
 test.describe('Consumer App: Quote Page', () => {
   test('should display the main heading and a quote in the default language', async ({ page }) => {
+    console.log({CONSUMER_BASE_URL})
     await page.goto(CONSUMER_BASE_URL);
 
     // Check for the main heading
