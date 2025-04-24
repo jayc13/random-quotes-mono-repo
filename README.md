@@ -3,7 +3,7 @@
 
 ## Project URLs
 
-- **Production End User Client**: [https://random-quotes.javiercaballero.info](https://quotes.javiercaballero.info)
+- **Production End User Client**: [https://random-quotes.javiercaballero.info](https://random-quotes.javiercaballero.info)
 - **Production Admin Client**: [https://random-quotes-admin.javiercaballero.info](https://random-quotes-admin.javiercaballero.info)
 - **Production Server**: [https://random-quotes-api.javiercaballero.info](https://random-quotes-api.javiercaballero.info)
 
