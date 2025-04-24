@@ -80,8 +80,6 @@ jobs:
   integration-tests:
     name: "Integration Tests"
     needs:
-      - client-consumer
-      - client-admin
       - server
     runs-on: ubuntu-latest
     steps:
