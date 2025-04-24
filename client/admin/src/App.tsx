@@ -14,13 +14,10 @@ import React from "react";
 import { BrowserRouter } from "react-router";
 import { AppIcon } from "./components/app-icon";
 import { ColorModeContextProvider } from "./contexts/color-mode";
+import AppRouter from "./router";
+import { API_URL, NON_ADMIN_RESOURCES } from "./utils/constants";
 
 import "@refinedev/antd/dist/reset.css";
-import AppRouter from "./router";
-
-const API_URL = import.meta.env.VITE_API_URL as string;
-
-const NON_ADMIN_RESOURCES = ["home"];
 
 function App() {
   const { isLoading, user, logout, getIdTokenClaims } = useAuth0();
@@ -80,7 +77,7 @@ function App() {
         };
       }
     },
-    getPermissions: async (params) => {
+    getPermissions: async () => {
       if (user && Object.keys(user).includes("random_quotes/roles")) {
         return user["random_quotes/roles"];
       }

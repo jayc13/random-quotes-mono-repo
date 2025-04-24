@@ -1,8 +1,10 @@
 import { defineWorkersConfig } from '@cloudflare/vitest-pool-workers/config';
+import path from 'path';
 
 export default defineWorkersConfig({
 	test: {
 		watch: false,
+		silent: true,
 		path: './src/services/**/*.test.ts',
 		coverage: {
 			enabled: true,
@@ -15,5 +17,8 @@ export default defineWorkersConfig({
 				wrangler: { configPath: './wrangler.jsonc' },
 			},
 		},
+		alias: {
+			'@': path.resolve(__dirname, './src')
+		}
 	},
 });

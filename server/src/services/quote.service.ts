@@ -1,5 +1,7 @@
+import { DEFAULT_LANG, translateText } from "@/services/translate.service";
 import type {
   GetAllQuotesOptions,
+  GetRandomQuoteOptions,
   Quote,
   QuoteInput,
 } from "@/types/quote.types";
@@ -144,4 +146,56 @@ export const deleteQuote = async (
     .run();
 
   return result.success;
+};
+
+export const getRandomQuote = async (
+  db: D1Database,
+  options?: GetRandomQuoteOptions,
+): Promise<Quote | null> => {
+  const qb = new D1QB(db);
+  const { categoryId, lang = DEFAULT_LANG } = options || {};
+
+  let where = undefined;
+
+  if (categoryId) {
+    where = {
+      conditions: "QuoteCategoryId = ?1",
+      params: [categoryId],
+    };
+  }
+
+  const query = qb.fetchAll({
+    tableName: "Quotes",
+    fields: "*",
+    where,
+    orderBy: "RANDOM()",
+    limit: 1,
+  });
+
+  const { results } = await query.execute();
+
+  if (!results || results.length === 0) {
+    return null;
+  }
+
+  const selectedQuote = {
+    id: results[0].QuoteId as number,
+    quote: results[0].QuoteText as string,
+    author: results[0].QuoteAuthor as string,
+    categoryId: results[0].QuoteCategoryId as number,
+  };
+
+  if (lang !== DEFAULT_LANG) {
+    try {
+      selectedQuote.quote = await translateText({
+        text: selectedQuote.quote,
+        sourceLang: DEFAULT_LANG,
+        targetLang: lang,
+      });
+    } catch (error) {
+      console.error(`Translation failed for quote ${selectedQuote.id}:`, error);
+    }
+  }
+
+  return selectedQuote;
 };

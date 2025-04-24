@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { translateText, validateLanguage } from '../../src/services/translate.service';
+import { translateText, validateLanguage } from '@/services/translate.service';
 
 global.fetch = vi.fn(),
 
