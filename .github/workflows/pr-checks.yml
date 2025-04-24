@@ -267,8 +267,6 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - integration-tests
-      - e2e-tests-consumer
-      - e2e-tests-admin
     name: "Deploy Preview - Server"
     outputs:
       server-preview-url: ${{ steps.deploy.outputs.deployment-url  }}
