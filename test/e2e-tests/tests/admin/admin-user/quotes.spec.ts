@@ -168,12 +168,18 @@ async function isQuoteByIdDisplayed(id: string): Promise<boolean> {
   const isRowVisible = await quoteRow.isVisible();
   if (!isRowVisible) {
     // Navigate to the next page
-    const nextPageButton = page.locator('li[title="Next Page"][aria-disabled="false"] button');
-    if (await nextPageButton.isVisible()) {
-      await nextPageButton.click();
-      return isQuoteByIdDisplayed(id);
-    } else {
+    const lastPage = page.locator('ul.ant-pagination li.ant-pagination-item').last();
+    const lastPageCssClasses = await lastPage.getAttribute('class');
+    if (lastPageCssClasses.includes('ant-pagination-item-active')) {
+      // If the last page is already active, we need to go back to the first page
       return false;
+    } else {
+      const getAllCategoriesRequest = page.waitForRequest((request) => {
+        return request.url().includes(`${API_BASE_URL}/quotes`) && request.method() === 'GET';
+      });
+      await lastPage.click();
+      await getAllCategoriesRequest;
+      return isQuoteByIdDisplayed(id);
     }
   }
   return true;
