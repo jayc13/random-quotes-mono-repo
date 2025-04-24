@@ -64,6 +64,8 @@ jobs:
     name: "Deploy - Client Consumer"
     runs-on: ubuntu-latest
     environment: production
+    outputs:
+      client-consumer-production-url: ${{ steps.deploy.outputs.deployment-url  }}
     defaults:
       run:
         working-directory: ./client/consumer
@@ -90,3 +92,40 @@ jobs:
           wranglerVersion: "4.12.0"
           workingDirectory: "./client/consumer"
           command: pages deploy
+  e2e-tests-consumer:
+    name: "E2E Tests - Consumer App"
+    needs:
+      - deploy-server
+      - deploy-client-consumer
+      - deploy-client-admin
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 23
+          cache: 'npm'
+          cache-dependency-path: ./test/e2e-tests/package-lock.json
+      - name: Install dependencies (E2E tests)
+        run: |
+          cd test/e2e-tests
+          npm install
+      - name: Setup Playwright
+        run: |
+          cd test/e2e-tests
+          npx playwright install chromium
+      - name: Run E2E tests
+        env:
+          CONSUMER_BASE_URL: ${{ needs.deploy-client-consumer.outputs.client-consumer-production-url }}
+        run: |
+          cd test/e2e-tests
+          npm run test-consumer
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        if: ${{ failure() || cancelled() }}
+        with:
+          name: playwright-report-consumer
+          path: test/e2e-tests/playwright-report/
+          retention-days: 30
