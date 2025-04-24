@@ -167,7 +167,7 @@ export const QuoteList = ({ categoryId }: QuoteListProps) => {
         }}
         title='Quotes'
       >
-        <Table {...tableProps} rowKey='id' id="quotes-table">
+        <Table {...tableProps} rowKey='id' id='quotes-table'>
           <Table.Column dataIndex='id' title={"#"} />
           <Table.Column
             dataIndex='quote'

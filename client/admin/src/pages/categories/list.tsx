@@ -114,9 +114,9 @@ export const CategoryList = () => {
             createModalShow();
           },
         }}
-        title="Categories"
+        title='Categories'
       >
-        <Table {...tableProps} rowKey='id' id="categories-table">
+        <Table {...tableProps} rowKey='id' id='categories-table'>
           <Table.Column dataIndex='id' title={"#"} />
           <Table.Column dataIndex='name' title={"Name"} />
           <Table.Column
@@ -132,26 +132,54 @@ export const CategoryList = () => {
                   recordItemId={record.id}
                   onClick={() => editModalShow(record.id)}
                 />
-                <ShowButton hideText size='small' recordItemId={record.id} data-testid={`show-category-${record.id}`}/>
-                <DeleteButton hideText size='small' recordItemId={record.id} data-testid={`delete-category-${record.id}`}/>
+                <ShowButton
+                  hideText
+                  size='small'
+                  recordItemId={record.id}
+                  data-testid={`show-category-${record.id}`}
+                />
+                <DeleteButton
+                  hideText
+                  size='small'
+                  recordItemId={record.id}
+                  data-testid={`delete-category-${record.id}`}
+                />
               </Space>
             )}
           />
         </Table>
       </List>
-      <Modal {...createModalProps} styles={modalFormStyles} data-testid="create-category-modal">
+      <Modal
+        {...createModalProps}
+        styles={modalFormStyles}
+        data-testid='create-category-modal'
+      >
         <Spin spinning={createFormLoading}>
           <Form {...createFormProps} layout='vertical'>
-            <Form.Item label='Name' name='name' data-testid="categoryName" rules={[{ required: true }]}>
+            <Form.Item
+              label='Name'
+              name='name'
+              data-testid='categoryName'
+              rules={[{ required: true }]}
+            >
               <Input />
             </Form.Item>
           </Form>
         </Spin>
       </Modal>
-      <Modal {...editModalProps} styles={modalFormStyles} data-testid="edit-category-modal">
+      <Modal
+        {...editModalProps}
+        styles={modalFormStyles}
+        data-testid='edit-category-modal'
+      >
         <Spin spinning={editFormLoading}>
           <Form {...editFormProps} layout='vertical'>
-            <Form.Item label='Name' name='name' data-testid="categoryName" rules={[{ required: true }]}>
+            <Form.Item
+              label='Name'
+              name='name'
+              data-testid='categoryName'
+              rules={[{ required: true }]}
+            >
               <Input />
             </Form.Item>
           </Form>
