@@ -2,15 +2,18 @@ import React from "react";
 import { useData } from "vike-react/useData";
 import type { Data } from "./+data";
 import LangSelector, { DEFAULT_LANG } from "../../components/LangSelector";
+import CategoryFilter from "../../components/CategoryFilter";
+import ThemeController from "../../components/ThemeController";
 import { usePageContext } from "vike-react/usePageContext";
 
 export default function Page() {
 	const [isLoading, setIsLoading] = React.useState(false);
 	const { urlParsed } = usePageContext();
 
-	const { lang = DEFAULT_LANG } = urlParsed?.search || {};
+	// Extract both lang and categoryId from search params
+	const { lang = DEFAULT_LANG, categoryId = null } = urlParsed?.search || {};
 
-	const quote = useData<Data>();
+	const { quote, categories } = useData<Data>();
 
 	if (isLoading) {
 		return (
@@ -33,6 +36,26 @@ export default function Page() {
 					}}
 				/>
 			</div>
+			<div className="absolute top-4 right-4">
+				<CategoryFilter
+					currentCategoryId={categoryId}
+					onCategoryChange={(newCategoryId) => {
+						const newUrl = new URL(window.location.href);
+						if (newCategoryId === null) {
+							newUrl.searchParams.delete("categoryId"); // Remove if "All Categories"
+						} else {
+							newUrl.searchParams.set("categoryId", newCategoryId); // Set otherwise
+						}
+						window.location.href = newUrl.toString();
+						setIsLoading(true);
+					}}
+					categories={categories}
+				/>
+			</div>
+
+			<div className="absolute bottom-4 right-4">
+				<ThemeController />
+			</div>
 
 			<h1 className="font-bold pb-4" data-testid="main-heading">
 				Your daily dose of inspiration.
@@ -46,7 +69,7 @@ export default function Page() {
 					<q>{quote.quote}</q>
 				</h2>
 				<p
-					className="text-center italic mt-4 color-secondary font-extralight"
+					className="text-center italic mt-4 text-2xl color-secondary font-extralight"
 					data-testid="author"
 				>
 					- {quote.author}

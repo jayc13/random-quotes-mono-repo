@@ -8,25 +8,45 @@ export type Data = Awaited<ReturnType<typeof data>>;
 const BASE_DATA_API = import.meta.env.VITE_DATA_API || "";
 
 export const data = async (pageContext: PageContextServer) => {
-	const { lang = DEFAULT_LANG } = pageContext.urlParsed.search;
+	// Extract both lang and categoryId from search params
+	const { lang = DEFAULT_LANG, categoryId } = pageContext.urlParsed.search;
 
-	let apiUrl = `${BASE_DATA_API}/random`;
+	// Use URLSearchParams for cleaner query parameter handling
+	const searchParams = new URLSearchParams();
 
-	if (lang && lang !== "en") {
-		apiUrl += `?lang=${lang}`;
+	// Add lang if it's not the default
+	if (lang && lang !== DEFAULT_LANG) {
+		searchParams.set("lang", lang);
 	}
 
-	const response = await fetch(apiUrl);
+	// Add categoryId if it exists
+	if (categoryId) {
+		searchParams.set("categoryId", categoryId);
+	}
 
-	if (!response.ok) {
+	// Construct the final API URL
+	let randomQuoteUrl = `${BASE_DATA_API}/random`;
+	const queryString = searchParams.toString();
+	if (queryString) {
+		randomQuoteUrl += `?${queryString}`;
+	}
+
+	const randomQuoteResponse = await fetch(randomQuoteUrl);
+	const categoriesResponse = await fetch(`${BASE_DATA_API}/categories`);
+
+	if (!randomQuoteResponse.ok || !categoriesResponse.ok) {
 		throw render(500, "Error fetching quote");
 	}
 
-	const { id, quote, author } = await response.json();
+	const { id, quote, author } = await randomQuoteResponse.json();
+	const categories = await categoriesResponse.json();
 
 	return {
-		id,
-		quote,
-		author,
-	} as Quote;
+		quote: {
+			id,
+			quote,
+			author,
+		} as Quote,
+		categories,
+	};
 };

@@ -28,11 +28,11 @@ describe('Categories API Integration Tests - No Auth User', () => {
     });
   });
 
-  it('should not allow get the categories for no authenticated users', async () => {
+  it('should allow get the categories for no authenticated users', async () => {
     const response = await server
       .get('/categories');
 
-    expect(response.status).to.equal(401);
+    expect(response.status).to.equal(200);
   });
 
   it('should not allow create categories for no authenticated users', async () => {

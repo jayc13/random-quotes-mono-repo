@@ -30,12 +30,12 @@ describe('Categories API Integration Tests - Regular User', () => {
     });
   });
 
-  it('should not allow get the categories for regular users', async () => {
+  it('should allow get the categories for regular users', async () => {
     const response = await server
       .get('/categories')
       .set('Authorization', token)
 
-    expect(response.status).to.equal(403);
+    expect(response.status).to.equal(200);
   });
 
   it('should not allow create categories for regular users', async () => {

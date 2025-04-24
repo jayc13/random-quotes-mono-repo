@@ -44,6 +44,10 @@ export default {
       return getRandomQuoteHandler(request, env.DB);
     }
 
+    if (url.pathname === "/categories" && request.method === "GET") {
+      return getAllCategoriesHandler(env.DB);
+    }
+
     // New route for random SVG generation
     if (url.pathname === "/random.svg" && request.method === "GET") {
       return getRandomQuoteSvgHandler(request, env.DB);
@@ -78,21 +82,15 @@ export default {
     // Admin authenticated user
 
     try {
-      if (url.pathname === "/categories") {
-        switch (request.method) {
-          case "GET":
-            return getAllCategoriesHandler(env.DB);
-          case "POST":
-            try {
-              const requestBody = await request.json<CategoryInput>();
-
-              return createCategoryHandler(env.DB, requestBody);
-            } catch {
-              return Response.json("Invalid JSON", {
-                status: 400,
-                headers: DEFAULT_CORS_HEADERS,
-              });
-            }
+      if (url.pathname === "/categories" && request.method === "POST") {
+        try {
+          const requestBody = await request.json<CategoryInput>();
+          return createCategoryHandler(env.DB, requestBody);
+        } catch {
+          return Response.json("Invalid JSON", {
+            status: 400,
+            headers: DEFAULT_CORS_HEADERS,
+          });
         }
       }
 
