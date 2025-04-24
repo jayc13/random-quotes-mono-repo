@@ -6,17 +6,13 @@ test.describe('Consumer App: Quote Page', () => {
     await page.goto(CONSUMER_BASE_URL);
 
     // Check for the main heading
-    await expect(page.locator('h1')).toHaveText('Your daily dose of inspiration.');
+    await expect(page.getByTestId('main-heading')).toHaveText('Your daily dose of inspiration.');
 
-    // Check for the quote card elements
-    const quoteCard = page.locator('.card');
-    await expect(quoteCard).toBeVisible();
-
-    const quoteText = quoteCard.locator('.card-title');
+    const quoteText = page.getByTestId('quote');
     await expect(quoteText).toBeVisible();
     await expect(quoteText).not.toBeEmpty(); // Ensure there's some text
 
-    const quoteAuthor = quoteCard.locator('p'); // Assuming author is in a <p> tag
+    const quoteAuthor = page.getByTestId('author');
     await expect(quoteAuthor).toBeVisible();
     await expect(quoteAuthor).not.toBeEmpty(); // Ensure there's some text
   });
@@ -25,13 +21,12 @@ test.describe('Consumer App: Quote Page', () => {
     await page.goto(CONSUMER_BASE_URL);
 
     // Locate and click the language dropdown
-    const langDropdownButton = page.locator('.dropdown button.btn'); // Adjust selector if needed
+    const langDropdownButton = page.getByTestId('lang-selector-button');
     await expect(langDropdownButton).toBeVisible();
     await langDropdownButton.click();
 
     // Locate and click the Spanish language option
-    // Using a locator that finds the button by its text content (the flag)
-    const spanishOption = page.locator('.dropdown-content button.btn', { hasText: '🇪🇸' });
+    const spanishOption = page.getByTestId('lang-selector-es')
     await expect(spanishOption).toBeVisible();
     await spanishOption.click();
 
@@ -41,15 +36,11 @@ test.describe('Consumer App: Quote Page', () => {
     // Verify the URL has the correct language parameter
     expect(page.url()).toContain('?lang=es');
 
-    // Re-check for the quote card elements (content might differ, but elements should be there)
-    const quoteCard = page.locator('.card');
-    await expect(quoteCard).toBeVisible();
-
-    const quoteText = quoteCard.locator('.card-title');
+    const quoteText = page.getByTestId('quote');
     await expect(quoteText).toBeVisible();
     await expect(quoteText).not.toBeEmpty();
 
-    const quoteAuthor = quoteCard.locator('p');
+    const quoteAuthor = page.getByTestId('author');
     await expect(quoteAuthor).toBeVisible();
     await expect(quoteAuthor).not.toBeEmpty();
   });
