@@ -121,6 +121,10 @@ test.describe('Admin Categories Page', () => {
       getAllCategoriesRequest,
     ]);
 
+    const deleteCategoryResponse = await (await deleteCategoryRequest).response();
+
+    expect(deleteCategoryResponse.status()).toBe(204);
+
     const categoryRow = await isCategoryByIdDisplayed(categoryId);
     expect(categoryRow).toBeFalsy();
   });

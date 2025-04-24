@@ -1,78 +1,180 @@
-import { test, expect, Page } from '@playwright/test';
-import { loginAs } from '../../../commands/admin/login.command';
-import { ADMIN_BASE_URL } from '../../../utils/config';
+import {test, expect, Page} from '@playwright/test';
+import {loginAs} from '../../../commands/admin/login.command';
+import {
+  createCategory,
+  deleteCategory,
+} from '../../../services/category.service';
+import {ADMIN_BASE_URL, API_BASE_URL} from '../../../utils/config';
 
-test.describe.configure({ mode: 'serial' });
+test.describe.configure({mode: 'serial'});
 
 let page: Page;
+let quoteId: string;
+let categoryId: string;
+const categoryName: string = `Test Category ${Date.now()}`;
+let authenticationToken: string;
 
 test.describe('Admin Quotes Page', () => {
-  test.beforeAll(async ({ browser }) => {
+  test.beforeAll(async ({browser}) => {
     page = await browser.newPage();
-    await loginAs(page, 'ADMIN');
+    authenticationToken = await loginAs(page, 'ADMIN');
+    const category = await createCategory({
+      categoryName,
+    }, {
+      authToken: authenticationToken,
+    });
+    categoryId = category.id;
     await page.goto(`${ADMIN_BASE_URL}/quotes`);
   });
 
-  test('should display the quotes table', async () => {
+  test.afterAll(async () => {
+    await deleteCategory({
+      categoryId,
+    }, {
+      authToken: authenticationToken,
+    });
+  });
+  test('should display quotes list', async () => {
     // Check if the quotes table is visible
-    const table = page.locator('#quotes-table table');
-    await expect(table).toBeVisible();
+    await expect(page.locator('#quotes-table table')).toBeVisible();
+
+    // Verify at least one quote is listed
+    const rows = await page.locator('#quotes-table table tbody tr').all();
+    expect(rows.length).toBeGreaterThan(0);
   });
-
-  test('should allow admin to search for a quote', async () => {
-    // Enter search text
-    const searchInput = page.locator('input#searchQuotes');
-    await searchInput.fill('Mindfulness');
-    await searchInput.press('Enter');
-
-    // Verify search results
-    const results = page.locator('#quotes-table table tbody tr');
-    await expect(results).not.toBeEmpty();
-    await expect(results.first()).toContainText('Mindfulness');
-  });
-
-  test('should allow admin to add a new quote', async () => {
-    // Click the "Add Quote" button
-    await page.click('button#addQuote');
+  test('should allow admin to create an existing quote', async () => {
+    const newQuote:string = `This is a new quote ${Date.now()}`;
+    const newAuthor = `Author ${Date.now()}`;
+    // Click on "Add Category" button
+    await page.click('button#add-quote-btn');
 
     // Fill out the form
-    await page.fill('input#quoteText', 'Mindfulness is the key to happiness.');
-    await page.fill('input#quoteAuthor', 'Unknown');
-    await page.selectOption('select#quoteCategory', '5');
+    await page.fill('[data-testid="create-quote-modal"] [data-testid="quoteQuote"]', newQuote);
+    await page.fill('[data-testid="create-quote-modal"] [data-testid="quoteAuthor"] input', newAuthor);
+    await page.locator('[data-testid="create-quote-modal"] [data-testid="quoteCategoryId"] div.ant-form-item-control').click();
+    await page.waitForTimeout(400);
+    await page.keyboard.type(categoryName);
+    await page.waitForTimeout(400);
+    await page.keyboard.press("Enter");
 
-    // Submit the form
-    await page.click('button#saveQuote');
+    const createQuotesRequest = page.waitForRequest((request) => {
+      return request.url().includes(`${API_BASE_URL}/quotes`) && request.method() === 'POST';
+    });
 
-    // Verify the new quote is added
-    const newQuote = page.locator('#quotes-table table tbody tr:last-child');
-    await expect(newQuote).toContainText('Mindfulness is the key to happiness.');
+    const getAllQuotesRequest = page.waitForRequest((request) => {
+      return request.url().includes(`${API_BASE_URL}/quotes`) && request.method() === 'GET';
+    });
+
+    await page.getByRole('button', { name: 'Save' }).click();
+
+    // Wait for the request to complete
+    await Promise.all([
+      createQuotesRequest,
+      getAllQuotesRequest,
+    ]);
+
+    const createQuoteResponse = await (await createQuotesRequest).response();
+
+    expect(createQuoteResponse.status()).toBe(201);
+    const createQuoteBody = await createQuoteResponse.json();
+
+    expect(createQuoteBody.quote).toEqual(newQuote);
+    expect(createQuoteBody.author).toEqual(newAuthor);
+    expect(createQuoteBody.categoryId).toEqual(categoryId);
+    expect(createQuoteBody.id).toBeDefined();
+    quoteId = createQuoteBody.id;
+
+    // Check if the new quote is displayed in the table
+    const quoteIsPresent = await isQuoteByIdDisplayed(quoteId);
+    expect(quoteIsPresent).toBeTruthy();
   });
 
   test('should allow admin to edit an existing quote', async () => {
-    // Click the "Edit" button for the first quote
-    await page.click('#quotes-table table tbody tr:first-child button.editQuote');
+    const editedQuote:string = `This is an updated quote ${Date.now()}`;
+    const editedAuthor = `Updated author ${Date.now()}`;
+    const editButton = page.getByTestId(`edit-quote-${quoteId}`);
 
-    // Update the quote text
-    const quoteTextInput = page.locator('input#quoteText');
-    await quoteTextInput.fill('Updated quote text');
+    await expect(editButton).toBeVisible();
+    await editButton.click();
 
-    // Save changes
-    await page.click('button#saveQuote');
+    // Fill out the form
+    await page.fill('[data-testid="edit-quote-modal"] [data-testid="quoteQuote"]', editedQuote);
+    await page.fill('[data-testid="edit-quote-modal"] [data-testid="quoteAuthor"] input', editedAuthor);
 
-    // Verify the quote is updated
-    const updatedQuote = page.locator('#quotes-table table tbody tr:first-child');
-    await expect(updatedQuote).toContainText('Updated quote text');
+    const updateQuotesRequest = page.waitForRequest((request) => {
+      return request.url().includes(`${API_BASE_URL}/quotes/${quoteId}`) && request.method() === 'PATCH';
+    });
+
+    const getAllQuotesRequest = page.waitForRequest((request) => {
+      return request.url().includes(`${API_BASE_URL}/quotes`) && request.method() === 'GET';
+    });
+
+    await page.getByRole('button', { name: 'Save' }).click();
+
+    // Wait for the request to complete
+    await Promise.all([
+      updateQuotesRequest,
+      getAllQuotesRequest,
+    ]);
+
+    const updateQuoteResponse = await (await updateQuotesRequest).response();
+
+    expect(updateQuoteResponse.status()).toBe(200);
+    const updateQuoteBody = await updateQuoteResponse.json();
+
+    expect(updateQuoteBody.quote).toEqual(editedQuote);
+    expect(updateQuoteBody.author).toEqual(editedAuthor);
+    expect(updateQuoteBody.categoryId).toEqual(categoryId);
+    expect(updateQuoteBody.id).toEqual(quoteId)
+
+    // Check if the new quote is displayed in the table
+    const quoteIsPresent = await isQuoteByIdDisplayed(quoteId);
+    expect(quoteIsPresent).toBeTruthy();
   });
 
   test('should allow admin to delete a quote', async () => {
-    // Click the "Delete" button for the first quote
-    await page.click('#quotes-table table tbody tr:first-child button.deleteQuote');
+    const deleteButton = page.getByTestId(`delete-quote-${quoteId}`);
+    await expect(deleteButton).toBeVisible();
+    await deleteButton.click();
 
-    // Confirm deletion
-    await page.click('button#confirmDelete');
+    const deleteQuoteRequest = page.waitForRequest((request) => {
+      return request.url().includes(`${API_BASE_URL}/quotes/${quoteId}`) && request.method() === 'DELETE';
+    });
 
-    // Verify the quote is deleted
-    const deletedQuote = page.locator('#quotes-table table tbody tr:first-child');
-    await expect(deletedQuote).not.toContainText('Mindfulness');
+    const getAllCategoriesRequest = page.waitForRequest((request) => {
+      return request.url().includes(`${API_BASE_URL}/quotes`) && request.method() === 'GET';
+    });
+
+    // Confirm the deletion
+    await page.locator('[role="tooltip"] button').filter({hasText: 'Delete'}).click();
+
+    await Promise.all([
+      deleteQuoteRequest,
+      getAllCategoriesRequest,
+    ]);
+
+    const deleteQuoteResponse = await (await deleteQuoteRequest).response();
+
+    expect(deleteQuoteResponse.status()).toBe(204);
+
+    // Check if the new quote is displayed in the table
+    const quoteIsPresent = await isQuoteByIdDisplayed(quoteId);
+    expect(quoteIsPresent).toBeFalsy();
   });
 });
+
+async function isQuoteByIdDisplayed(id: string): Promise<boolean> {
+  const quoteRow = page.locator(`#quotes-table tr[data-row-key="${id}"]`);
+  const isRowVisible = await quoteRow.isVisible();
+  if (!isRowVisible) {
+    // Navigate to the next page
+    const nextPageButton = page.locator('li[title="Next Page"][aria-disabled="false"] button');
+    if (await nextPageButton.isVisible()) {
+      await nextPageButton.click();
+      return isQuoteByIdDisplayed(id);
+    } else {
+      return false;
+    }
+  }
+  return true;
+}

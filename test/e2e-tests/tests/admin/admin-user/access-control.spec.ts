@@ -12,6 +12,7 @@ test.describe('Admin User Access Control', () => {
     await loginAs(page, 'ADMIN');
   });
   test('the sidebar displays all entries', async () => {
+    const sideMenuOptions = await page.locator('aside ul li a').all();
     expect(sideMenuOptions.length).toBe(3);
 
     const homeOption = sideMenuOptions[0];
