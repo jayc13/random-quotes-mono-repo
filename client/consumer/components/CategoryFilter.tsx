@@ -11,36 +11,14 @@ type Category = {
 interface CategoryFilterProps {
 	currentCategoryId: string | null;
 	onCategoryChange: (categoryId: string | null) => void;
+	categories: Category[];
 }
 
 const CategoryFilter: React.FC<CategoryFilterProps> = ({
 	currentCategoryId,
 	onCategoryChange,
+	categories = [],
 }) => {
-	const [categories, setCategories] = useState<Category[]>([]);
-	const [loading, setLoading] = useState<boolean>(true);
-	const [error, setError] = useState<string | null>(null);
-
-	useEffect(() => {
-		const fetchCategories = async () => {
-			try {
-				const response = await fetch("/categories");
-				if (!response.ok) {
-					throw new Error("Failed to fetch categories");
-				}
-				const data: Category[] = await response.json();
-				setCategories(data);
-			} catch (err) {
-				setError(
-					err instanceof Error ? err.message : "An unknown error occurred",
-				);
-			} finally {
-				setLoading(false);
-			}
-		};
-
-		fetchCategories();
-	}, []); // Empty dependency array ensures this runs only once on mount
 
 	const handleCategoryChange = (
 		event: React.ChangeEvent<HTMLSelectElement>,
@@ -48,14 +26,6 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
 		const selectedId = event.target.value;
 		onCategoryChange(selectedId === "all" ? null : selectedId);
 	};
-
-	if (loading) {
-		return <div>Loading categories...</div>;
-	}
-
-	if (error) {
-		return <div>Error loading categories: {error}</div>;
-	}
 
 	return (
 		<div className="category-filter">

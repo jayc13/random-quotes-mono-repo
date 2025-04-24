@@ -47,6 +47,7 @@ export default function Page() {
 						window.location.href = newUrl.toString();
 						setIsLoading(true);
 					}}
+					categories={[]}
 				/>
 			</div>
 
