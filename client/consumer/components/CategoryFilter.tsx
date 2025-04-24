@@ -32,7 +32,7 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
 				<button
 					className="btn m-1  btn-ghost"
 					type="button"
-					data-testid="lang-selector-button"
+					data-testid="category-selector-button"
 				>
 					{categories.find(
 						(category) => category.id.toString() === currentCategoryId,
