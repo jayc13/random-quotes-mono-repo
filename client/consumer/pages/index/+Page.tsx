@@ -21,7 +21,7 @@ export default function Page() {
 	}
 
 	return (
-		<div className="flex flex-col items-center justify-center h-screen">
+		<div className="flex flex-col items-center justify-center h-screen px-4">
 			<div className="absolute top-4 left-4">
 				<LangSelector
 					currentLang={lang}
@@ -34,15 +34,23 @@ export default function Page() {
 				/>
 			</div>
 
-			<h1 className={"font-bold text-3xl pb-4"}>
+			<h1 className="font-bold pb-4" data-testid="main-heading">
 				Your daily dose of inspiration.
 			</h1>
 
-			<div className="card shadow-md bg-base-100 max-w-lg">
-				<div className="card-body">
-					<h2 className="card-title text-center">{quote.quote}</h2>
-					<p className="text-right italic">-{quote.author}</p>
-				</div>
+			<div>
+				<h2
+					className="text-center text-4xl codicon-italic font-sans antialiased"
+					data-testid="quote"
+				>
+					<q>{quote.quote}</q>
+				</h2>
+				<p
+					className="text-center italic mt-4 color-secondary font-extralight"
+					data-testid="author"
+				>
+					- {quote.author}
+				</p>
 			</div>
 		</div>
 	);

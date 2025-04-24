@@ -4,6 +4,8 @@
   "main": "index.js",
   "scripts": {
     "test": "playwright test",
+    "test-admin": "playwright test tests/admin",
+    "test-consumer": "playwright test tests/consumer",
     "test-ui": "playwright test --headed --ui",
     "test:debug": "playwright test --debug",
     "test:report": "playwright show-report"
