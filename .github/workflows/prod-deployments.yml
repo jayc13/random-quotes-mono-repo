@@ -64,6 +64,8 @@ jobs:
     name: "Deploy - Client Consumer"
     runs-on: ubuntu-latest
     environment: production
+    outputs:
+      client-consumer-production-url: ${{ steps.deploy.outputs.deployment-url  }}
     defaults:
       run:
         working-directory: ./client/consumer
@@ -93,7 +95,9 @@ jobs:
   e2e-tests-consumer:
     name: "E2E Tests - Consumer App"
     needs:
+      - deploy-server
       - deploy-client-consumer
+      - deploy-client-admin
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -118,7 +122,7 @@ jobs:
           ADMIN_USER_PASSWORD: ${{ secrets.ADMIN_USER_PASSWORD }}
           REGULAR_USER_EMAIL: ${{ secrets.REGULAR_USER_EMAIL }}
           REGULAR_USER_PASSWORD: ${{ secrets.REGULAR_USER_PASSWORD }}
-          CONSUMER_BASE_URL: "https://random-quotes.javiercaballero.info"
+          CONSUMER_BASE_URL: ${{ needs.deploy-client-consumer.outputs.client-consumer-production-url }}
         run: |
           cd test/e2e-tests
           npm run test-consumer
