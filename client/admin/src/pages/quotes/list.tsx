@@ -210,13 +210,22 @@ export const QuoteList = ({ categoryId }: QuoteListProps) => {
                     setVisibleShowModal(true);
                   }}
                 />
-                <DeleteButton hideText size='small' recordItemId={record.id} data-testid={`delete-quote-${record.id}`} />
+                <DeleteButton
+                  hideText
+                  size='small'
+                  recordItemId={record.id}
+                  data-testid={`delete-quote-${record.id}`}
+                />
               </Space>
             )}
           />
         </Table>
       </List>
-      <Modal {...createModalProps} styles={modalFormStyles} data-testid='create-quote-modal'>
+      <Modal
+        {...createModalProps}
+        styles={modalFormStyles}
+        data-testid='create-quote-modal'
+      >
         <Spin spinning={createFormLoading}>
           <Form {...createFormProps} layout='vertical'>
             <Form.Item label='Quote' name='quote' rules={[{ required: true }]}>
@@ -245,7 +254,9 @@ export const QuoteList = ({ categoryId }: QuoteListProps) => {
                 showSearch
                 placeholder='Select a category'
                 filterOption={(input, option) =>
-                  (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                  (option?.label ?? "")
+                    .toLowerCase()
+                    .includes(input.toLowerCase())
                 }
                 {...useSelectCategories}
               />
@@ -253,7 +264,11 @@ export const QuoteList = ({ categoryId }: QuoteListProps) => {
           </Form>
         </Spin>
       </Modal>
-      <Modal {...editModalProps} styles={modalFormStyles} data-testid='edit-quote-modal'>
+      <Modal
+        {...editModalProps}
+        styles={modalFormStyles}
+        data-testid='edit-quote-modal'
+      >
         <Spin spinning={editFormLoading}>
           <Form {...editFormProps} layout='vertical'>
             <Form.Item label='Quote' name='quote' rules={[{ required: true }]}>
