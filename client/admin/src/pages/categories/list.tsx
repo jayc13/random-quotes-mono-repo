@@ -128,17 +128,18 @@ export const CategoryList = () => {
                 <EditButton
                   hideText
                   size='small'
+                  data-testid={`edit-category-${record.id}`}
                   recordItemId={record.id}
                   onClick={() => editModalShow(record.id)}
                 />
-                <ShowButton hideText size='small' recordItemId={record.id} />
-                <DeleteButton hideText size='small' recordItemId={record.id} />
+                <ShowButton hideText size='small' recordItemId={record.id} data-testid={`show-category-${record.id}`}/>
+                <DeleteButton hideText size='small' recordItemId={record.id} data-testid={`delete-category-${record.id}`}/>
               </Space>
             )}
           />
         </Table>
       </List>
-      <Modal {...createModalProps} styles={modalFormStyles}>
+      <Modal {...createModalProps} styles={modalFormStyles} data-testid="create-category-modal">
         <Spin spinning={createFormLoading}>
           <Form {...createFormProps} layout='vertical'>
             <Form.Item label='Name' name='name' data-testid="categoryName" rules={[{ required: true }]}>
@@ -147,7 +148,7 @@ export const CategoryList = () => {
           </Form>
         </Spin>
       </Modal>
-      <Modal {...editModalProps} styles={modalFormStyles}>
+      <Modal {...editModalProps} styles={modalFormStyles} data-testid="edit-category-modal">
         <Spin spinning={editFormLoading}>
           <Form {...editFormProps} layout='vertical'>
             <Form.Item label='Name' name='name' data-testid="categoryName" rules={[{ required: true }]}>
