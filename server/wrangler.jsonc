@@ -24,7 +24,7 @@
 		}
 	],
 	"kv_namespaces": [
-		{ "binding": "QUOTES_KV", "id": "YOUR_KV_NAMESPACE_ID", "preview_id": "YOUR_KV_NAMESPACE_PREVIEW_ID" }
+		{ "binding": "QUOTES_KV", "id": "7670f60623a744f1a931b5bf49da124a", "preview_id": "9cef104895f24284ab025bc17eb1471d" }
 	],
 	"env": {
 		"preview": {
