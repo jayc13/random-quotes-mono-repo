@@ -5,6 +5,7 @@ declare namespace Cloudflare {
 		AUTH0_DOMAIN: string;
 		AUTH0_CLIENT_ID: string;
 		DB: D1Database;
+		QUOTES_KV: KVNamespace;
 	}
 }
 

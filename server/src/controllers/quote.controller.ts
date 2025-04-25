@@ -3,9 +3,11 @@ import {
   deleteQuote,
   getAllQuotes,
   getQuoteById,
-  getRandomQuote,
+  getRandomQuote, // Keep for potential future direct use? Or remove if strictly QotD logic now. Assuming keep for now.
+  getQuoteOfTheDayOrRandom,
   updateQuote,
 } from "@/services/quote.service";
+import type { Env } from "@/index"; // Import Env from index.ts
 import {
   DEFAULT_LANG,
   getSupportedLanguages,
@@ -43,9 +45,10 @@ export const getAllQuotesHandler = async (request: Request, db: D1Database) => {
 
 export const getRandomQuoteHandler = async (
   request: Request,
-  db: D1Database,
+  env: Env, // Changed db: D1Database to env: Env
 ): Promise<Response> => {
   try {
+    const userIp = request.headers.get("CF-Connecting-IP") || "unknown"; // Get user IP
     const url = new URL(request.url);
     const categoryIdStr = url.searchParams.get("categoryId");
     let categoryId: number | undefined = undefined;
@@ -61,7 +64,11 @@ export const getRandomQuoteHandler = async (
       finalLang = requestedLang;
     }
 
-    const quote = await getRandomQuote(db, { categoryId, lang: finalLang });
+    // Replace getRandomQuote with getQuoteOfTheDayOrRandom
+    const quote = await getQuoteOfTheDayOrRandom(env.DB, env.QUOTES_KV, userIp, {
+      categoryId,
+      lang: finalLang,
+    });
 
     if (!quote) {
       return Response.json(

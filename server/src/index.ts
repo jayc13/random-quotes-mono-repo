@@ -41,7 +41,7 @@ export default {
 
     // --- Public Routes (No Authentication Required) ---
     if (url.pathname === "/random" && request.method === "GET") {
-      return getRandomQuoteHandler(request, env.DB);
+      return getRandomQuoteHandler(request, env);
     }
 
     if (url.pathname === "/categories" && request.method === "GET") {
