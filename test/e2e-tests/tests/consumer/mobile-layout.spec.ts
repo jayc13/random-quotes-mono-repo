@@ -1,4 +1,6 @@
 import { test, expect, devices } from '@playwright/test';
+import {CONSUMER_BASE_URL} from "../../utils/config";
+
 
 // Define mobile viewports to test
 const mobileViewports = [
@@ -15,7 +17,7 @@ test.describe('Consumer Home Page Mobile Layout', () => {
       test.use({ viewport });
 
       test('should display all main elements correctly', async ({ page }) => {
-        await page.goto('/');
+        await page.goto(CONSUMER_BASE_URL);
 
         // Assert visibility of main elements
         await expect(page.locator('[data-testid="main-heading"]')).toBeVisible();
