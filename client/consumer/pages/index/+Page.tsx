@@ -36,8 +36,9 @@ export default function Page() {
 	};
 
 	return (
-		<div className="flex flex-col items-center justify-center h-screen px-4 bg-gray-500/25">
-			<div className="absolute top-4 left-4">
+		<div className="flex flex-col items-center justify-between min-h-screen p-4 bg-gray-500/25">
+			{/* Top Controls Container */}
+			<div className="flex justify-between items-center w-full">
 				<LangSelector
 					currentLang={lang}
 					onLangChange={async (langCode) => {
@@ -48,8 +49,6 @@ export default function Page() {
 						await handleQuoteChange();
 					}}
 				/>
-			</div>
-			<div className="absolute top-4 right-4">
 				<CategoryFilter
 					currentCategoryId={activeCategoryId?.toString() ?? null}
 					onCategoryChange={async (newCategoryId) => {
@@ -67,7 +66,21 @@ export default function Page() {
 				/>
 			</div>
 
-			<div className="absolute bottom-4 left-4">
+			{/* Main Content */}
+			<div className="flex flex-col items-center">
+				<h1 className="font-bold pb-4" data-testid="main-heading">
+					Your daily dose of inspiration.
+				</h1>
+
+				{isLoading ? (
+					<span className="loading loading-spinner loading-lg" />
+				) : (
+					<QuoteCard quote={currentQuote} />
+				)}
+			</div>
+
+			{/* Bottom Controls Container */}
+			<div className="flex justify-between items-center w-full">
 				<button
 					className="btn btn-ghost btn-circle bg-transparent"
 					type="button"
@@ -94,21 +107,8 @@ export default function Page() {
 						/>
 					</svg>
 				</button>
-			</div>
-
-			<div className="absolute bottom-4 right-4">
 				<ThemeController />
 			</div>
-
-			<h1 className="font-bold pb-4" data-testid="main-heading">
-				Your daily dose of inspiration.
-			</h1>
-
-			{isLoading ? (
-				<span className="loading loading-spinner loading-lg" />
-			) : (
-				<QuoteCard quote={currentQuote} />
-			)}
 		</div>
 	);
 }
