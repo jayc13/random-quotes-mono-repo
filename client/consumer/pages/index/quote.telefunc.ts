@@ -10,11 +10,16 @@ const BASE_DATA_API = import.meta.env.VITE_DATA_API || "";
 async function getRandomQuote(filters: RandomQuoteFilter) {
 	const { lang, categoryId } = filters;
 
-	const randomQuoteUrl = `${BASE_DATA_API}/random`;
-	// const queryString = searchParams.toString();
-	// if (queryString) {
-	//   randomQuoteUrl += `?${queryString}`;
-	// }
+	let randomQuoteUrl = `${BASE_DATA_API}/random`;
+	const searchParams = new URLSearchParams();
+	searchParams.set("lang", lang);
+	if (categoryId) {
+		searchParams.set("categoryId", categoryId);
+	}
+	const queryString = searchParams.toString();
+	if (queryString) {
+		randomQuoteUrl += `?${queryString}`;
+	}
 
 	const randomQuoteResponse = await fetch(randomQuoteUrl);
 
