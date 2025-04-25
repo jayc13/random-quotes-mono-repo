@@ -23,8 +23,6 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
 		onCategoryChange(selectedId === "all" ? null : selectedId);
 	};
 
-	console.log({ currentCategoryId });
-
 	return (
 		<div
 			className="flex flex-col items-center relative"
