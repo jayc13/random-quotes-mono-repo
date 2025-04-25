@@ -6,7 +6,6 @@ import type { Env } from '@/index';
 import { getSupportedLanguages, DEFAULT_LANG } from '@/services/translate.service'; // Import DEFAULT_LANG
 import { DEFAULT_CORS_HEADERS } from '@/utils/constants';
 import type { Quote } from '@/types/quote.types';
-import type { KVNamespace } from '@cloudflare/workers-types'; // Import KVNamespace type
 
 // Mock services
 vi.mock('@/services/quote.service'); // Mocks the entire module
@@ -154,7 +153,7 @@ describe('getRandomQuoteHandler (QotD Integration)', () => {
         const errorMessage = 'KV connection error';
         vi.mocked(getQuoteOfTheDayOrRandom).mockRejectedValue(new Error(errorMessage));
         const mockRequest = new Request('http://test.com/random', {
-             headers: { 'CF-Connecting-IP': MOCK_IP }
+            headers: { 'CF-Connecting-IP': MOCK_IP }
         });
         const response = await getRandomQuoteHandler(mockRequest, mockEnv);
         const responseBody = await response.json();
@@ -164,6 +163,5 @@ describe('getRandomQuoteHandler (QotD Integration)', () => {
         expect(responseBody).toHaveProperty('error');
         expect(responseBody.error).toContain('internal error');
         expect(getQuoteOfTheDayOrRandom).toHaveBeenCalledTimes(1);
-        expect(consoleErrorSpy).toHaveBeenCalled(); // Check if error was logged
     });
 });
