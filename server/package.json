@@ -9,6 +9,8 @@
     "build": "tsc",
     "lint": "biome check ./src",
     "lint-fix": "biome check --write ./src",
+    "format": "biome format ./src",
+    "format-fix": "biome format --write ./src",
     "test": "vitest --config ./vitest.config.mts",
     "cf-typegen": "wrangler types"
   },
