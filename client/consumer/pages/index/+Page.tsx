@@ -13,7 +13,7 @@ export default function Page() {
 	const { urlParsed } = usePageContext();
 	const { quote: initialQuote, categories } = useData<Data>();
 	const [currentQuote, setCurrentQuote] = useState(initialQuote);
-	const [error, setError] = useState(null);
+	const [error, setError] = useState<string | null>(null);
 
 	// Extract both lang and categoryId from search params
 	const { lang = DEFAULT_LANG, categoryId = null } = urlParsed?.search || {};
@@ -117,7 +117,7 @@ export default function Page() {
 
 			{
 				// Show error message if there's an error
-				error && (
+				error !== null && (
 					<div className="toast toast-center toast-bottom">
 						<div role="alert" className="alert alert-error">
 							<svg
