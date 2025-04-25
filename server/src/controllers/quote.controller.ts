@@ -1,13 +1,13 @@
+import type { Env } from "@/index"; // Import Env from index.ts
 import {
   createQuote,
   deleteQuote,
   getAllQuotes,
   getQuoteById,
-  getRandomQuote, // Keep for potential future direct use? Or remove if strictly QotD logic now. Assuming keep for now.
   getQuoteOfTheDayOrRandom,
+  getRandomQuote, // Keep for potential future direct use? Or remove if strictly QotD logic now. Assuming keep for now.
   updateQuote,
 } from "@/services/quote.service";
-import type { Env } from "@/index"; // Import Env from index.ts
 import {
   DEFAULT_LANG,
   getSupportedLanguages,
@@ -65,10 +65,15 @@ export const getRandomQuoteHandler = async (
     }
 
     // Replace getRandomQuote with getQuoteOfTheDayOrRandom
-    const quote = await getQuoteOfTheDayOrRandom(env.DB, env.QUOTES_KV, userIp, {
-      categoryId,
-      lang: finalLang,
-    });
+    const quote = await getQuoteOfTheDayOrRandom(
+      env.DB,
+      env.QUOTES_KV,
+      userIp,
+      {
+        categoryId,
+        lang: finalLang,
+      },
+    );
 
     if (!quote) {
       return Response.json(
