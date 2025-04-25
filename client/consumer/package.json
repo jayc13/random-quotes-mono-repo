@@ -21,7 +21,8 @@
 		"react-dom": "^19.1.0",
 		"vike-react": "^0.6.1",
 		"@universal-middleware/core": "^0.4.7",
-		"vike-cloudflare": "^0.1.7"
+		"vike-cloudflare": "^0.1.7",
+		"telefunc": "0.2.5"
 	},
 	"devDependencies": {
 		"typescript": "^5.8.3",

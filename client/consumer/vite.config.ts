@@ -2,6 +2,7 @@ import { pages } from "vike-cloudflare";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import devServer from "@hono/vite-dev-server";
+import telefunc from "telefunc/vite";
 import { defineConfig } from "vite";
 import vike from "vike/plugin";
 
@@ -25,6 +26,7 @@ export default defineConfig({
 		}),
 		react({}),
 		tailwindcss(),
+		telefunc(),
 		pages({
 			server: {
 				kind: "hono",

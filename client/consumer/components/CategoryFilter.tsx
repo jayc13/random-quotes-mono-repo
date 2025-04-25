@@ -28,9 +28,9 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
 			className="flex flex-col items-center relative"
 			data-testid="category-filter"
 		>
-			<div className="dropdown dropdown-center">
+			<div className="dropdown dropdown-end">
 				<button
-					className="btn m-1  btn-ghost"
+					className="btn m-1 btn-ghost bg-transparent"
 					type="button"
 					data-testid="category-selector-button"
 				>
@@ -38,7 +38,7 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
 						(category) => category.id.toString() === currentCategoryId,
 					)?.name ?? "Random"}
 				</button>
-				<ul className="dropdown-content menu bg-base-100 rounded-box z-1 p-2 shadow-sm">
+				<ul className="dropdown-content menu bg-base-100 rounded-box z-1 p-0 shadow-sm">
 					<li
 						key="all"
 						value="all"
@@ -48,7 +48,7 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
 					>
 						<button
 							type="button"
-							className="btn btn-ghost text-left"
+							className="btn btn-ghost text-left bg-transparent"
 							data-testid="category-selector-all"
 						>
 							{" "}
@@ -65,7 +65,7 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
 						>
 							<button
 								type="button"
-								className="btn btn-ghost text-left"
+								className="btn btn-ghost text-left bg-transparent"
 								data-testid={`category-selector-${category.id}`}
 							>
 								{category.name}

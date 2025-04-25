@@ -24,7 +24,7 @@ const LangSelector: React.FC<LangSelectorProps> = ({
 
 	return (
 		<div className="inline-block relative">
-			<div className="dropdown dropdown-end">
+			<div className="dropdown dropdown-center">
 				<button
 					className="btn m-1 btn-ghost"
 					type="button"
@@ -32,7 +32,7 @@ const LangSelector: React.FC<LangSelectorProps> = ({
 				>
 					{actualLang?.flag ?? "EN"}
 				</button>
-				<ul className="dropdown-content menu bg-base-100 rounded-box z-1 p-2 shadow-sm">
+				<ul className="dropdown-content menu bg-base-100 rounded-box z-1 p-0 shadow-sm">
 					{languages.map((lang) => (
 						<li
 							key={lang.code}

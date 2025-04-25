@@ -31,8 +31,10 @@ export const data = async (pageContext: PageContextServer) => {
 		randomQuoteUrl += `?${queryString}`;
 	}
 
-	const randomQuoteResponse = await fetch(randomQuoteUrl);
-	const categoriesResponse = await fetch(`${BASE_DATA_API}/categories`);
+	const [randomQuoteResponse, categoriesResponse] = await Promise.all([
+		fetch(randomQuoteUrl),
+		fetch(`${BASE_DATA_API}/categories`),
+	]);
 
 	if (!randomQuoteResponse.ok || !categoriesResponse.ok) {
 		throw render(500, "Error fetching quote");
