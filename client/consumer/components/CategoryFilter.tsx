@@ -23,7 +23,7 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
 		onCategoryChange(selectedId === "all" ? null : selectedId);
 	};
 
-	console.log({currentCategoryId})
+	console.log({ currentCategoryId });
 
 	return (
 		<div

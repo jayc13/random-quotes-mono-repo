@@ -104,13 +104,11 @@ export default function Page() {
 				Your daily dose of inspiration.
 			</h1>
 
-			{
-				isLoading ? (
-					<span className="loading loading-spinner loading-lg" />
-				) : (
-					<QuoteCard quote={currentQuote} />
-				)
-			}
+			{isLoading ? (
+				<span className="loading loading-spinner loading-lg" />
+			) : (
+				<QuoteCard quote={currentQuote} />
+			)}
 		</div>
 	);
 }
