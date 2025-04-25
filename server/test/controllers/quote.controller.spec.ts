@@ -1,21 +1,35 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { getRandomQuoteHandler } from '@/controllers/quote.controller';
-import { getRandomQuote } from '@/services/quote.service';
-import { getSupportedLanguages } from '@/services/translate.service';
+// Import the new service function and Env type
+import { getQuoteOfTheDayOrRandom } from '@/services/quote.service';
+import type { Env } from '@/index';
+import { getSupportedLanguages, DEFAULT_LANG } from '@/services/translate.service'; // Import DEFAULT_LANG
 import { DEFAULT_CORS_HEADERS } from '@/utils/constants';
 import type { Quote } from '@/types/quote.types';
 
 // Mock services
-vi.mock('@/services/quote.service');
+vi.mock('@/services/quote.service'); // Mocks the entire module
 vi.mock('@/services/translate.service');
 
 // Mock console.error
-vi.spyOn(console, 'error').mockImplementation(() => {});
+const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-// Mock D1Database (simple object sufficient as service is mocked)
+// Mock D1Database and KVNamespace (needed for Env)
 const mockDb = {} as D1Database;
+const mockKv = { get: vi.fn(), put: vi.fn() } as unknown as KVNamespace; // Simple mock for KV
 
-describe('getRandomQuoteHandler', () => {
+// Create mock Env
+const mockEnv: Env = {
+    DB: mockDb,
+    QUOTES_KV: mockKv,
+    // Add other Env properties if they exist and are needed, e.g., AUTH0...
+    AUTH0_DOMAIN: 'test-domain',
+    AUTH0_CLIENT_ID: 'test-client-id',
+};
+
+
+describe('getRandomQuoteHandler (QotD Integration)', () => {
+    const MOCK_IP = '1.2.3.4';
     const mockQuoteData: Quote = {
         id: 1,
         quote: 'Test Quote',
@@ -26,63 +40,80 @@ describe('getRandomQuoteHandler', () => {
 
     beforeEach(() => {
         // Reset mocks and provide default implementations
-        vi.mocked(getRandomQuote).mockResolvedValue(mockQuoteData);
+        vi.mocked(getQuoteOfTheDayOrRandom).mockResolvedValue(mockQuoteData); // Mock the new service function
         vi.mocked(getSupportedLanguages).mockReturnValue(mockSupportedLanguages);
+        consoleErrorSpy.mockClear();
     });
 
     afterEach(() => {
-        vi.clearAllMocks();
+        vi.restoreAllMocks(); // Use restoreAllMocks instead of clearAllMocks if using spyOn
     });
 
-    it('should call getRandomQuote with default language when no lang param is provided', async () => {
-        const mockRequest = new Request('http://test.com/random');
-        const response = await getRandomQuoteHandler(mockRequest, mockDb);
+    it('should call getQuoteOfTheDayOrRandom with correct parameters (IP, DB, KV, defaults)', async () => {
+        const mockRequest = new Request('http://test.com/random', {
+            headers: { 'CF-Connecting-IP': MOCK_IP }
+        });
+        const response = await getRandomQuoteHandler(mockRequest, mockEnv); // Pass mockEnv
         const responseBody = await response.json();
 
         expect(response.status).toBe(200);
         expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
         expect(responseBody).toEqual(mockQuoteData);
-        expect(getRandomQuote).toHaveBeenCalledTimes(1);
-        expect(getRandomQuote).toHaveBeenCalledWith(mockDb, {
+        expect(getQuoteOfTheDayOrRandom).toHaveBeenCalledTimes(1);
+        expect(getQuoteOfTheDayOrRandom).toHaveBeenCalledWith(mockEnv.DB, mockEnv.QUOTES_KV, MOCK_IP, {
             categoryId: undefined,
-            lang: 'en', // DEFAULT_LANG
+            lang: DEFAULT_LANG,
         });
-        expect(getSupportedLanguages).toHaveBeenCalledTimes(0);
+        expect(getSupportedLanguages).toHaveBeenCalledTimes(0); // Not called if lang is default
     });
 
-    it('should call getRandomQuote with the specified supported language', async () => {
-        const mockRequest = new Request('http://test.com/random?lang=es');
-        const response = await getRandomQuoteHandler(mockRequest, mockDb);
+    it('should use "unknown" IP if header is missing', async () => {
+        const mockRequest = new Request('http://test.com/random'); // No IP header
+        await getRandomQuoteHandler(mockRequest, mockEnv);
 
-        expect(response.status).toBe(200);
-        expect(getRandomQuote).toHaveBeenCalledTimes(1);
-        expect(getRandomQuote).toHaveBeenCalledWith(mockDb, {
+        expect(getQuoteOfTheDayOrRandom).toHaveBeenCalledTimes(1);
+        expect(getQuoteOfTheDayOrRandom).toHaveBeenCalledWith(mockEnv.DB, mockEnv.QUOTES_KV, 'unknown', {
+            categoryId: undefined,
+            lang: DEFAULT_LANG,
+        });
+    });
+
+    it('should call getQuoteOfTheDayOrRandom with specified supported language', async () => {
+        const mockRequest = new Request('http://test.com/random?lang=es', {
+             headers: { 'CF-Connecting-IP': MOCK_IP }
+        });
+        await getRandomQuoteHandler(mockRequest, mockEnv);
+
+        expect(getQuoteOfTheDayOrRandom).toHaveBeenCalledTimes(1);
+        expect(getQuoteOfTheDayOrRandom).toHaveBeenCalledWith(mockEnv.DB, mockEnv.QUOTES_KV, MOCK_IP, {
             categoryId: undefined,
             lang: 'es',
         });
         expect(getSupportedLanguages).toHaveBeenCalledTimes(1);
     });
 
-    it('should call getRandomQuote with default language when an unsupported language is provided', async () => {
-        const mockRequest = new Request('http://test.com/random?lang=fr'); // 'fr' is not in mockSupportedLanguages
-        const response = await getRandomQuoteHandler(mockRequest, mockDb);
+    it('should call getQuoteOfTheDayOrRandom with default language when an unsupported language is provided', async () => {
+        const mockRequest = new Request('http://test.com/random?lang=fr', { // 'fr' is not in mockSupportedLanguages
+             headers: { 'CF-Connecting-IP': MOCK_IP }
+        });
+        await getRandomQuoteHandler(mockRequest, mockEnv);
 
-        expect(response.status).toBe(200);
-        expect(getRandomQuote).toHaveBeenCalledTimes(1);
-        expect(getRandomQuote).toHaveBeenCalledWith(mockDb, {
+        expect(getQuoteOfTheDayOrRandom).toHaveBeenCalledTimes(1);
+        expect(getQuoteOfTheDayOrRandom).toHaveBeenCalledWith(mockEnv.DB, mockEnv.QUOTES_KV, MOCK_IP, {
             categoryId: undefined,
-            lang: 'en', // Falls back to DEFAULT_LANG
+            lang: DEFAULT_LANG, // Falls back to DEFAULT_LANG
         });
         expect(getSupportedLanguages).toHaveBeenCalledTimes(1);
     });
 
-    it('should call getRandomQuote with categoryId and specified supported language', async () => {
-        const mockRequest = new Request('http://test.com/random?categoryId=123&lang=es');
-        const response = await getRandomQuoteHandler(mockRequest, mockDb);
+    it('should call getQuoteOfTheDayOrRandom with categoryId and specified supported language', async () => {
+        const mockRequest = new Request('http://test.com/random?categoryId=123&lang=es', {
+             headers: { 'CF-Connecting-IP': MOCK_IP }
+        });
+        await getRandomQuoteHandler(mockRequest, mockEnv);
 
-        expect(response.status).toBe(200);
-        expect(getRandomQuote).toHaveBeenCalledTimes(1);
-        expect(getRandomQuote).toHaveBeenCalledWith(mockDb, {
+        expect(getQuoteOfTheDayOrRandom).toHaveBeenCalledTimes(1);
+        expect(getQuoteOfTheDayOrRandom).toHaveBeenCalledWith(mockEnv.DB, mockEnv.QUOTES_KV, MOCK_IP, {
             categoryId: 123,
             lang: 'es',
         });
@@ -90,42 +121,47 @@ describe('getRandomQuoteHandler', () => {
     });
 
      it('should handle invalid categoryId gracefully (NaN becomes undefined)', async () => {
-        const mockRequest = new Request('http://test.com/random?categoryId=abc&lang=es');
-        const response = await getRandomQuoteHandler(mockRequest, mockDb);
+        const mockRequest = new Request('http://test.com/random?categoryId=abc&lang=es', {
+             headers: { 'CF-Connecting-IP': MOCK_IP }
+        });
+        await getRandomQuoteHandler(mockRequest, mockEnv);
 
-        expect(response.status).toBe(200);
-        expect(getRandomQuote).toHaveBeenCalledTimes(1);
-        expect(getRandomQuote).toHaveBeenCalledWith(mockDb, {
+        expect(getQuoteOfTheDayOrRandom).toHaveBeenCalledTimes(1);
+        expect(getQuoteOfTheDayOrRandom).toHaveBeenCalledWith(mockEnv.DB, mockEnv.QUOTES_KV, MOCK_IP, {
             categoryId: undefined, // NaN parsed to undefined
             lang: 'es',
         });
         expect(getSupportedLanguages).toHaveBeenCalledTimes(1);
     });
 
-    it('should return 404 if getRandomQuote returns null', async () => {
-        vi.mocked(getRandomQuote).mockResolvedValue(null);
-        const mockRequest = new Request('http://test.com/random');
-        const response = await getRandomQuoteHandler(mockRequest, mockDb);
+    it('should return 404 if getQuoteOfTheDayOrRandom returns null', async () => {
+        vi.mocked(getQuoteOfTheDayOrRandom).mockResolvedValue(null);
+        const mockRequest = new Request('http://test.com/random', {
+             headers: { 'CF-Connecting-IP': MOCK_IP }
+        });
+        const response = await getRandomQuoteHandler(mockRequest, mockEnv);
         const responseBody = await response.json();
 
         expect(response.status).toBe(404);
         expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
         expect(responseBody).toHaveProperty('error');
         expect(responseBody.error).toContain('No quote found');
-        expect(getRandomQuote).toHaveBeenCalledTimes(1);
+        expect(getQuoteOfTheDayOrRandom).toHaveBeenCalledTimes(1);
     });
 
-    it('should return 500 if getRandomQuote throws an error', async () => {
-        const errorMessage = 'Database connection error';
-        vi.mocked(getRandomQuote).mockRejectedValue(new Error(errorMessage));
-        const mockRequest = new Request('http://test.com/random');
-        const response = await getRandomQuoteHandler(mockRequest, mockDb);
+    it('should return 500 if getQuoteOfTheDayOrRandom throws an error', async () => {
+        const errorMessage = 'KV connection error';
+        vi.mocked(getQuoteOfTheDayOrRandom).mockRejectedValue(new Error(errorMessage));
+        const mockRequest = new Request('http://test.com/random', {
+            headers: { 'CF-Connecting-IP': MOCK_IP }
+        });
+        const response = await getRandomQuoteHandler(mockRequest, mockEnv);
         const responseBody = await response.json();
 
         expect(response.status).toBe(500);
         expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
         expect(responseBody).toHaveProperty('error');
         expect(responseBody.error).toContain('internal error');
-        expect(getRandomQuote).toHaveBeenCalledTimes(1);
+        expect(getQuoteOfTheDayOrRandom).toHaveBeenCalledTimes(1);
     });
 });

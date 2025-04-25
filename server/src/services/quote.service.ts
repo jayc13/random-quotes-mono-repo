@@ -55,7 +55,12 @@ export const getAllQuotes = async (
 export const getQuoteById = async (
   db: D1Database,
   id: number,
+  options?: {
+    lang?: string;
+  },
 ): Promise<Quote | null> => {
+  const { lang = DEFAULT_LANG } = options || {};
+
   const { results } = await db
     .prepare("SELECT * FROM Quotes WHERE QuoteId = ?")
     .bind(id)
@@ -66,12 +71,27 @@ export const getQuoteById = async (
   }
 
   const r = results[0];
-  return {
+
+  const selectedQuote = {
     id: r.QuoteId as number,
     quote: r.QuoteText as string,
     author: r.QuoteAuthor as string,
     categoryId: r.QuoteCategoryId as number,
   };
+
+  if (lang !== DEFAULT_LANG) {
+    try {
+      selectedQuote.quote = await translateText({
+        text: selectedQuote.quote,
+        sourceLang: DEFAULT_LANG,
+        targetLang: lang,
+      });
+    } catch (error) {
+      console.error(`Translation failed for quote ${selectedQuote.id}:`, error);
+    }
+  }
+
+  return selectedQuote;
 };
 
 export const validateQuoteInput = (input: QuoteInput): boolean => {
@@ -198,4 +218,64 @@ export const getRandomQuote = async (
   }
 
   return selectedQuote;
+};
+
+export const getQuoteOfTheDayOrRandom = async (
+  db: D1Database,
+  kv: KVNamespace,
+  userIp: string,
+  options?: GetRandomQuoteOptions,
+): Promise<Quote | null> => {
+  const { lang = DEFAULT_LANG, categoryId } = options || {};
+  const date = new Date().toISOString().split("T")[0]; // UTC date YYYY-MM-DD
+  const userKey = `qotd_requested_${userIp}_${date}`;
+  const dailyKey = `qotd_${date}`; // Cache key for daily quote
+
+  if (categoryId) {
+    return getRandomQuote(db, options);
+  }
+
+  try {
+    const userHasRequested = await kv.get(userKey);
+    if (userHasRequested) return getRandomQuote(db, options);
+
+    const dailyQuoteId: string | null = await kv.get(dailyKey).catch(() => {
+      return null;
+    });
+
+    if (dailyQuoteId) {
+      await kv
+        .put(userKey, "1", { expirationTtl: 86400 })
+        .catch((e) =>
+          console.error(`Error setting user flag in KV (key: ${userKey}):`, e),
+        );
+      return await getQuoteById(db, Number.parseInt(dailyQuoteId), { lang });
+    }
+
+    console.log(
+      `No cached QotD for ${date} (key: ${dailyKey}). Fetching new one.`,
+    );
+    const newQuoteOfTheDay = await getRandomQuote(db, options);
+
+    if (newQuoteOfTheDay) {
+      await kv
+        .put(dailyKey, newQuoteOfTheDay.id.toString(), { expirationTtl: 86400 })
+        .catch((e) =>
+          console.error(`Error caching QotD in KV (key: ${dailyKey}):`, e),
+        );
+      await kv
+        .put(userKey, "1", { expirationTtl: 86400 })
+        .catch((e) =>
+          console.error(`Error setting user flag in KV (key: ${userKey}):`, e),
+        );
+      return newQuoteOfTheDay;
+    }
+
+    console.log("Could not fetch any quote.");
+    return null;
+  } catch (error) {
+    console.error("Error in getQuoteOfTheDayOrRandom:", error);
+    console.log("Falling back to getRandomQuote due to error.");
+    return await getRandomQuote(db, options);
+  }
 };

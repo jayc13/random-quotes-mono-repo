@@ -13,7 +13,6 @@ export default function Page() {
 	const { urlParsed } = usePageContext();
 	const { quote: initialQuote, categories } = useData<Data>();
 	const [currentQuote, setCurrentQuote] = useState(initialQuote);
-	const [error, setError] = useState<string | null>(null);
 
 	// Extract both lang and categoryId from search params
 	const { lang = DEFAULT_LANG, categoryId = null } = urlParsed?.search || {};
@@ -29,9 +28,8 @@ export default function Page() {
 				categoryId: activeCategoryId,
 			});
 			setCurrentQuote(newQuote);
-			setError(null); // Reset error state on successful fetch
 		} catch (error) {
-			setError("Failed to fetch new quote");
+			window.location.reload();
 		} finally {
 			setIsLoading(false);
 		}
@@ -53,7 +51,7 @@ export default function Page() {
 			</div>
 			<div className="absolute top-4 right-4">
 				<CategoryFilter
-					currentCategoryId={categoryId}
+					currentCategoryId={activeCategoryId?.toString() ?? null}
 					onCategoryChange={async (newCategoryId) => {
 						const newUrl = new URL(window.location.href);
 						if (newCategoryId === null) {
@@ -106,39 +104,11 @@ export default function Page() {
 				Your daily dose of inspiration.
 			</h1>
 
-			{
-				// Use Suspense to handle loading state
-				isLoading ? (
-					<span className="loading loading-spinner loading-lg" />
-				) : (
-					<QuoteCard quote={currentQuote} />
-				)
-			}
-
-			{
-				// Show error message if there's an error
-				error !== null && (
-					<div className="toast toast-center toast-bottom">
-						<div role="alert" className="alert alert-error">
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								className="h-6 w-6 shrink-0 stroke-current"
-								fill="none"
-								viewBox="0 0 24 24"
-							>
-								<title>Error icon</title>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth="2"
-									d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-								/>
-							</svg>
-							<strong>Error!</strong> <span>{error}</span>
-						</div>
-					</div>
-				)
-			}
+			{isLoading ? (
+				<span className="loading loading-spinner loading-lg" />
+			) : (
+				<QuoteCard quote={currentQuote} />
+			)}
 		</div>
 	);
 }

@@ -5,7 +5,6 @@ import {
   getCategoryByIdHandler,
   updateCategoryHandler,
 } from "@/controllers/category.controller";
-// Remove getQuoteSvgHandler import as it's no longer used
 import { getRandomQuoteSvgHandler } from "@/controllers/quote-svg.controller";
 import {
   createQuoteHandler,
@@ -25,6 +24,7 @@ import { DEFAULT_CORS_HEADERS } from "@/utils/constants";
 
 export interface Env {
   DB: D1Database;
+  QUOTES_KV: KVNamespace;
   AUTH0_DOMAIN: string;
   AUTH0_CLIENT_ID: string;
 }
@@ -41,7 +41,7 @@ export default {
 
     // --- Public Routes (No Authentication Required) ---
     if (url.pathname === "/random" && request.method === "GET") {
-      return getRandomQuoteHandler(request, env.DB);
+      return getRandomQuoteHandler(request, env);
     }
 
     if (url.pathname === "/categories" && request.method === "GET") {
