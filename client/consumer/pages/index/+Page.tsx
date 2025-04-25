@@ -1,4 +1,4 @@
-import React from "react";
+import React, {Suspense} from "react";
 import { useData } from "vike-react/useData";
 import type { Data } from "./+data";
 import LangSelector, { DEFAULT_LANG } from "../../components/LangSelector";
@@ -24,7 +24,7 @@ export default function Page() {
 	}
 
 	return (
-		<div className="flex flex-col items-center justify-center h-screen px-4">
+		<div className="flex flex-col items-center justify-center h-screen px-4 bg-gray-500/25">
 			<div className="absolute top-4 left-4">
 				<LangSelector
 					currentLang={lang}
