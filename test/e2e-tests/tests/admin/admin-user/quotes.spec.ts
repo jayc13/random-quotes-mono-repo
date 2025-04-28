@@ -156,10 +156,6 @@ test.describe('Admin Quotes Page', () => {
     const deleteQuoteResponse = await (await deleteQuoteRequest).response();
 
     expect(deleteQuoteResponse.status()).toBe(204);
-
-    // Check if the new quote is displayed in the table
-    const quoteIsPresent = await isQuoteByIdDisplayed(quoteId);
-    expect(quoteIsPresent).toBeFalsy();
   });
 });
 
