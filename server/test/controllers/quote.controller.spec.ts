@@ -1,14 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { getRandomQuoteHandler } from '@/controllers/quote.controller';
-// Import the new service function and Env type
-import { getQuoteOfTheDayOrRandom } from '@/services/quote.service';
+import { getQuoteOfTheDayOrRandom } from '@/services/random-quotes.service';
 import type { Env } from '@/index';
 import { getSupportedLanguages, DEFAULT_LANG } from '@/services/translate.service'; // Import DEFAULT_LANG
 import { DEFAULT_CORS_HEADERS } from '@/utils/constants';
 import type { Quote } from '@/types/quote.types';
 
 // Mock services
-vi.mock('@/services/quote.service'); // Mocks the entire module
+vi.mock('@/services/quote.service');
+vi.mock('@/services/random-quotes.service');
 vi.mock('@/services/translate.service');
 
 // Mock console.error

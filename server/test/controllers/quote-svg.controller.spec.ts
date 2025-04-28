@@ -2,16 +2,16 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 // Import only the remaining handler
 import { getRandomQuoteSvgHandler } from '@/controllers/quote-svg.controller';
 // Import only the used service function
-import { getRandomQuote } from '@/services/quote.service';
+import { getRandomQuote } from '@/services/random-quotes.service';
 import { generateQuoteSvg } from '@/services/quote-svg.service';
 // Import language utils
-import { DEFAULT_LANG, getSupportedLanguages } from '@/services/translate.service';
+import { DEFAULT_LANG } from '@/services/translate.service';
 import { DEFAULT_CORS_HEADERS } from '@/utils/constants';
 import type { Quote } from '@/types/quote.types';
 
 // --- Mocks ---
 // Mock only the used service function from quote.service
-vi.mock('@/services/quote.service', () => ({
+vi.mock('@/services/random-quotes.service', () => ({
     getRandomQuote: vi.fn(),
 }));
 vi.mock('@/services/quote-svg.service'); // Still needed for generateQuoteSvg

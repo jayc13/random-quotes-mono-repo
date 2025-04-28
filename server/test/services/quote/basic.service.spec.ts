@@ -7,10 +7,38 @@ import {
 	validateQuoteInput
 } from '@/services/quote.service';
 import type { Quote, QuoteInput } from '@/types/quote.types';
+import { translateText, DEFAULT_LANG } from '@/services/translate.service';
 
+// Mock the D1Database
 const mockDb = {
+	all: vi.fn(),
 	prepare: vi.fn()
+	// Add other methods if they are used directly in the service
 } as unknown as D1Database;
+
+// Mock D1QB instance methods - use vi.fn() for each method used by the service
+const mockQbMethods = {
+	all: vi.fn(),
+	fetchAll: vi.fn().mockReturnThis(),
+	count: vi.fn().mockReturnThis(), // count returns QB, not the result directly
+	limit: vi.fn().mockReturnThis(),
+	offset: vi.fn().mockReturnThis(),
+	where: vi.fn().mockReturnThis(),
+	select: vi.fn().mockReturnThis(),
+	from: vi.fn().mockReturnThis(),
+	execute: vi.fn() // The final execute call that returns results
+};
+
+// Mock the D1QB constructor to return our mock instance
+vi.mock('workers-qb', () => {
+	const D1QB = vi.fn(() => mockQbMethods); // Alias QB as D1QB if your code uses D1QB
+	return {D1QB};
+});
+
+vi.mock('@/services/translate.service', () => ({
+	DEFAULT_LANG: 'en',
+	translateText: vi.fn()
+}));
 
 describe('quote.service - Basic Operations', () => {
 	describe('validateQuoteInput', () => {
@@ -130,6 +158,59 @@ describe('quote.service - Basic Operations', () => {
 			const result = await getQuoteById(mockDb, 999);
 
 			expect(result).toBeNull();
+		});
+
+		it("translates the quote when a different language is provided", async () => {
+
+			const mockQuote = {
+				QuoteId: 1,
+				QuoteText: "Test quote",
+				QuoteAuthor: "Author",
+				QuoteCategoryId: 2
+			};
+			const mockAllFn = vi.fn().mockResolvedValue({ results: [mockQuote] });
+			const mockBindFn = vi.fn().mockReturnValue({ all: mockAllFn });
+			mockDb.prepare.mockReturnValue({ bind: mockBindFn });
+
+			// Mock the translation function to return a translated quote
+			(translateText as jest.Mock).mockResolvedValueOnce("Translated quote");
+
+			const result = await getQuoteById(mockDb, 1, { lang: "es" });
+
+			expect(translateText).toHaveBeenCalledWith({
+				text: "Test quote",
+				sourceLang: DEFAULT_LANG,
+				targetLang: "es",
+			});
+			expect(result).toEqual({
+				id: 1,
+				quote: "Translated quote",
+				author: "Author",
+				categoryId: 2,
+			});
+		});
+
+		it("logs an error and returns the original quote if translation fails", async () => {
+			mockDb.all.mockResolvedValueOnce({
+				results: [
+					{
+						QuoteId: 1,
+						QuoteText: "Test quote",
+						QuoteAuthor: "Author",
+						QuoteCategoryId: 2,
+					},
+				],
+			});
+			(translateText as jest.Mock).mockRejectedValueOnce(new Error("Translation error"));
+
+			const result = await getQuoteById(mockDb, 1, { lang: "es" });
+
+			expect(result).toEqual({
+				id: 1,
+				quote: "Test quote",
+				author: "Author",
+				categoryId: 2,
+			});
 		});
 	});
 

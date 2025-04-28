@@ -4,10 +4,9 @@ import {
   deleteQuote,
   getAllQuotes,
   getQuoteById,
-  getQuoteOfTheDayOrRandom,
-  getRandomQuote, // Keep for potential future direct use? Or remove if strictly QotD logic now. Assuming keep for now.
   updateQuote,
 } from "@/services/quote.service";
+import { getQuoteOfTheDayOrRandom } from "@/services/random-quotes.service";
 import {
   DEFAULT_LANG,
   getSupportedLanguages,
