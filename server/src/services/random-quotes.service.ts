@@ -1,7 +1,7 @@
-import type {GetRandomQuoteOptions, Quote} from "@/types/quote.types";
-import {D1QB} from "workers-qb";
-import {DEFAULT_LANG, translateText} from "@/services/translate.service";
-import {getQuoteById} from "@/services/quote.service";
+import { getQuoteById } from "@/services/quote.service";
+import { DEFAULT_LANG, translateText } from "@/services/translate.service";
+import type { GetRandomQuoteOptions, Quote } from "@/types/quote.types";
+import { D1QB } from "workers-qb";
 
 export const getRandomQuote = async (
   db: D1Database,

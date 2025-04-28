@@ -6,9 +6,7 @@ import {
   getQuoteById,
   updateQuote,
 } from "@/services/quote.service";
-import {
-  getQuoteOfTheDayOrRandom,
-} from "@/services/random-quotes.service";
+import { getQuoteOfTheDayOrRandom } from "@/services/random-quotes.service";
 import {
   DEFAULT_LANG,
   getSupportedLanguages,
