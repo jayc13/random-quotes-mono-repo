@@ -1,5 +1,5 @@
 import { generateQuoteSvg } from "@/services/quote-svg.service";
-import { getRandomQuote } from "@/services/quote.service";
+import { getRandomQuote } from "@/services/random-quotes.service";
 import {
   DEFAULT_LANG,
   getSupportedLanguages,
