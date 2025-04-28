@@ -24,7 +24,7 @@ test.describe('Consumer Home Page Mobile Layout', () => {
         await expect(page.locator('[data-testid="lang-selector-button"]')).toBeVisible();
         await expect(page.locator('[data-testid="category-selector-button"]')).toBeVisible();
         await expect(page.locator('[data-testid="new-quote-button"]')).toBeVisible();
-        await expect(page.locator('label.swap input.theme-controller')).toBeVisible(); // More specific selector for ThemeController input
+        await expect(page.locator('[data-testid="theme-controller"]')).toBeVisible(); // More specific selector for ThemeController input
         await expect(page.locator('[data-testid="quote"]')).toBeVisible();
         await expect(page.locator('[data-testid="author"]')).toBeVisible();
 
