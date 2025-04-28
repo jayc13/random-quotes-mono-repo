@@ -1,5 +1,6 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {getRandomQuote} from '@/services/quote.service';
+import {getQuoteOfTheDayOrRandom, getRandomQuote} from '@/services/quote.service';
+import {Quote} from "@/types/quote.types";
 
 // Mock the D1Database
 const mockDb = {
