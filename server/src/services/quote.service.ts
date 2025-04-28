@@ -66,8 +66,6 @@ export const getQuoteById = async (
     .bind(id)
     .all();
 
-  console.log({results})
-
   if (results.length === 0) {
     return null;
   }
