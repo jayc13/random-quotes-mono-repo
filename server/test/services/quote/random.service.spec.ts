@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { getRandomQuote } from '@/services/quote.service';
 import { translateText } from '@/services/translate.service';
+import {getRandomQuote} from '@/services/random-quotes.service';
 
 // Mock the D1Database
 const mockDb = {
