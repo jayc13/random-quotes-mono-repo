@@ -236,12 +236,10 @@ export const getQuoteOfTheDayOrRandom = async (
   }
 
   try {
-    const userHasRequested = await kv.get(userKey);
+    const userHasRequested: string | null = await kv.get(userKey);
     if (userHasRequested) return getRandomQuote(db, options);
 
-    const dailyQuoteId: string | null = await kv.get(dailyKey).catch(() => {
-      return null;
-    });
+    const dailyQuoteId: string | null = await kv.get(dailyKey);
 
     if (dailyQuoteId) {
       await kv

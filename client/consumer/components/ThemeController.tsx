@@ -14,7 +14,10 @@ const ThemeController = () => {
 	}, []);
 
 	return (
-		<label className="swap swap-rotate btn btn-ghost btn-circle bg-transparent">
+		<label
+			className="swap swap-rotate btn btn-ghost btn-circle bg-transparent"
+			data-testid="theme-controller"
+		>
 			<input
 				type="checkbox"
 				className="theme-controller"
