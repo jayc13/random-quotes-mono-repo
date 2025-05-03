@@ -65,7 +65,7 @@ export const HomePage: React.FC = () => {
       <Card>
         {quote && author ? (
           <Space direction='vertical'>
-            <Text italic style={{ fontSize: "1.5rem" }}>
+            <Text italic style={{ fontSize: "1.5rem" }} data-testid='quote-text'>
               &quot;{quote}&quot;
             </Text>
             <Text
@@ -75,6 +75,7 @@ export const HomePage: React.FC = () => {
                 justifyContent: "flex-end",
                 fontSize: "1.2rem",
               }}
+              data-testid='quote-author'
             >
               {author}
             </Text>
