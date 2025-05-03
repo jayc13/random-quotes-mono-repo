@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getRandomQuoteHandler } from '@/controllers/quote.controller';
-import { getQuoteOfTheDayOrRandom } from '@/services/random-quotes.service';
+import { getRandomQuoteHandler, getQuoteOfTheDayHandler } from '@/controllers/quote.controller'; // Import getQuoteOfTheDayHandler
+import { getQuoteOfTheDayOrRandom, getQuoteOfTheDay } from '@/services/random-quotes.service'; // Import getQuoteOfTheDay
 import type { Env } from '@/index';
 import { getSupportedLanguages, DEFAULT_LANG } from '@/services/translate.service'; // Import DEFAULT_LANG
 import { DEFAULT_CORS_HEADERS } from '@/utils/constants';
@@ -46,7 +46,8 @@ describe('getRandomQuoteHandler (QotD Integration)', () => {
     });
 
     afterEach(() => {
-        vi.restoreAllMocks(); // Use restoreAllMocks instead of clearAllMocks if using spyOn
+        // vi.restoreAllMocks(); // Use restoreAllMocks instead of clearAllMocks if using spyOn
+        vi.clearAllMocks(); // Use clearAllMocks to avoid potential mock conflicts between describe blocks
     });
 
     it('should call getQuoteOfTheDayOrRandom with correct parameters (IP, DB, KV, defaults)', async () => {
@@ -163,5 +164,98 @@ describe('getRandomQuoteHandler (QotD Integration)', () => {
         expect(responseBody).toHaveProperty('error');
         expect(responseBody.error).toContain('internal error');
         expect(getQuoteOfTheDayOrRandom).toHaveBeenCalledTimes(1);
+    });
+});
+
+
+describe('getQuoteOfTheDayHandler', () => {
+    const mockQuoteData: Quote = {
+        id: 2,
+        quote: 'Quote of the Day',
+        author: 'Daily Author',
+        categoryId: 2,
+    };
+    const mockSupportedLanguages = ['en', 'es'];
+
+    beforeEach(() => {
+        // Reset mocks and provide default implementations before each test in this block
+        vi.mocked(getQuoteOfTheDay).mockResolvedValue(mockQuoteData);
+        vi.mocked(getSupportedLanguages).mockReturnValue(mockSupportedLanguages);
+        consoleErrorSpy.mockClear(); // Clear console spy specific to this block's tests
+    });
+
+    afterEach(() => {
+        // Clear mock history after each test in this block
+        vi.clearAllMocks();
+    });
+
+    it('should return 200 and quote when successful (default lang)', async () => {
+        const mockRequest = new Request('http://test.com/qotd');
+        const response = await getQuoteOfTheDayHandler(mockRequest, mockEnv);
+        const responseBody = await response.json();
+
+        expect(response.status).toBe(200);
+        expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
+        expect(responseBody).toEqual(mockQuoteData);
+        expect(getQuoteOfTheDay).toHaveBeenCalledTimes(1);
+        expect(getQuoteOfTheDay).toHaveBeenCalledWith(mockEnv.DB, mockEnv.QUOTES_KV, {
+            lang: DEFAULT_LANG,
+        });
+        expect(getSupportedLanguages).toHaveBeenCalledTimes(0); // Not called if lang param missing
+    });
+
+    it('should return 200 and quote when successful (supported lang)', async () => {
+        const mockRequest = new Request('http://test.com/qotd?lang=es');
+        const response = await getQuoteOfTheDayHandler(mockRequest, mockEnv);
+        const responseBody = await response.json();
+
+        expect(response.status).toBe(200);
+        expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
+        expect(responseBody).toEqual(mockQuoteData);
+        expect(getQuoteOfTheDay).toHaveBeenCalledTimes(1);
+        expect(getQuoteOfTheDay).toHaveBeenCalledWith(mockEnv.DB, mockEnv.QUOTES_KV, {
+            lang: 'es',
+        });
+        expect(getSupportedLanguages).toHaveBeenCalledTimes(1);
+    });
+
+     it('should use default language when an unsupported language is provided', async () => {
+        const mockRequest = new Request('http://test.com/qotd?lang=fr'); // fr is not supported
+        await getQuoteOfTheDayHandler(mockRequest, mockEnv);
+
+        expect(getQuoteOfTheDay).toHaveBeenCalledTimes(1);
+        expect(getQuoteOfTheDay).toHaveBeenCalledWith(mockEnv.DB, mockEnv.QUOTES_KV, {
+            lang: DEFAULT_LANG, // Falls back to default
+        });
+        expect(getSupportedLanguages).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return 404 if getQuoteOfTheDay returns null', async () => {
+        vi.mocked(getQuoteOfTheDay).mockResolvedValue(null);
+        const mockRequest = new Request('http://test.com/qotd');
+        const response = await getQuoteOfTheDayHandler(mockRequest, mockEnv);
+        const responseBody = await response.json();
+
+        expect(response.status).toBe(404);
+        expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
+        expect(responseBody).toHaveProperty('error');
+        expect(responseBody.error).toContain('Could not retrieve the quote of the day');
+        expect(getQuoteOfTheDay).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return 500 and log error if getQuoteOfTheDay throws an error', async () => {
+        const errorMessage = 'Database connection error';
+        vi.mocked(getQuoteOfTheDay).mockRejectedValue(new Error(errorMessage));
+        const mockRequest = new Request('http://test.com/qotd');
+        const response = await getQuoteOfTheDayHandler(mockRequest, mockEnv);
+        const responseBody = await response.json();
+
+        expect(response.status).toBe(500);
+        expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
+        expect(responseBody).toHaveProperty('error');
+        expect(responseBody.error).toContain('internal error occurred');
+        expect(getQuoteOfTheDay).toHaveBeenCalledTimes(1);
+        expect(consoleErrorSpy).toHaveBeenCalledTimes(1); // Check if console.error was called
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Error in getQuoteOfTheDayHandler'), expect.any(Error));
     });
 });

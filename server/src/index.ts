@@ -11,6 +11,7 @@ import {
   deleteQuoteHandler,
   getAllQuotesHandler,
   getQuoteByIdHandler,
+  getQuoteOfTheDayHandler, // Import the new handler
   getRandomQuoteHandler,
   updateQuoteHandler,
 } from "@/controllers/quote.controller";
@@ -51,6 +52,11 @@ export default {
     // New route for random SVG generation
     if (url.pathname === "/random.svg" && request.method === "GET") {
       return getRandomQuoteSvgHandler(request, env.DB);
+    }
+
+    // New route for Quote of the Day
+    if (url.pathname === "/qotd" && request.method === "GET") {
+      return getQuoteOfTheDayHandler(request, env);
     }
 
     // --- Authentication Middleware ---

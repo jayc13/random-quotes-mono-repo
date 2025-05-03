@@ -6,7 +6,10 @@ import {
   getQuoteById,
   updateQuote,
 } from "@/services/quote.service";
-import { getQuoteOfTheDayOrRandom } from "@/services/random-quotes.service";
+import {
+  getQuoteOfTheDay,
+  getQuoteOfTheDayOrRandom,
+} from "@/services/random-quotes.service";
 import {
   DEFAULT_LANG,
   getSupportedLanguages,
@@ -110,6 +113,48 @@ export const getQuoteByIdHandler = async (db: D1Database, id: number) => {
   return Response.json(quote, {
     headers: DEFAULT_CORS_HEADERS,
   });
+};
+
+export const getQuoteOfTheDayHandler = async (
+  request: Request,
+  env: Env,
+): Promise<Response> => {
+  try {
+    const url = new URL(request.url);
+    const requestedLang = url.searchParams.get("lang");
+    let finalLang: string = DEFAULT_LANG;
+
+    if (requestedLang && getSupportedLanguages().includes(requestedLang)) {
+      finalLang = requestedLang;
+    }
+
+    const quote = await getQuoteOfTheDay(env.DB, env.QUOTES_KV, {
+      lang: finalLang,
+    });
+
+    if (!quote) {
+      return Response.json(
+        { error: "Could not retrieve the quote of the day" },
+        {
+          status: 404,
+          headers: DEFAULT_CORS_HEADERS,
+        },
+      );
+    }
+
+    return Response.json(quote, {
+      headers: DEFAULT_CORS_HEADERS,
+    });
+  } catch (error) {
+    console.error("Error in getQuoteOfTheDayHandler:", error);
+    return Response.json(
+      { error: "An internal error occurred" },
+      {
+        status: 500,
+        headers: DEFAULT_CORS_HEADERS,
+      },
+    );
+  }
 };
 
 export const createQuoteHandler = async (

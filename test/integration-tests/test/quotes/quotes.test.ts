@@ -118,5 +118,32 @@ describe('Quotes API Integration Tests', () => {
     // add more specific assertions here.
   });
 
+  // --- Quote of the Day Tests ---
+
+  it('should fetch the quote of the day successfully (default language)', async () => {
+    const response = await server.get('/qotd'); // No auth needed for public route
+
+    expect(response.status).to.equal(200);
+    expect(response.body).to.be.an('object');
+    expect(response.body).to.have.property('id').that.is.a('number');
+    expect(response.body).to.have.property('quote').that.is.a('string').and.is.not.empty;
+    expect(response.body).to.have.property('author').that.is.a('string').and.is.not.empty;
+    expect(response.body).to.have.property('categoryId').that.is.a('number');
+    // Note: We cannot easily assert the *content* as it changes daily/by request context
+  });
+
+  it('should fetch the quote of the day in a specific language (es)', async () => {
+    const response = await server.get('/qotd?lang=es'); // No auth needed
+
+    expect(response.status).to.equal(200);
+    expect(response.body).to.be.an('object');
+    expect(response.body).to.have.property('id').that.is.a('number');
+    expect(response.body).to.have.property('quote').that.is.a('string').and.is.not.empty;
+    expect(response.body).to.have.property('author').that.is.a('string').and.is.not.empty;
+    expect(response.body).to.have.property('categoryId').that.is.a('number');
+    // As noted, asserting the exact translated content is difficult here.
+    // We are primarily testing that the endpoint accepts the param and returns the correct structure.
+  });
+
   // Further negative tests can be added here
 });
