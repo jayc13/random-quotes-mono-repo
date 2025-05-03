@@ -8,47 +8,46 @@ let page: Page;
 test.describe.configure({ mode: 'serial' });
 
 test.describe('Admin Home Page - Quote of the Day', () => {
+  let quoteOfTheDayResponse;
   test.beforeAll(async ({ browser }) => {
     page = await browser.newPage(); // Create page instance
     await loginAs(page, 'ADMIN'); // Login as Admin
+
+    const getQuoteOfTheDayRequest = page.waitForRequest((request) => {
+      return request.url().includes(`${API_BASE_URL}/qotd`) && request.method() === 'GET';
+    });
+    
     await page.goto(`${ADMIN_BASE_URL}/`); // Navigate to base URL
 
-    // Wait for navigation to settle
+    await getQuoteOfTheDayRequest;
+
+    quoteOfTheDayResponse = await (await getQuoteOfTheDayRequest).response();
+    expect(quoteOfTheDayResponse.status()).toBe(200);
+
     await page.waitForURL((url) => {
       return url.pathname === '/';
     });
-    // Ensure the main home page container is loaded after login/redirect
+    
     await expect(page.locator("[data-testid='home-page']")).toBeVisible();
   });
 
   test.afterAll(async () => {
-    await page.close(); // Close the page after tests
+    await page.close();
   });
 
   test('should display the quote of the day on the home page', async () => {
+    const quoteOfTheDay = await quoteOfTheDayResponse.json();
+    
     const homePageContainer = page.locator("[data-testid='home-page']");
-
-    // Optional: Wait for the API call to complete to ensure data is fetched
-    await page.waitForResponse(response =>
-      response.url().includes('/qotd') && response.status() === 200
-    );
-
-    // Locate the quote text element within the Card inside the home page container
-    // Using a more specific locator based on the Ant Design structure observed in home.tsx
-    const quoteTextLocator = homePageContainer.locator("[data-testid='quote-text']"); // Targets the quote text using a stable test ID
-
-    // Locate the author text element
-    // Targeting the secondary text span within the card, usually below the quote
-    const authorTextLocator = homePageContainer.locator("[data-testid='quote-author']"); // Targets the author text using a stable test ID
+    const quoteTextLocator = homePageContainer.locator("[data-testid='quote-text']");
+    const authorTextLocator = homePageContainer.locator("[data-testid='quote-author']");
 
     // Assert quote is visible and has text
     await expect(quoteTextLocator).toBeVisible();
-    await expect(quoteTextLocator).not.toBeEmpty();
-    // Check for the quote marks as well, as per the component structure
-    await expect(quoteTextLocator).toContainText('"'); 
+    await expect(quoteTextLocator).toContainText(quoteOfTheDay.quote); 
 
     // Assert author is visible and has text
     await expect(authorTextLocator).toBeVisible();
-    await expect(authorTextLocator).not.toBeEmpty();
+    await expect(authorTextLocator).toContainText(quoteOfTheDay.author); 
   });
 });
