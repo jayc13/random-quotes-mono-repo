@@ -4,6 +4,7 @@ import { CatchAllNavigate } from "@refinedev/react-router";
 import React from "react";
 import { Outlet, Route, Routes } from "react-router";
 import { Header } from "./components";
+import { ApiTokensList } from "./pages/api-tokens"; // Import the new component
 import { CategoryList, CategoryShow } from "./pages/categories";
 import { HomePage } from "./pages/home";
 import { Login } from "./pages/login";
@@ -37,6 +38,10 @@ const AppRouter = () => {
         </Route>
         <Route path='/quotes'>
           <Route index element={<QuoteList />} />
+        </Route>
+        {/* Add the route for API Tokens */}
+        <Route path='/api-tokens'>
+          <Route index element={<ApiTokensList />} />
         </Route>
         <Route path='/' element={<HomePage />} />
         <Route path='*' element={<ErrorComponent />} />
