@@ -297,7 +297,12 @@ describe('Quotes API Integration Tests', () => {
     });
 
     it('should return 404 when trying to delete a non-existent quote', async () => {
-      const nonExistentQuoteId = 999999;
+      const allQuoteIdsResponse = await server
+        .get('/quotes')
+        .set('Authorization', adminToken);
+      expect(allQuoteIdsResponse.status).to.equal(200);
+      const allQuoteIds = allQuoteIdsResponse.body.map((quote: { id: number }) => quote.id);
+      const nonExistentQuoteId = Math.max(...allQuoteIds) + 1000; // Ensure a non-existent ID
       const response = await server
         .delete(`/quotes/${nonExistentQuoteId}`)
         .set('Authorization', adminToken);
