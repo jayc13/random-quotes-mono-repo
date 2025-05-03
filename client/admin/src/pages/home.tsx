@@ -22,7 +22,7 @@ export const HomePage: React.FC = () => {
     quote: string;
     author: string;
   }>({
-    url: `${API_URL}/qotd`, // Changed from /random to /qotd
+    url: `${API_URL}/qotd`,
     method: "get",
     queryOptions: {
       enabled: false,

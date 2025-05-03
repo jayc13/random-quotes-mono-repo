@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getRandomQuoteHandler, getQuoteOfTheDayHandler } from '@/controllers/quote.controller'; // Import getQuoteOfTheDayHandler
-import { getQuoteOfTheDayOrRandom, getQuoteOfTheDay } from '@/services/random-quotes.service'; // Import getQuoteOfTheDay
+import { getRandomQuoteHandler, getQuoteOfTheDayHandler } from '@/controllers/quote.controller';
+import { getQuoteOfTheDayOrRandom, getQuoteOfTheDay } from '@/services/random-quotes.service';
 import type { Env } from '@/index';
 import { getSupportedLanguages, DEFAULT_LANG } from '@/services/translate.service'; // Import DEFAULT_LANG
 import { DEFAULT_CORS_HEADERS } from '@/utils/constants';
@@ -46,7 +46,6 @@ describe('getRandomQuoteHandler (QotD Integration)', () => {
     });
 
     afterEach(() => {
-        // vi.restoreAllMocks(); // Use restoreAllMocks instead of clearAllMocks if using spyOn
         vi.clearAllMocks(); // Use clearAllMocks to avoid potential mock conflicts between describe blocks
     });
 

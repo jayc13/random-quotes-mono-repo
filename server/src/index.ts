@@ -11,7 +11,7 @@ import {
   deleteQuoteHandler,
   getAllQuotesHandler,
   getQuoteByIdHandler,
-  getQuoteOfTheDayHandler, // Import the new handler
+  getQuoteOfTheDayHandler,
   getRandomQuoteHandler,
   updateQuoteHandler,
 } from "@/controllers/quote.controller";
@@ -54,7 +54,6 @@ export default {
       return getRandomQuoteSvgHandler(request, env.DB);
     }
 
-    // New route for Quote of the Day
     if (url.pathname === "/qotd" && request.method === "GET") {
       return getQuoteOfTheDayHandler(request, env);
     }

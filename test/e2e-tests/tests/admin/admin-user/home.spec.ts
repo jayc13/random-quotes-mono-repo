@@ -13,10 +13,9 @@ test.describe('Admin Home Page - Quote of the Day', () => {
     await loginAs(page, 'ADMIN'); // Login as Admin
     await page.goto(`${ADMIN_BASE_URL}/`); // Navigate to base URL
 
-    // Wait for navigation to settle, potentially redirecting to /home
-    // Check if the final URL is the home page (either '/' or '/home')
+    // Wait for navigation to settle
     await page.waitForURL((url) => {
-      return url.pathname === '/' || url.pathname === '/home';
+      return url.pathname === '/';
     });
     // Ensure the main home page container is loaded after login/redirect
     await expect(page.locator("[data-testid='home-page']")).toBeVisible();
@@ -26,7 +25,7 @@ test.describe('Admin Home Page - Quote of the Day', () => {
     await page.close(); // Close the page after tests
   });
 
-  it('should display the quote of the day on the home page', async () => {
+  test('should display the quote of the day on the home page', async () => {
     const homePageContainer = page.locator("[data-testid='home-page']");
 
     // Optional: Wait for the API call to complete to ensure data is fetched
@@ -36,11 +35,11 @@ test.describe('Admin Home Page - Quote of the Day', () => {
 
     // Locate the quote text element within the Card inside the home page container
     // Using a more specific locator based on the Ant Design structure observed in home.tsx
-    const quoteTextLocator = homePageContainer.locator(".ant-card .ant-typography i"); // Targets the italic text within the card
+    const quoteTextLocator = homePageContainer.locator("[data-testid='quote-text']"); // Targets the quote text using a stable test ID
 
     // Locate the author text element
     // Targeting the secondary text span within the card, usually below the quote
-    const authorTextLocator = homePageContainer.locator(".ant-card .ant-typography.ant-typography-secondary");
+    const authorTextLocator = homePageContainer.locator("[data-testid='quote-author']"); // Targets the author text using a stable test ID
 
     // Assert quote is visible and has text
     await expect(quoteTextLocator).toBeVisible();
