@@ -22,7 +22,22 @@ export const getAllQuotesHandler = async (request: Request, db: D1Database) => {
   const end = Number.parseInt(url.searchParams.get("_end") || "10", 10);
   const limit = end - start;
   const offset = start;
-  const categoryId = url.searchParams.get("categoryId") || "0";
+  const categoryIdStr = url.searchParams.get("categoryId");
+
+  // Validate categoryId format if it exists
+  if (categoryIdStr && !/^\d+$/.test(categoryIdStr)) {
+    return Response.json(
+      { error: "Invalid categoryId format" },
+      {
+        status: 400,
+        headers: DEFAULT_CORS_HEADERS,
+      },
+    );
+  }
+
+  // Use the validated categoryId or default to 0 if not provided
+  const categoryId = categoryIdStr ? Number.parseInt(categoryIdStr, 10) : 0;
+
   const options = {
     pagination: {
       limit,
