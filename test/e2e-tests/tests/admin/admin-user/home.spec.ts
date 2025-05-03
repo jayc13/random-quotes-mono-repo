@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { loginAs } from '../../../commands/admin/login.command';
-import { ADMIN_BASE_URL } from '../../../utils/config';
+import { ADMIN_BASE_URL, API_BASE_URL } from '../../../utils/config';
 
 let page: Page;
 
