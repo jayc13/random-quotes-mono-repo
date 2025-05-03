@@ -13,7 +13,7 @@
 		"deploy": "run-s build deploy:wrangler"
 	},
 	"dependencies": {
-		"vike": "^0.4.228",
+		"vike": "^0.4.229",
 		"@hono/node-server": "^1.14.1",
 		"@universal-middleware/hono": "^0.4.9",
 		"hono": "^4.7.6",
