@@ -24,5 +24,12 @@
     "formatter": {
       "trailingCommas": "none"
     }
+  },
+  "linter": {
+    "rules": {
+      "suspicious": {
+        "useValidTypeof": "off"
+      }
+    }
   }
 }

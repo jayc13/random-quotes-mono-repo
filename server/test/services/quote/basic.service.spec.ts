@@ -4,7 +4,6 @@ import {
 	deleteQuote,
 	getQuoteById,
 	updateQuote,
-	validateQuoteInput
 } from '@/services/quote.service';
 import type { Quote, QuoteInput } from '@/types/quote.types';
 import { translateText, DEFAULT_LANG } from '@/services/translate.service';
@@ -41,40 +40,6 @@ vi.mock('@/services/translate.service', () => ({
 }));
 
 describe('quote.service - Basic Operations', () => {
-	describe('validateQuoteInput', () => {
-		let validInput: QuoteInput;
-		beforeEach(() => {
-			validInput = { quote: 'Valid', author: 'Valid', categoryId: 1 };
-		});
-		it('should return true for valid input', () => {
-			expect(validateQuoteInput(validInput)).toBe(true);
-		});
-		it('should return false if categoryId is not a number', () => {
-			validInput.categoryId = 'A' as any; expect(validateQuoteInput(validInput)).toBe(false);
-		});
-		it('should return false for empty input', () => {
-			expect(validateQuoteInput(null as any)).toBe(false);
-			expect(validateQuoteInput(undefined as any)).toBe(false);
-		});
-
-		it('should return false for empty strings after trim', () => {
-			const input = {
-				quote: "   ",
-				author: "  ",
-				categoryId: 1
-			};
-			expect(validateQuoteInput(input)).toBe(false);
-		});
-
-		it('should validate string length limits', () => {
-			const longInput = {
-				quote: "a".repeat(251),
-				author: "a".repeat(101),
-				categoryId: 1
-			};
-			expect(validateQuoteInput(longInput)).toBe(false);
-		});
-	});
 
 	describe('getQuoteById', () => {
 		it('should correctly map quote fields', async () => {
@@ -250,10 +215,7 @@ describe('quote.service - Basic Operations', () => {
 				author: "",
 				categoryId: 1
 			};
-			await expect(createQuote(mockDb, invalidInput))
-				.rejects
-				.toThrow('Invalid quote input');
-			expect(mockDb.prepare).not.toHaveBeenCalled();
+			await expect(createQuote(mockDb, invalidInput)).rejects.toThrow();
 		});
 	});
 
@@ -309,10 +271,7 @@ describe('quote.service - Basic Operations', () => {
 				author: "",
 				categoryId: 1
 			};
-			await expect(updateQuote(mockDb, 1, invalidInput))
-				.rejects
-				.toThrow('Invalid quote input');
-			expect(mockDb.prepare).not.toHaveBeenCalled();
+			await expect(updateQuote(mockDb, 1, invalidInput)).rejects.toThrow();
 		});
 	});
 

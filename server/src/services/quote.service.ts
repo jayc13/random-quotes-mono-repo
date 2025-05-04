@@ -93,29 +93,11 @@ export const getQuoteById = async (
   return selectedQuote;
 };
 
-export const validateQuoteInput = (input: QuoteInput): boolean => {
-  return !(
-    !input ||
-    !input.quote ||
-    input.quote.trim().length === 0 ||
-    input.quote.length > 250 ||
-    !input.author ||
-    input.author.trim().length === 0 ||
-    input.author.length > 100 ||
-    input.categoryId === undefined ||
-    typeof input.categoryId !== "number"
-  );
-};
-
 export const createQuote = async (
   db: D1Database,
   input: QuoteInput,
 ): Promise<Quote> => {
   const { quote, author, categoryId } = input;
-
-  if (!validateQuoteInput(input)) {
-    throw new Error("Invalid quote input");
-  }
 
   const result = await db
     .prepare(
@@ -140,10 +122,6 @@ export const updateQuote = async (
   input: QuoteInput,
 ): Promise<Quote | null> => {
   const { quote, author, categoryId } = input;
-
-  if (!validateQuoteInput(input)) {
-    throw new Error("Invalid quote input");
-  }
 
   await db
     .prepare(
