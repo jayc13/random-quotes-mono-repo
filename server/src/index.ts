@@ -159,35 +159,8 @@ export default {
 
       // POST /quotes
       if (url.pathname === "/quotes" && request.method === "POST") {
-        try {
-          const requestBody = await request.json<QuoteInput>();
-          // Basic validation, can be improved
-          if (
-            !requestBody ||
-            typeof requestBody.quote !== "string" ||
-            !requestBody.quote ||
-            requestBody.quote.trim() === "" ||
-            !requestBody.author ||
-            typeof requestBody.author !== "string" ||
-            requestBody.author.trim() === "" ||
-            !requestBody.categoryId ||
-            typeof requestBody.categoryId !== "number"
-          ) {
-            return Response.json(
-              {
-                error:
-                  "Invalid request body: 'quote', 'author', and 'categoryId' are required and must be valid.",
-              },
-              { status: 400, headers: DEFAULT_CORS_HEADERS },
-            );
-          }
-          return createQuoteHandler(env.DB, requestBody);
-        } catch {
-          return Response.json("Invalid JSON", {
-            status: 400,
-            headers: DEFAULT_CORS_HEADERS,
-          });
-        }
+        const requestBody = await request.json<QuoteInput>();
+        return createQuoteHandler(env.DB, requestBody);
       }
 
       // /quotes/:id (PUT, DELETE, GET - GET needs admin here?)
@@ -205,32 +178,8 @@ export default {
         switch (request.method) {
           case "PATCH": // Assuming PATCH is like PUT
           case "PUT": {
-            try {
-              const requestBody = await request.json<QuoteInput>();
-              // Basic validation, can be improved
-              if (
-                !requestBody ||
-                typeof requestBody.quote !== "string" ||
-                requestBody.quote.trim() === "" ||
-                typeof requestBody.author !== "string" ||
-                requestBody.author.trim() === "" ||
-                typeof requestBody.categoryId !== "number"
-              ) {
-                return Response.json(
-                  {
-                    error:
-                      "Invalid request body: 'quote', 'author', and 'categoryId' are required and must be valid.",
-                  },
-                  { status: 400, headers: DEFAULT_CORS_HEADERS },
-                );
-              }
-              return updateQuoteHandler(env.DB, quoteId, requestBody);
-            } catch (e) {
-              return Response.json("Invalid JSON", {
-                status: 400,
-                headers: DEFAULT_CORS_HEADERS,
-              });
-            }
+            const requestBody = await request.json<QuoteInput>();
+            return updateQuoteHandler(env.DB, quoteId, requestBody);
           }
           case "GET": // Requires admin in this block
             return getQuoteByIdHandler(env.DB, quoteId);

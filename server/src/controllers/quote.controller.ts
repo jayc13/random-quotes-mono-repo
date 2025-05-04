@@ -6,7 +6,6 @@ import {
   getQuoteById,
   updateQuote,
 } from "@/services/quote.service";
-import { quoteInputValidator } from "@/validators/quote.validator";
 import {
   getQuoteOfTheDay,
   getQuoteOfTheDayOrRandom,
@@ -16,6 +15,7 @@ import {
   getSupportedLanguages,
 } from "@/services/translate.service";
 import { DEFAULT_CORS_HEADERS } from "@/utils/constants";
+import { quoteInputValidator } from "@/validators/quote.validator";
 
 export const getAllQuotesHandler = async (request: Request, db: D1Database) => {
   const url = new URL(request.url);
@@ -177,7 +177,6 @@ export const createQuoteHandler = async (
   db: D1Database,
   quote: { quote: string; author: string; categoryId: number },
 ) => {
-
   if (!quoteInputValidator(quote)) {
     return Response.json(
       {

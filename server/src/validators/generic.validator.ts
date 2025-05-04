@@ -47,7 +47,9 @@ export const genericValidator = <T>(
 
     if (
       rule.required &&
-      (value === undefined || value === null || (typeof value === "string" && value.trim() === ""))
+      (value === undefined ||
+        value === null ||
+        (typeof value === "string" && value.trim() === ""))
     ) {
       return false;
     }
