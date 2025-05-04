@@ -44,7 +44,7 @@ export const getAllQuotesHandler = async (request: Request, db: D1Database) => {
       offset,
     },
     filter: {
-      categoryId: Number.parseInt(categoryId, 10),
+      categoryId,
     },
   };
   const {
