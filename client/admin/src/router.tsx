@@ -4,11 +4,11 @@ import { CatchAllNavigate } from "@refinedev/react-router";
 import React from "react";
 import { Outlet, Route, Routes } from "react-router";
 import { Header } from "./components";
+import { ApiKeyList } from "./pages/api-keys"; // Import the new component
 import { CategoryList, CategoryShow } from "./pages/categories";
 import { HomePage } from "./pages/home";
 import { Login } from "./pages/login";
 import { QuoteList } from "./pages/quotes";
-import { ApiKeyList } from "./pages/api-keys"; // Import the new component
 
 const AppRouter = () => {
   return (

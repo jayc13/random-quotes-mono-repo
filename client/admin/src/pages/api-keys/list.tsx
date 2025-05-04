@@ -1,12 +1,7 @@
+import { DeleteButton, List, useModalForm, useTable } from "@refinedev/antd";
+import type { BaseRecord } from "@refinedev/core";
+import { Form, Input, Modal, Space, Spin, Table } from "antd";
 import React from "react";
-import {
-  List,
-  useTable,
-  DeleteButton,
-  useModalForm,
-} from "@refinedev/antd";
-import { Table, Space, Modal, Form, Input, Spin } from "antd";
-import { BaseRecord } from "@refinedev/core";
 
 // Define the interface for API Keys
 export interface IApiKey {
