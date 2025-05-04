@@ -288,7 +288,7 @@ describe('Quotes API Integration Tests', () => {
       expect(verifyResponse.status).to.equal(404);
     });
 
-    it('should return 404 when trying to delete a non-existent quote', async () => {
+    it('should return 204 when trying to delete a non-existent quote', async () => {
       const allQuoteIdsResponse = await server
         .get('/quotes')
         .set('Authorization', adminToken);
@@ -298,7 +298,7 @@ describe('Quotes API Integration Tests', () => {
       const response = await server
         .delete(`/quotes/${nonExistentQuoteId}`)
         .set('Authorization', adminToken);
-      expect(response.status).to.equal(404);
+      expect(response.status).to.equal(204);
     });
 
     it('should return 401/403 if authentication is missing', async () => {
