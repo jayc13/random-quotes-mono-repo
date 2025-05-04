@@ -29,19 +29,11 @@ export const getCategoryById = async (
   };
 };
 
-export const validateCategoryInput = (input: CategoryInput): boolean => {
-  return !(!input || !input.name || input.name.trim().length === 0);
-};
-
 export const createCategory = async (
   db: D1Database,
   input: CategoryInput,
 ): Promise<Category> => {
   const { name } = input;
-
-  if (!validateCategoryInput(input)) {
-    throw new Error("Invalid category input");
-  }
 
   const result = await db
     .prepare("INSERT INTO Categories (CategoryName) VALUES (?)")
@@ -62,10 +54,6 @@ export const updateCategory = async (
   input: CategoryInput,
 ): Promise<Category | null> => {
   const { name } = input;
-
-  if (!validateCategoryInput(input)) {
-    throw new Error("Invalid category input");
-  }
 
   await db
     .prepare("UPDATE Categories SET CategoryName = ? WHERE CategoryId = ?")

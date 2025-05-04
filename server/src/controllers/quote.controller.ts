@@ -15,6 +15,7 @@ import {
   getSupportedLanguages,
 } from "@/services/translate.service";
 import { DEFAULT_CORS_HEADERS } from "@/utils/constants";
+import { quoteInputValidator } from "@/validators/quote.validator";
 
 export const getAllQuotesHandler = async (request: Request, db: D1Database) => {
   const url = new URL(request.url);
@@ -176,6 +177,16 @@ export const createQuoteHandler = async (
   db: D1Database,
   quote: { quote: string; author: string; categoryId: number },
 ) => {
+  if (!quoteInputValidator(quote)) {
+    return Response.json(
+      {
+        error:
+          "Invalid request body: 'quote', 'author', and 'categoryId' are required and must be valid.",
+      },
+      { status: 400, headers: DEFAULT_CORS_HEADERS },
+    );
+  }
+
   try {
     const newQuote = await createQuote(db, quote);
     return Response.json(newQuote, {
@@ -183,15 +194,6 @@ export const createQuoteHandler = async (
       headers: DEFAULT_CORS_HEADERS,
     });
   } catch (error) {
-    if (error instanceof Error && error.message === "Invalid quote input") {
-      return Response.json(
-        {
-          error:
-            "Invalid request body: 'quote', 'author', and 'categoryId' are required and must be valid.",
-        },
-        { status: 400, headers: DEFAULT_CORS_HEADERS },
-      );
-    }
     // Log the error for debugging purposes
     console.error("Error in createQuoteHandler:", error);
     // Return a generic 500 error for other types of errors
@@ -207,6 +209,15 @@ export const updateQuoteHandler = async (
   id: number,
   quote: { quote: string; author: string; categoryId: number },
 ) => {
+  if (!quoteInputValidator(quote)) {
+    return Response.json(
+      {
+        error:
+          "Invalid request body: 'quote', 'author', and 'categoryId' are required and must be valid.",
+      },
+      { status: 400, headers: DEFAULT_CORS_HEADERS },
+    );
+  }
   try {
     const updatedQuote = await updateQuote(db, id, quote);
     if (!updatedQuote) {
@@ -219,15 +230,6 @@ export const updateQuoteHandler = async (
       headers: DEFAULT_CORS_HEADERS,
     });
   } catch (error) {
-    if (error instanceof Error && error.message === "Invalid quote input") {
-      return Response.json(
-        {
-          error:
-            "Invalid request body: 'quote', 'author', and 'categoryId' are required and must be valid.",
-        },
-        { status: 400, headers: DEFAULT_CORS_HEADERS },
-      );
-    }
     // Log the error for debugging purposes
     console.error("Error in updateQuoteHandler:", error);
     // Return a generic 500 error for other types of errors

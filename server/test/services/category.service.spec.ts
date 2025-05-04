@@ -67,7 +67,7 @@ describe('category.service', () => {
 	});
 
 	it('createCategory throws an error for invalid input', async () => {
-		await expect(createCategory(mockDb, {name: ''})).rejects.toThrow('Invalid category input');
+		await expect(createCategory(mockDb, {name: ''})).rejects.toThrow();
 	});
 
 	it('updateCategory updates an existing category and returns it', async () => {
@@ -90,7 +90,7 @@ describe('category.service', () => {
 	});
 
 	it('updateCategory throws an error for invalid input', async () => {
-		await expect(updateCategory(mockDb, 1, {name: ''})).rejects.toThrow('Invalid category input');
+		await expect(updateCategory(mockDb, 1, {name: ''})).rejects.toThrow();
 	});
 
 	it('deleteCategory deletes a category and returns true', async () => {

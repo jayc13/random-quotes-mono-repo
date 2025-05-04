@@ -35,6 +35,8 @@ export interface Env {
   AUTH0_CLIENT_ID: string;
 }
 
+const validateId = (id: string): boolean => !/^\d+$/.test(id);
+
 export default {
   async fetch(request, env, ctx): Promise<Response> {
     const url = new URL(request.url);
@@ -89,15 +91,8 @@ export default {
     try {
       // POST /categories
       if (url.pathname === "/categories" && request.method === "POST") {
-        try {
-          const requestBody = await request.json<CategoryInput>();
-          return createCategoryHandler(env.DB, requestBody);
-        } catch {
-          return Response.json("Invalid JSON", {
-            status: 400,
-            headers: DEFAULT_CORS_HEADERS,
-          });
-        }
+        const requestBody = await request.json<CategoryInput>();
+        return createCategoryHandler(env.DB, requestBody);
       }
 
       // /categories/:id (PUT, DELETE, GET - GET needs admin here?)
@@ -105,9 +100,9 @@ export default {
       // Keeping it here for now, but it might be better public or just authenticated.
       if (url.pathname.startsWith("/categories/")) {
         const categoryIdStr = url.pathname.split("/")[2];
-        if (!/^\d+$/.test(categoryIdStr)) {
+        if (validateId(categoryIdStr)) {
           return Response.json(
-            { error: "Invalid category ID format" },
+            { error: "Invalid ID format" },
             { status: 400, headers: DEFAULT_CORS_HEADERS },
           );
         }
@@ -116,26 +111,8 @@ export default {
         switch (request.method) {
           case "PATCH": // Assuming PATCH is like PUT
           case "PUT": {
-            try {
-              const requestBody = await request.json<CategoryInput>();
-              // Basic validation, can be improved
-              if (
-                !requestBody ||
-                typeof requestBody.name !== "string" ||
-                requestBody.name.trim() === ""
-              ) {
-                return Response.json(
-                  "Invalid request body: 'name' is required and must be a non-empty string.",
-                  { status: 400, headers: DEFAULT_CORS_HEADERS },
-                );
-              }
-              return updateCategoryHandler(env.DB, categoryId, requestBody);
-            } catch (e) {
-              return Response.json("Invalid JSON", {
-                status: 400,
-                headers: DEFAULT_CORS_HEADERS,
-              });
-            }
+            const requestBody = await request.json<CategoryInput>();
+            return updateCategoryHandler(env.DB, categoryId, requestBody);
           }
           case "GET": // Requires admin in this block
             return getCategoryByIdHandler(env.DB, categoryId);
@@ -159,44 +136,17 @@ export default {
 
       // POST /quotes
       if (url.pathname === "/quotes" && request.method === "POST") {
-        try {
-          const requestBody = await request.json<QuoteInput>();
-          // Basic validation, can be improved
-          if (
-            !requestBody ||
-            typeof requestBody.quote !== "string" ||
-            !requestBody.quote ||
-            requestBody.quote.trim() === "" ||
-            !requestBody.author ||
-            typeof requestBody.author !== "string" ||
-            requestBody.author.trim() === "" ||
-            !requestBody.categoryId ||
-            typeof requestBody.categoryId !== "number"
-          ) {
-            return Response.json(
-              {
-                error:
-                  "Invalid request body: 'quote', 'author', and 'categoryId' are required and must be valid.",
-              },
-              { status: 400, headers: DEFAULT_CORS_HEADERS },
-            );
-          }
-          return createQuoteHandler(env.DB, requestBody);
-        } catch {
-          return Response.json("Invalid JSON", {
-            status: 400,
-            headers: DEFAULT_CORS_HEADERS,
-          });
-        }
+        const requestBody = await request.json<QuoteInput>();
+        return createQuoteHandler(env.DB, requestBody);
       }
 
       // /quotes/:id (PUT, DELETE, GET - GET needs admin here?)
       // Note: The original code had GET /quotes/:id here. Keeping it admin-only.
       if (url.pathname.startsWith("/quotes/")) {
         const quoteIdStr = url.pathname.split("/")[2];
-        if (!/^\d+$/.test(quoteIdStr)) {
+        if (validateId(quoteIdStr)) {
           return Response.json(
-            { error: "Invalid quote ID format" },
+            { error: "Invalid ID format" },
             { status: 400, headers: DEFAULT_CORS_HEADERS },
           );
         }
@@ -205,32 +155,8 @@ export default {
         switch (request.method) {
           case "PATCH": // Assuming PATCH is like PUT
           case "PUT": {
-            try {
-              const requestBody = await request.json<QuoteInput>();
-              // Basic validation, can be improved
-              if (
-                !requestBody ||
-                typeof requestBody.quote !== "string" ||
-                requestBody.quote.trim() === "" ||
-                typeof requestBody.author !== "string" ||
-                requestBody.author.trim() === "" ||
-                typeof requestBody.categoryId !== "number"
-              ) {
-                return Response.json(
-                  {
-                    error:
-                      "Invalid request body: 'quote', 'author', and 'categoryId' are required and must be valid.",
-                  },
-                  { status: 400, headers: DEFAULT_CORS_HEADERS },
-                );
-              }
-              return updateQuoteHandler(env.DB, quoteId, requestBody);
-            } catch (e) {
-              return Response.json("Invalid JSON", {
-                status: 400,
-                headers: DEFAULT_CORS_HEADERS,
-              });
-            }
+            const requestBody = await request.json<QuoteInput>();
+            return updateQuoteHandler(env.DB, quoteId, requestBody);
           }
           case "GET": // Requires admin in this block
             return getQuoteByIdHandler(env.DB, quoteId);
@@ -273,22 +199,15 @@ export default {
       ) {
         const pathSegments = url.pathname.split("/");
         const tokenIdStr = pathSegments[pathSegments.length - 1]; // Get the last segment
+        if (validateId(tokenIdStr)) {
+          return Response.json(
+            { error: "Invalid ID format" },
+            { status: 400, headers: DEFAULT_CORS_HEADERS },
+          );
+        }
         const tokenId: number = Number.parseInt(tokenIdStr, 10);
 
-        if (!Number.isNaN(tokenId) && tokenId > 0) {
-          return deleteApiTokenHandler(request, env, ctx, tokenId);
-        }
-        // Handle invalid or missing token ID in URL
-        return Response.json(
-          {
-            error: "Bad Request",
-            message: "Invalid or missing Token ID in URL path.",
-          },
-          {
-            status: 400,
-            headers: DEFAULT_CORS_HEADERS,
-          },
-        );
+        return deleteApiTokenHandler(request, env, ctx, tokenId);
       }
 
       // --- End API Token Routes ---

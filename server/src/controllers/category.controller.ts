@@ -6,6 +6,7 @@ import {
   updateCategory,
 } from "@/services/category.service";
 import { DEFAULT_CORS_HEADERS } from "@/utils/constants";
+import { categoryInputValidator } from "@/validators/category.validator";
 
 export const getAllCategoriesHandler = async (db: D1Database) => {
   const categories = await getAllCategories(db);
@@ -22,6 +23,17 @@ export const createCategoryHandler = async (
   db: D1Database,
   category: { name: string },
 ) => {
+  if (!categoryInputValidator(category)) {
+    return Response.json(
+      {
+        error: "Invalid request body: 'name' must be valid.",
+      },
+      {
+        status: 400,
+        headers: DEFAULT_CORS_HEADERS,
+      },
+    );
+  }
   const newCategory = await createCategory(db, category);
   return Response.json(newCategory, {
     status: 201,
@@ -47,6 +59,17 @@ export const updateCategoryHandler = async (
   id: number,
   category: { name: string },
 ) => {
+  if (!categoryInputValidator(category)) {
+    return Response.json(
+      {
+        error: "Invalid request body: 'name' must be valid.",
+      },
+      {
+        status: 400,
+        headers: DEFAULT_CORS_HEADERS,
+      },
+    );
+  }
   const updatedCategory = await updateCategory(db, id, category);
   if (!updatedCategory) {
     return new Response("Category not found", {
