@@ -150,10 +150,12 @@ function App() {
                     icon: <MessageOutlined />,
                   },
                 },
-                { // Add the new resource for API Tokens
+                {
+                  // Add the new resource for API Tokens
                   name: "api-tokens", // Corresponds to the backend endpoint and route path
                   list: "/api-tokens", // The route path defined in router.tsx
-                  meta: { // Use meta for Refine v4+ (or options for older versions)
+                  meta: {
+                    // Use meta for Refine v4+ (or options for older versions)
                     label: "API Tokens", // Text displayed in the menu
                     icon: <KeyOutlined />, // Icon displayed in the menu
                   },
