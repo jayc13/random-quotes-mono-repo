@@ -169,5 +169,76 @@ describe('Generic Validator', () => {
       expect(genericValidator(inputValid, rules)).toBe(true);
       expect(genericValidator(inputInvalid, rules)).toBe(false);
     });
+    it('returns true when a rule for a key is null', () => {
+      const input = { name: 'test', age: 30 };
+      const rules = {
+        name: { required: true, type: 'string' },
+        age: null, // Rule for age is null
+      };
+      // @ts-ignore Testing null rule definition
+      const result = genericValidator(input, rules);
+      expect(result).toBe(true);
+    });
+
+    it('returns true when a rule for a key is undefined', () => {
+      const input = { name: 'test', age: 30 };
+      const rules = {
+        name: { required: true, type: 'string' },
+        age: undefined, // Rule for age is undefined
+      };
+      const result = genericValidator(input, rules);
+      expect(result).toBe(true);
+    });
+
+    it('returns false if other rules fail even when one rule is null', () => {
+      const input = { name: '', age: 30 }; // name is empty but required
+      const rules = {
+        name: { required: true, type: 'string' },
+        age: null, // Rule for age is null
+      };
+      // @ts-ignore Testing null rule definition with other failing rules
+      const result = genericValidator(input, rules);
+      expect(result).toBe(false);
+    });
+    it('ignores a rule definition that is a string and returns true for valid input', () => {
+      const input = { name: 'test' };
+      const rules = {
+        name: 'invalid rule type', // Rule is a string, not an object or function
+      };
+      // @ts-ignore Testing invalid rule type
+      const result = genericValidator(input, rules);
+      expect(result).toBe(true); // Invalid rule should be ignored
+    });
+
+    it('ignores a rule definition that is a number and returns true for valid input', () => {
+      const input = { age: 30 };
+      const rules = {
+        age: 123, // Rule is a number
+      };
+      // @ts-ignore Testing invalid rule type
+      const result = genericValidator(input, rules);
+      expect(result).toBe(true); // Invalid rule should be ignored
+    });
+
+    it('ignores a rule definition that is a boolean and returns true for valid input', () => {
+      const input = { isActive: true };
+      const rules = {
+        isActive: true, // Rule is a boolean
+      };
+      // @ts-ignore Testing invalid rule type
+      const result = genericValidator(input, rules);
+      expect(result).toBe(true); // Invalid rule should be ignored
+    });
+
+    it('returns false if a valid rule fails, even if another rule is an invalid type (string)', () => {
+      const input = { name: '', age: 30 }; // name fails required rule
+      const rules = {
+        name: { required: true, type: 'string' },
+        age: 'invalid rule type', // This rule should be ignored
+      };
+      // @ts-ignore Testing invalid rule type alongside valid rules
+      const result = genericValidator(input, rules);
+      expect(result).toBe(false); // Validation should fail due to the 'name' rule
+    });
   });
 });
