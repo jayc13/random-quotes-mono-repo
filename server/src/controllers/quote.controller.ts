@@ -246,19 +246,6 @@ export const deleteQuoteHandler = async (db: D1Database, id: number) => {
       headers: DEFAULT_CORS_HEADERS,
     });
   }
-  return Response.json(updatedQuote, {
-    headers: DEFAULT_CORS_HEADERS,
-  });
-};
-
-export const deleteQuoteHandler = async (db: D1Database, id: number) => {
-  const success = await deleteQuote(db, id);
-  if (!success) {
-    return new Response("Quote not found", {
-      status: 404,
-      headers: DEFAULT_CORS_HEADERS,
-    });
-  }
   return new Response(null, {
     status: 204,
     headers: DEFAULT_CORS_HEADERS,
