@@ -102,8 +102,8 @@ export const validateQuoteInput = (input: QuoteInput): boolean => {
     !input.author ||
     input.author.trim().length === 0 ||
     input.author.length > 100 ||
-    !input.categoryId ||
-    typeof input.categoryId !== "number"
+    input.categoryId === undefined ||
+    typeof input.categoryId !== 'number'
   );
 };
 
@@ -159,6 +159,13 @@ export const deleteQuote = async (
   db: D1Database,
   id: number,
 ): Promise<boolean> => {
+  // Check if the quote exists before attempting to delete
+  const existingQuote = await getQuoteById(db, id);
+  if (!existingQuote) {
+    return false; // Quote not found, indicate failure
+  }
+
+  // Quote exists, proceed with deletion
   const result = await db
     .prepare("DELETE FROM Quotes WHERE QuoteId = ?")
     .bind(id)
