@@ -60,21 +60,6 @@ export default {
 
     // --- Routes Requiring Only Authentication ---
 
-    // GET /quotes
-    if (url.pathname === "/quotes" && request.method === "GET") {
-      try {
-        await authenticationMiddleware(request, env, ctx);
-        return getAllQuotesHandler(request, env.DB);
-      } catch {
-        return Response.json(
-          { error: "Unauthorized", message: "Authentication required." },
-          { status: 401, headers: DEFAULT_CORS_HEADERS },
-        );
-      }
-    }
-
-    // --- Routes Requiring Authentication + Admin Role ---
-
     // Apply Authentication Middleware globally for remaining routes
     try {
       await authenticationMiddleware(request, env, ctx);
@@ -84,6 +69,8 @@ export default {
         { status: 401, headers: DEFAULT_CORS_HEADERS },
       );
     }
+
+    // --- Routes Requiring Authentication + Admin Role ---
 
     // Apply Admin Check globally for remaining routes
     if (!(await isAdmin(ctx))) {
@@ -114,7 +101,10 @@ export default {
       if (url.pathname.startsWith("/categories/")) {
         const categoryIdStr = url.pathname.split("/")[2];
         if (!/^\d+$/.test(categoryIdStr)) {
-          return Response.json({ error: "Invalid category ID format" }, { status: 400, headers: DEFAULT_CORS_HEADERS });
+          return Response.json(
+            { error: "Invalid category ID format" },
+            { status: 400, headers: DEFAULT_CORS_HEADERS },
+          );
         }
         const categoryId = Number.parseInt(categoryIdStr, 10);
 
@@ -124,12 +114,22 @@ export default {
             try {
               const requestBody = await request.json<CategoryInput>();
               // Basic validation, can be improved
-              if (!requestBody || typeof requestBody.name !== 'string' || requestBody.name.trim() === '') {
-                 return Response.json("Invalid request body: 'name' is required and must be a non-empty string.", { status: 400, headers: DEFAULT_CORS_HEADERS });
+              if (
+                !requestBody ||
+                typeof requestBody.name !== "string" ||
+                requestBody.name.trim() === ""
+              ) {
+                return Response.json(
+                  "Invalid request body: 'name' is required and must be a non-empty string.",
+                  { status: 400, headers: DEFAULT_CORS_HEADERS },
+                );
               }
               return updateCategoryHandler(env.DB, categoryId, requestBody);
             } catch (e) {
-               return Response.json("Invalid JSON", { status: 400, headers: DEFAULT_CORS_HEADERS });
+              return Response.json("Invalid JSON", {
+                status: 400,
+                headers: DEFAULT_CORS_HEADERS,
+              });
             }
           }
           case "GET": // Requires admin in this block
@@ -139,16 +139,37 @@ export default {
         }
       }
 
+      // GET /quotes
+      if (url.pathname === "/quotes" && request.method === "GET") {
+        try {
+          await authenticationMiddleware(request, env, ctx);
+          return getAllQuotesHandler(request, env.DB);
+        } catch {
+          return Response.json(
+            { error: "Unauthorized", message: "Authentication required." },
+            { status: 401, headers: DEFAULT_CORS_HEADERS },
+          );
+        }
+      }
+
       // POST /quotes
       if (url.pathname === "/quotes" && request.method === "POST") {
         try {
           const requestBody = await request.json<QuoteInput>();
-           // Basic validation, can be improved
-           if (!requestBody || typeof requestBody.quote !== 'string' || requestBody.quote.trim() === '' ||
-               typeof requestBody.author !== 'string' || requestBody.author.trim() === '' ||
-               typeof requestBody.categoryId !== 'number') {
-                 return Response.json("Invalid request body: 'quote', 'author', and 'categoryId' are required.", { status: 400, headers: DEFAULT_CORS_HEADERS });
-           }
+          // Basic validation, can be improved
+          if (
+            !requestBody ||
+            typeof requestBody.quote !== "string" ||
+            requestBody.quote.trim() === "" ||
+            typeof requestBody.author !== "string" ||
+            requestBody.author.trim() === "" ||
+            typeof requestBody.categoryId !== "number"
+          ) {
+            return Response.json(
+              "Invalid request body: 'quote', 'author', and 'categoryId' are required.",
+              { status: 400, headers: DEFAULT_CORS_HEADERS },
+            );
+          }
           return createQuoteHandler(env.DB, requestBody);
         } catch {
           return Response.json("Invalid JSON", {
@@ -160,35 +181,49 @@ export default {
 
       // /quotes/:id (PUT, DELETE, GET - GET needs admin here?)
       // Note: The original code had GET /quotes/:id here. Keeping it admin-only.
-       if (url.pathname.startsWith("/quotes/")) {
-         const quoteIdStr = url.pathname.split("/")[2];
-         if (!/^\d+$/.test(quoteIdStr)) {
-           return Response.json({ error: "Invalid quote ID format" }, { status: 400, headers: DEFAULT_CORS_HEADERS });
-         }
-         const quoteId = Number.parseInt(quoteIdStr, 10);
+      if (url.pathname.startsWith("/quotes/")) {
+        const quoteIdStr = url.pathname.split("/")[2];
+        if (!/^\d+$/.test(quoteIdStr)) {
+          return Response.json(
+            { error: "Invalid quote ID format" },
+            { status: 400, headers: DEFAULT_CORS_HEADERS },
+          );
+        }
+        const quoteId = Number.parseInt(quoteIdStr, 10);
 
-         switch (request.method) {
-           case "PATCH": // Assuming PATCH is like PUT
-           case "PUT": {
-             try {
-               const requestBody = await request.json<QuoteInput>();
-               // Basic validation, can be improved
-               if (!requestBody || typeof requestBody.quote !== 'string' || requestBody.quote.trim() === '' ||
-                   typeof requestBody.author !== 'string' || requestBody.author.trim() === '' ||
-                   typeof requestBody.categoryId !== 'number') {
-                  return Response.json("Invalid request body: 'quote', 'author', and 'categoryId' are required.", { status: 400, headers: DEFAULT_CORS_HEADERS });
-               }
-               return updateQuoteHandler(env.DB, quoteId, requestBody);
-             } catch (e) {
-               return Response.json("Invalid JSON", { status: 400, headers: DEFAULT_CORS_HEADERS });
-             }
-           }
-           case "GET": // Requires admin in this block
-             return getQuoteByIdHandler(env.DB, quoteId);
-           case "DELETE":
-             return deleteQuoteHandler(env.DB, quoteId);
-         }
-       }
+        switch (request.method) {
+          case "PATCH": // Assuming PATCH is like PUT
+          case "PUT": {
+            try {
+              const requestBody = await request.json<QuoteInput>();
+              // Basic validation, can be improved
+              if (
+                !requestBody ||
+                typeof requestBody.quote !== "string" ||
+                requestBody.quote.trim() === "" ||
+                typeof requestBody.author !== "string" ||
+                requestBody.author.trim() === "" ||
+                typeof requestBody.categoryId !== "number"
+              ) {
+                return Response.json(
+                  "Invalid request body: 'quote', 'author', and 'categoryId' are required.",
+                  { status: 400, headers: DEFAULT_CORS_HEADERS },
+                );
+              }
+              return updateQuoteHandler(env.DB, quoteId, requestBody);
+            } catch (e) {
+              return Response.json("Invalid JSON", {
+                status: 400,
+                headers: DEFAULT_CORS_HEADERS,
+              });
+            }
+          }
+          case "GET": // Requires admin in this block
+            return getQuoteByIdHandler(env.DB, quoteId);
+          case "DELETE":
+            return deleteQuoteHandler(env.DB, quoteId);
+        }
+      }
     } catch (error) {
       console.error("Error handling admin request:", error);
       return Response.json(
