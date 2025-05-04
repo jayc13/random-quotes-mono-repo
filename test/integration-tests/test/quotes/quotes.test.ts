@@ -232,7 +232,7 @@ describe('Quotes API Integration Tests', () => {
     });
 
     it('should return 404 when trying to update a non-existent quote', async () => {
-      const nonExistentQuoteId = 999999;
+      const nonExistentQuoteId = Number.MAX_SAFE_INTEGER; // Dynamically generated non-existent ID
       const updatePayload = { quote: 'Update', author: 'N/A', categoryId: categoryId };
       const response = await server
         .put(`/quotes/${nonExistentQuoteId}`)
