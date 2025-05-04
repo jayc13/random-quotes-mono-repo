@@ -1,4 +1,9 @@
 import {
+  createApiTokenHandler,
+  deleteApiTokenHandler,
+  getUserApiTokensHandler,
+} from "@/controllers/api-token.controller";
+import {
   createCategoryHandler,
   deleteCategoryHandler,
   getAllCategoriesHandler,
@@ -233,6 +238,60 @@ export default {
             return deleteQuoteHandler(env.DB, quoteId);
         }
       }
+
+      // --- API Token Routes (Admin Only) ---
+
+      // GET /api-tokens - List user's tokens
+      if (url.pathname === "/api-tokens" && request.method === "GET") {
+        // Assuming only admins manage tokens for now, reuse isAdmin check
+        // If regular users need to manage their own, adjust middleware/checks
+        return getUserApiTokensHandler(request, env, ctx);
+      }
+
+      // POST /api-tokens - Create a new token
+      if (url.pathname === "/api-tokens" && request.method === "POST") {
+        try {
+          // Assuming request body parsing is needed, similar to categories/quotes
+          return createApiTokenHandler(request, env, ctx);
+        } catch (e) {
+          // Basic error handling for invalid JSON
+          const message = e instanceof Error ? e.message : "Invalid JSON";
+          return Response.json(
+            { error: "Bad Request", message },
+            {
+              status: 400,
+              headers: DEFAULT_CORS_HEADERS,
+            },
+          );
+        }
+      }
+
+      // DELETE /api-tokens/:tokenId - Delete a specific token
+      if (
+        url.pathname.startsWith("/api-tokens/") &&
+        request.method === "DELETE"
+      ) {
+        const pathSegments = url.pathname.split("/");
+        const tokenIdStr = pathSegments[pathSegments.length - 1]; // Get the last segment
+        const tokenId: number = Number.parseInt(tokenIdStr, 10);
+
+        if (!Number.isNaN(tokenId) && tokenId > 0) {
+          return deleteApiTokenHandler(request, env, ctx, tokenId);
+        }
+        // Handle invalid or missing token ID in URL
+        return Response.json(
+          {
+            error: "Bad Request",
+            message: "Invalid or missing Token ID in URL path.",
+          },
+          {
+            status: 400,
+            headers: DEFAULT_CORS_HEADERS,
+          },
+        );
+      }
+
+      // --- End API Token Routes ---
     } catch (error) {
       console.error("Error handling admin request:", error);
       return Response.json(
