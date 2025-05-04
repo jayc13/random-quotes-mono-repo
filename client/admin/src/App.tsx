@@ -1,4 +1,9 @@
-import { HomeOutlined, MessageOutlined, TagsOutlined } from "@ant-design/icons";
+import {
+  HomeOutlined,
+  KeyOutlined,
+  MessageOutlined,
+  TagsOutlined,
+} from "@ant-design/icons"; // Import KeyOutlined
 import { useAuth0 } from "@auth0/auth0-react";
 import { useNotificationProvider } from "@refinedev/antd";
 import { type AuthBindings, Refine } from "@refinedev/core";
@@ -143,6 +148,15 @@ function App() {
                   options: {
                     label: "Quotes",
                     icon: <MessageOutlined />,
+                  },
+                },
+                // Add the API Keys resource
+                {
+                  name: "api-tokens",
+                  list: "/api-keys",
+                  options: {
+                    label: "API Keys",
+                    icon: <KeyOutlined />,
                   },
                 },
               ]}
