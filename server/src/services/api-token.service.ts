@@ -25,10 +25,8 @@ async function hashToken(token: string): Promise<string> {
   const data = encoder.encode(token);
   const hashBuffer = await crypto.subtle.digest("SHA-256", data);
   const hashArray = Array.from(new Uint8Array(hashBuffer)); // convert buffer to byte array
-  const hashHex = hashArray
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join(""); // convert bytes to hex string
-  return hashHex;
+  // convert bytes to hex string
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 // Validate the input for creating a token

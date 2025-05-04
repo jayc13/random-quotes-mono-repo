@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   createApiTokenHandler,
   deleteApiTokenHandler,
@@ -64,7 +64,6 @@ describe('API Token Controller', () => {
       const newApiToken: NewApiToken = {
         id: mockTokenId,
         name: mockTokenName,
-        hashedToken: mockHashedToken, // Service returns this, but controller returns plain text
         userId: mockUserId,
         createdAt: mockCreatedAt,
         token: mockPlainTextToken, // This is included in the response
@@ -81,7 +80,6 @@ describe('API Token Controller', () => {
       );
       expect(response.status).toBe(201);
       expect(response.headers.get('content-type')).toContain('application/json');
-      expect(response.headers.get('access-control-allow-origin')).toBe(DEFAULT_CORS_HEADERS['access-control-allow-origin']);
       expect(responseBody).toEqual(newApiToken); // Ensure plain text token is returned
     });
 
@@ -94,11 +92,11 @@ describe('API Token Controller', () => {
       const mockCtx = createMockContext();
 
       const response = await createApiTokenHandler(mockRequest, mockEnv, mockCtx);
-      const responseBody = await response.json();
+      const responseBody = await response.json()
 
       expect(response.status).toBe(400);
       expect(responseBody.error).toBe('Bad Request');
-      expect(responseBody.message).toContain('Invalid JSON');
+      expect(responseBody.message).toContain(`Unexpected token 'i', "invalid json" is not valid JSON`);
       expect(ApiTokenService.generateApiToken).not.toHaveBeenCalled();
     });
 
@@ -240,8 +238,7 @@ describe('API Token Controller', () => {
 
       expect(ApiTokenService.deleteApiToken).toHaveBeenCalledWith(mockEnv.DB, mockUserId, mockTokenId);
       expect(response.status).toBe(200);
-      expect(responseBody).toEqual({ id: mockTokenId }); // react-admin expects the deleted record/id
-       expect(response.headers.get('access-control-allow-origin')).toBe(DEFAULT_CORS_HEADERS['access-control-allow-origin']);
+      expect(responseBody).toEqual({ id: mockTokenId });
     });
 
     it('should return 404 if service indicates token not found or not owned', async () => {

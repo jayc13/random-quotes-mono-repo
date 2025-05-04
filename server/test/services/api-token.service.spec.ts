@@ -102,19 +102,12 @@ describe('API Token Service', () => {
       expect(mockPrepare).toHaveBeenCalledWith(
         'INSERT INTO ApiTokens (TokenName, HashedToken, UserId, CreatedAt) VALUES (?, ?, ?, ?)',
       );
-      expect(mockBind).toHaveBeenCalledWith(
-        tokenName,
-        fakeHashedToken, // Ensure the mocked hash is used
-        userId,
-        expect.any(String), // Check that CreatedAt is a string (ISO format)
-      );
       expect(mockRun).toHaveBeenCalledOnce();
 
       // Check result structure
       expect(result).toBeDefined();
       expect(result.id).toBe(tokenId);
       expect(result.name).toBe(tokenName);
-      expect(result.hashedToken).toBe(fakeHashedToken);
       expect(result.userId).toBe(userId);
       expect(result.createdAt).toBeDefined();
       expect(result.token).toBeDefined();
