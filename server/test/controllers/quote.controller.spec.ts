@@ -554,6 +554,36 @@ describe('Quote Controllers', () => {
     });
   });
 
+  describe('getQuoteByIdHandler', () => {
+    const quoteIdToFind = 1;
+    const nonExistentQuoteId = 999;
+
+    it('should return 200 and the quote if found', async () => {
+      vi.mocked(getQuoteById).mockResolvedValue(mockQuoteData);
+
+      const response = await getQuoteByIdHandler(mockDb, quoteIdToFind);
+      const responseBody = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
+      expect(responseBody).toEqual(mockQuoteData);
+      expect(getQuoteById).toHaveBeenCalledTimes(1);
+      expect(getQuoteById).toHaveBeenCalledWith(mockDb, quoteIdToFind);
+    });
+
+    it('should return 404 Not Found if the quote does not exist', async () => {
+      vi.mocked(getQuoteById).mockResolvedValue(null); // Mock quote not found
+
+      const response = await getQuoteByIdHandler(mockDb, nonExistentQuoteId);
+
+      expect(response.status).toBe(404);
+      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
+      expect(await response.text()).toBe('Quote not found');
+      expect(getQuoteById).toHaveBeenCalledTimes(1);
+      expect(getQuoteById).toHaveBeenCalledWith(mockDb, nonExistentQuoteId);
+    });
+  });
+
   describe('createQuoteHandler', () => {
     const invalidCreatePayload = {
       quote: '', // Invalid quote
