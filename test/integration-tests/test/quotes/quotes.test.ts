@@ -2,8 +2,6 @@ import { describe, it, before, after } from 'mocha';
 import { expect } from 'chai';
 import request from 'supertest';
 import { API_BASE_URL } from '../../src/utils/config.ts';
-// Assuming quote service functions exist similar to category ones
-// import { createQuote, deleteQuote } from '../../src/services/quote.service.ts';
 import { createCategory, deleteCategory } from '../../src/services/category.service.ts';
 import { getUserAuthToken } from '../../src/utils/authentication.ts';
 
@@ -53,12 +51,11 @@ describe('Quotes API Integration Tests', () => {
   after(async () => {
     try {
       // Delete quotes first (due to potential FK constraints)
-      for (const quoteId of createdQuoteIds) {
+      for (const quoteId of (new Set([...createdQuoteIds]))) {
          const res = await server
            .delete(`/quotes/${quoteId}`)
            .set('Authorization', adminToken);
-          // Check for 200 or 204 (No Content)
-          expect(res.status).to.be.oneOf([200, 204]); 
+          expect(res.status).to.be.equal(204);
       }
       
       // Delete category
@@ -67,7 +64,6 @@ describe('Quotes API Integration Tests', () => {
       }
     } catch (error) {
        console.error("Error in after hook:", error);
-       // Don't re-throw in after hook to allow other tests/suites to run
     }
   });
 
@@ -148,7 +144,7 @@ describe('Quotes API Integration Tests', () => {
         .send(invalidData);
 
       expect(response.status).to.equal(400);
-      expect(response.body).to.have.property('error'); 
+      expect(response.body).to.have.property('error');
       expect(response.body.error).to.contain('quote'); 
     });
 
