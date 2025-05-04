@@ -3,8 +3,8 @@ import { genericValidator } from "@/validators/generic.validator";
 
 export const quoteInputValidator = (input: QuoteInput): boolean => {
   return genericValidator(input, {
-    quote: { required: true, maxLength: 250 },
-    author: { required: true, maxLength: 100 },
+    quote: { required: true, maxLength: 250, type: "string" },
+    author: { required: true, maxLength: 100, type: "string" },
     categoryId: { required: true, type: "number" },
   });
 };

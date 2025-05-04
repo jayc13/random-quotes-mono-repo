@@ -1,5 +1,3 @@
-import { type } from "node:os";
-
 type ValidationRule = {
   required?: boolean;
   maxLength?: number;
@@ -14,7 +12,7 @@ type ValidationRule = {
     | "bigint";
 };
 
-type RuleDefinition = ValidationRule | ((value: unknown) => boolean);
+type RuleDefinition = ValidationRule | (<T>(value: T) => boolean);
 
 export const genericValidator = <T>(
   input: T,
@@ -46,7 +44,7 @@ export const genericValidator = <T>(
     }
 
     if (
-      rule.required &&
+      rule.required === true &&
       (value === undefined ||
         value === null ||
         (typeof value === "string" && value.trim() === ""))
@@ -62,14 +60,9 @@ export const genericValidator = <T>(
       return false;
     }
 
-    if (rule.type && typeof rule.type === "string") {
-      // The list of valid typeof values is already enforced by the ValidationRule type
-      // No need for validTypeofValues array and check
-      if (typeof value !== rule.type) {
-        return false;
-      }
+    if (value && rule.type && typeof value !== rule.type) {
+      return false;
     }
   }
-
   return true;
 };
