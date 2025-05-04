@@ -1,8 +1,8 @@
 import { describe, it, before } from 'mocha';
 import { expect } from 'chai';
 import request from 'supertest';
-import { getUserAuthToken } from '../../src/utils/authentication';
-import { API_BASE_URL } from '../../src/utils/config';
+import { getUserAuthToken } from '../../src/utils/authentication.js';
+import { API_BASE_URL } from '../../src/utils/config.js';
 
 describe('API Keys Integration Tests', () => {
   const req = request(API_BASE_URL);
