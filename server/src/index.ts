@@ -1,4 +1,9 @@
 import {
+  createApiTokenHandler,
+  deleteApiTokenHandler,
+  getUserApiTokensHandler,
+} from "@/controllers/api-token.controller";
+import {
   createCategoryHandler,
   deleteCategoryHandler,
   getAllCategoriesHandler,
@@ -15,11 +20,6 @@ import {
   getRandomQuoteHandler,
   updateQuoteHandler,
 } from "@/controllers/quote.controller";
-import {
-  createApiTokenHandler,
-  deleteApiTokenHandler,
-  getUserApiTokensHandler,
-} from '@/controllers/api-token.controller';
 import {
   authenticationMiddleware,
   isAdmin,
@@ -169,34 +169,44 @@ export default {
           // Assuming request body parsing is needed, similar to categories/quotes
           return createApiTokenHandler(request, env, ctx);
         } catch (e) {
-           // Basic error handling for invalid JSON
-           const message = e instanceof Error ? e.message : "Invalid JSON";
-           return Response.json({ error: 'Bad Request', message }, {
+          // Basic error handling for invalid JSON
+          const message = e instanceof Error ? e.message : "Invalid JSON";
+          return Response.json(
+            { error: "Bad Request", message },
+            {
               status: 400,
               headers: DEFAULT_CORS_HEADERS,
-           });
+            },
+          );
         }
       }
 
       // DELETE /api-tokens/:tokenId - Delete a specific token
-      if (url.pathname.startsWith("/api-tokens/") && request.method === "DELETE") {
-        const pathSegments = url.pathname.split('/');
+      if (
+        url.pathname.startsWith("/api-tokens/") &&
+        request.method === "DELETE"
+      ) {
+        const pathSegments = url.pathname.split("/");
         const tokenIdStr = pathSegments[pathSegments.length - 1]; // Get the last segment
         const tokenId: number = Number.parseInt(tokenIdStr, 10);
 
-        if (!isNaN(tokenId) && tokenId > 0) {
-            return deleteApiTokenHandler(request, env, ctx, tokenId);
-        } else {
-            // Handle invalid or missing token ID in URL
-            return Response.json({ error: 'Bad Request', message: 'Invalid or missing Token ID in URL path.' }, {
-              status: 400,
-              headers: DEFAULT_CORS_HEADERS
-            });
+        if (!Number.isNaN(tokenId) && tokenId > 0) {
+          return deleteApiTokenHandler(request, env, ctx, tokenId);
         }
+        // Handle invalid or missing token ID in URL
+        return Response.json(
+          {
+            error: "Bad Request",
+            message: "Invalid or missing Token ID in URL path.",
+          },
+          {
+            status: 400,
+            headers: DEFAULT_CORS_HEADERS,
+          },
+        );
       }
 
       // --- End API Token Routes ---
-
     } catch (error) {
       console.error("Error handling request:", error);
       return Response.json(

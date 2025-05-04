@@ -3,15 +3,15 @@ import type {
   ApiTokenInput,
   ApiTokenRecord,
   NewApiToken,
-} from '@/types/api-token.types';
+} from "@/types/api-token.types";
 
 // Helper function to generate a secure random token string
 // Note: In a real Cloudflare Worker environment, use crypto.randomUUID() or SubtleCrypto
 function generateSecureToken(length = 32): string {
   // Simple pseudo-random generation for demonstration. Replace with secure method.
   const characters =
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
   for (let i = 0; i < length; i++) {
     result += characters.charAt(Math.floor(Math.random() * characters.length));
   }
@@ -23,11 +23,11 @@ function generateSecureToken(length = 32): string {
 async function hashToken(token: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(token);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
   const hashArray = Array.from(new Uint8Array(hashBuffer)); // convert buffer to byte array
   const hashHex = hashArray
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join(''); // convert bytes to hex string
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join(""); // convert bytes to hex string
   return hashHex;
 }
 
@@ -46,7 +46,7 @@ export const generateApiToken = async (
   input: ApiTokenInput,
 ): Promise<NewApiToken> => {
   if (!validateApiTokenInput(input)) {
-    throw new Error('Invalid API token input: Name is required.');
+    throw new Error("Invalid API token input: Name is required.");
   }
   const { name } = input;
   const plainTextToken = generateSecureToken();
@@ -56,7 +56,7 @@ export const generateApiToken = async (
   // Corrected column names to match the SQL migration
   const result = await db
     .prepare(
-      'INSERT INTO ApiTokens (TokenName, HashedToken, UserId, CreatedAt) VALUES (?, ?, ?, ?)',
+      "INSERT INTO ApiTokens (TokenName, HashedToken, UserId, CreatedAt) VALUES (?, ?, ?, ?)",
     )
     .bind(name, hashedToken, userId, createdAt)
     .run();
@@ -64,15 +64,15 @@ export const generateApiToken = async (
   const id: number = result.meta.last_row_id as number;
 
   if (!id) {
-    throw new Error('Failed to create API token: Could not retrieve last row ID.');
+    throw new Error(
+      "Failed to create API token: Could not retrieve last row ID.",
+    );
   }
-
 
   // Return the full record including the plain text token
   return {
-    id, // Keep 'id' as the property name in the TypeScript object
+    id,
     name,
-    hashedToken, // Included for completeness, but frontend should use plainTextToken
     userId,
     createdAt,
     token: plainTextToken, // The actual token to show the user ONCE
@@ -90,21 +90,22 @@ export const deleteApiToken = async (
   // Corrected column name to match the SQL migration
   // Verify the token exists and belongs to the user before deleting
   const existingToken = await db
-    .prepare('SELECT TokenId FROM ApiTokens WHERE TokenId = ? AND UserId = ?')
+    .prepare("SELECT TokenId FROM ApiTokens WHERE TokenId = ? AND UserId = ?")
     .bind(tokenId, userId)
     .first();
 
   if (!existingToken) {
     // Either token doesn't exist or doesn't belong to the user
     // Return false or throw an error depending on desired behavior (e.g., 404 vs 403)
-    console.warn(`Attempt to delete non-existent or unauthorized token ID: ${tokenId} by user: ${userId}`);
+    console.warn(
+      `Attempt to delete non-existent or unauthorized token ID: ${tokenId} by user: ${userId}`,
+    );
     return false; // Indicate deletion did not happen
   }
 
-
   // Corrected column name to match the SQL migration
   const result = await db
-    .prepare('DELETE FROM ApiTokens WHERE TokenId = ? AND UserId = ?')
+    .prepare("DELETE FROM ApiTokens WHERE TokenId = ? AND UserId = ?")
     .bind(tokenId, userId)
     .run();
 
@@ -121,14 +122,14 @@ export const getUserApiTokens = async (
   // Corrected column names to match the SQL migration
   const { results } = await db
     .prepare(
-      'SELECT TokenId, TokenName, UserId, CreatedAt FROM ApiTokens WHERE UserId = ? ORDER BY CreatedAt DESC',
+      "SELECT TokenId, TokenName, UserId, CreatedAt FROM ApiTokens WHERE UserId = ? ORDER BY CreatedAt DESC",
     )
     .bind(userId)
     .all<ApiTokenRecord>(); // Fetch records matching the DB structure
 
-    if (!results) {
-      return [];
-    }
+  if (!results) {
+    return [];
+  }
 
   // Map to ApiTokenInfo, excluding the HashedToken
   // Ensure the mapping uses the correct column names from the D1 result
