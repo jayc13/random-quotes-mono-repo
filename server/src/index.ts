@@ -165,13 +165,19 @@ export default {
           if (
             !requestBody ||
             typeof requestBody.quote !== "string" ||
+            !requestBody.quote ||
             requestBody.quote.trim() === "" ||
+            !requestBody.author ||
             typeof requestBody.author !== "string" ||
             requestBody.author.trim() === "" ||
+            !requestBody.categoryId ||
             typeof requestBody.categoryId !== "number"
           ) {
             return Response.json(
-              "Invalid request body: 'quote', 'author', and 'categoryId' are required.",
+              {
+                error:
+                  "Invalid request body: 'quote', 'author', and 'categoryId' are required and must be valid.",
+              },
               { status: 400, headers: DEFAULT_CORS_HEADERS },
             );
           }
@@ -211,7 +217,10 @@ export default {
                 typeof requestBody.categoryId !== "number"
               ) {
                 return Response.json(
-                  "Invalid request body: 'quote', 'author', and 'categoryId' are required.",
+                  {
+                    error:
+                      "Invalid request body: 'quote', 'author', and 'categoryId' are required and must be valid.",
+                  },
                   { status: 400, headers: DEFAULT_CORS_HEADERS },
                 );
               }
