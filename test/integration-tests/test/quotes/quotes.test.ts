@@ -110,12 +110,8 @@ describe('Quotes API Integration Tests', () => {
     const invalidCategoryId = 'abc'; // Invalid format
     const response = await server.get(`/quotes?categoryId=${invalidCategoryId}`)
       .set('Authorization', adminToken);
-    expect(response.status).to.equal(200); // Expect success status code (graceful handling)
-    expect(response.body).to.be.an('array'); 
-    // We cannot be certain about the content without knowing how NaN/0 is handled
-    // Asserting it's an array is a safe minimum expectation.
-    // If specific behavior is known (e.g., returns quotes with categoryId 0), 
-    // add more specific assertions here.
+    expect(response.status).to.equal(400);
+    expect(response.body).to.be.deep.equal({ error: 'Invalid categoryId format' });
   });
 
   // --- Quote of the Day Tests ---
