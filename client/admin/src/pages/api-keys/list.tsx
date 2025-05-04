@@ -33,7 +33,12 @@ export const ApiKeyList = () => {
   return (
     <div data-testid='api-keys-page'>
       <List
-        createButtonProps={{ onClick: createModalShow }} // Open create modal on button click
+        createButtonProps={{
+          id: "create-api-key-btn",
+          onClick: () => {
+            createModalShow();
+          },
+        }}
         title='API Keys'
       >
         <Table {...tableProps} rowKey='id' id='api-keys-table'>
@@ -42,7 +47,7 @@ export const ApiKeyList = () => {
           <Table.Column
             dataIndex='createdAt'
             title={"Created At"}
-            render={(value) => new Date(value).toLocaleString()} // Format date for display
+            render={(value) => new Date(value).toLocaleString()}
           />
           <Table.Column
             title={"Actions"}
@@ -53,9 +58,8 @@ export const ApiKeyList = () => {
                   hideText
                   size='small'
                   recordItemId={record.id}
-                  resource='api-tokens' // Specify the resource for the delete action
+                  resource='api-tokens'
                 />
-                {/* Add EditButton and ShowButton later if needed */}
               </Space>
             )}
           />
@@ -78,13 +82,9 @@ export const ApiKeyList = () => {
             >
               <Input />
             </Form.Item>
-            {/* Add other form fields if necessary */}
           </Form>
         </Spin>
       </Modal>
-
-      {/* Add Edit Modal later if needed */}
-      {/* <Modal {...editModalProps} ... > ... </Modal> */}
     </div>
   );
 };
