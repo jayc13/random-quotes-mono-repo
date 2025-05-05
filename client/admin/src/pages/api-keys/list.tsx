@@ -59,7 +59,6 @@ export const ApiKeyList = () => {
   // Handler function to close the display modal and clear the key
   const handleDisplayModalClose = () => {
     setDisplayKeyModalVisible(false);
-    setDisplayKeyModalVisible(false);
     setNewApiKey(null);
     setIsCopied(false); // Reset copied state when modal closes
   };
