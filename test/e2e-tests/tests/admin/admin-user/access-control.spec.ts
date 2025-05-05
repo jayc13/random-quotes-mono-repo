@@ -13,7 +13,7 @@ test.describe('Admin User Access Control', () => {
   });
   test('the sidebar displays all entries', async () => {
     const sideMenuOptions = await page.locator('aside ul li a').all();
-    expect(sideMenuOptions.length).toBe(3);
+    expect(sideMenuOptions.length).toBe(4);
 
     const homeOption = sideMenuOptions[0];
     expect(await homeOption.innerText()).toBe('Home');
@@ -23,6 +23,9 @@ test.describe('Admin User Access Control', () => {
 
     const quotesOption = sideMenuOptions[2];
     expect(await quotesOption.innerText()).toBe('Quotes');
+
+    const apiKeysOption = sideMenuOptions[3];
+    expect(await apiKeysOption.innerText()).toBe('API Keys');
   });
   test('the categories page is accessible', async () => {
     await page.goto(`${ADMIN_BASE_URL}/categories`);
@@ -39,5 +42,13 @@ test.describe('Admin User Access Control', () => {
     const quotesPage = page.getByTestId('quotes-page');
     await quotesPage.waitFor({ state: 'visible' });
     expect(await quotesPage.isVisible()).toBe(true);
+  });
+  test('the API keys page is accessible', async () => {
+    await page.goto(`${ADMIN_BASE_URL}/api-keys`);
+    const mainContainer =  page.locator('header');
+    await mainContainer.waitFor({ state: 'visible' });
+    const apiKeysPage = page.getByTestId('api-keys-page');
+    await apiKeysPage.waitFor({ state: 'visible' });
+    expect(await apiKeysPage.isVisible()).toBe(true);
   });
 });
