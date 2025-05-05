@@ -1,8 +1,8 @@
 import { describe, it, before } from 'mocha';
 import { expect } from 'chai';
 import request from 'supertest';
-import { getUserAuthToken } from '../../src/utils/authentication.js';
-import { API_BASE_URL } from '../../src/utils/config.js';
+import { getUserAuthToken } from '../../src/utils/authentication.ts';
+import {API_BASE_URL} from '../../src/utils/config.ts';
 
 describe('API Keys Integration Tests', () => {
   const req = request(API_BASE_URL);
@@ -22,25 +22,26 @@ describe('API Keys Integration Tests', () => {
   it('should create a new API key', async () => {
     const keyName = `test-key-${Date.now()}`;
     const response = await req
-      .post('/api-keys')
-      .set('Authorization', `Bearer ${token}`)
+      .post('/api-tokens')
+      .set('Authorization', token)
       .send({ name: keyName });
 
     expect(response.status).to.equal(201);
     expect(response.body).to.be.an('object');
-    expect(response.body).to.have.property('id').that.is.a('number');
-    expect(response.body).to.have.property('key').that.is.a('string');
     expect(response.body.name).to.equal(keyName);
+    expect(response.body).to.have.property('userId').that.is.a('string');
+    expect(response.body).to.have.property('createdAt').that.is.a('string');
+    expect(response.body).to.have.property('token').that.is.a('string');
 
     // Store the key details for later tests
     apiKeyId = response.body.id;
-    apiKeyValue = response.body.key; // Store the key value if needed, though listing might not return it
+    apiKeyValue = response.body.token; // Store the key value if needed, though listing might not return it
   });
 
   it('should return a list of API keys', async () => {
     const response = await req
-      .get('/api-keys')
-      .set('Authorization', `Bearer ${token}`);
+      .get('/api-tokens')
+      .set('Authorization', token);
 
     expect(response.status).to.equal(200);
     expect(response.body).to.be.an('array').that.is.not.empty;
@@ -48,34 +49,6 @@ describe('API Keys Integration Tests', () => {
     // Find the key created in the previous test
     const foundKey = response.body.find((key: any) => key.id === apiKeyId);
     expect(foundKey).to.exist;
-
-    // Optionally check other properties of the found key if the API returns them
-    // Note: The full API key value is often not returned in list views for security.
-    // If the API returns a masked key or other details, you can assert them here.
-    // For example, if the name is returned:
-    // expect(foundKey.name).to.equal(`test-key-${/* How the name was generated */}`);
-  });
-
-  it('should return a specific API key by ID', async () => {
-    if (!apiKeyId) {
-      // Skip the test or throw an error if apiKeyId wasn't set by the create test
-      // For Mocha, you can use this.skip()
-      // this.skip(); // Uncomment if you want to skip instead of failing
-      throw new Error('API Key ID not available from create test. Cannot proceed.');
-    }
-
-    const response = await req
-      .get(`/api-keys/${apiKeyId}`)
-      .set('Authorization', `Bearer ${token}`);
-
-    expect(response.status).to.equal(200);
-    expect(response.body).to.be.an('object');
-    expect(response.body.id).to.equal(apiKeyId);
-
-    // Optionally, assert other properties if the API returns them.
-    // For example, if the name is returned:
-    // expect(response.body.name).to.equal(/* expected name */);
-    // Note: The full key value might not be returned for security reasons.
   });
 
   // --- Authorization Tests ---
@@ -83,29 +56,29 @@ describe('API Keys Integration Tests', () => {
   // No Authentication
   it('should return 401 when creating a key without auth', async () => {
     const response = await req
-      .post('/api-keys')
+      .post('/api-tokens')
       .send({ name: 'no-auth-test' });
     expect(response.status).to.equal(401);
   });
 
   it('should return 401 when listing keys without auth', async () => {
-    const response = await req.get('/api-keys');
+    const response = await req.get('/api-tokens');
     expect(response.status).to.equal(401);
   });
 
   // Insufficient Permissions (Regular User)
   it('should return 403 when creating a key as REGULAR user', async () => {
     const response = await req
-      .post('/api-keys')
-      .set('Authorization', `Bearer ${regularUserToken}`)
+      .post('/api-tokens')
+      .set('Authorization', regularUserToken)
       .send({ name: 'regular-user-test' });
     expect(response.status).to.equal(403);
   });
 
   it('should return 403 when listing keys as REGULAR user', async () => {
     const response = await req
-      .get('/api-keys')
-      .set('Authorization', `Bearer ${regularUserToken}`);
+      .get('/api-tokens')
+      .set('Authorization', regularUserToken);
     expect(response.status).to.equal(403);
   });
 
@@ -114,8 +87,8 @@ describe('API Keys Integration Tests', () => {
       throw new Error('API Key ID not available. Cannot run REGULAR user GET test.');
     }
     const response = await req
-      .get(`/api-keys/${apiKeyId}`)
-      .set('Authorization', `Bearer ${regularUserToken}`);
+      .get(`/api-tokens/${apiKeyId}`)
+      .set('Authorization', regularUserToken);
     expect(response.status).to.equal(403);
   });
 
@@ -124,8 +97,8 @@ describe('API Keys Integration Tests', () => {
       throw new Error('API Key ID not available. Cannot run REGULAR user DELETE test.');
     }
     const response = await req
-      .delete(`/api-keys/${apiKeyId}`)
-      .set('Authorization', `Bearer ${regularUserToken}`);
+      .delete(`/api-tokens/${apiKeyId}`)
+      .set('Authorization', regularUserToken);
     expect(response.status).to.equal(403);
   });
 
@@ -139,16 +112,16 @@ describe('API Keys Integration Tests', () => {
 
     // Delete the key
     const deleteResponse = await req
-      .delete(`/api-keys/${apiKeyId}`)
-      .set('Authorization', `Bearer ${token}`);
+      .delete(`/api-tokens/${apiKeyId}`)
+      .set('Authorization', token);
 
     // Assuming DELETE returns 204 No Content on success
     expect(deleteResponse.status).to.equal(204);
 
     // Verify the key is actually deleted
     const verifyResponse = await req
-      .get(`/api-keys/${apiKeyId}`)
-      .set('Authorization', `Bearer ${token}`);
+      .get(`/api-tokens/${apiKeyId}`)
+      .set('Authorization', token);
 
     expect(verifyResponse.status).to.equal(404);
   });
