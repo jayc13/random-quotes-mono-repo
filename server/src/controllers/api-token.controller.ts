@@ -151,14 +151,10 @@ export const deleteApiTokenHandler = async (
     }
 
     // Successfully deleted
-    // Return the deleted record ID, useful for some frontend frameworks like react-admin
-    return Response.json(
-      { id: tokenId },
-      {
-        status: 200, // Or 204 No Content if preferred, but react-admin expects a body
-        headers: DEFAULT_CORS_HEADERS,
-      },
-    );
+    return new Response(null, {
+      status: 204,
+      headers: DEFAULT_CORS_HEADERS,
+    });
   } catch (error) {
     console.error(`Error deleting API token ID ${tokenId}:`, error);
     return Response.json(
