@@ -1,34 +1,84 @@
 import { DeleteButton, List, useModalForm, useTable } from "@refinedev/antd";
 import type { BaseRecord } from "@refinedev/core";
-import { Form, Input, Modal, Space, Spin, Table } from "antd";
-import React from "react";
+import {
+  Button,
+  Form,
+  Input,
+  Modal,
+  Space,
+  Spin,
+  Table,
+  Typography,
+} from "antd";
+import React, { useState } from "react";
 
-// Define the interface for API Keys
 export interface IApiKey {
   id: number;
   name: string;
-  createdAt: string; // Assuming createdAt is a string, adjust if it's a Date object
-  // Add other fields as necessary
+  token: string;
+  createdAt: string;
 }
 
 export const ApiKeyList = () => {
   // Hook for table data management
-  const { tableProps, tableQueryResult } = useTable<IApiKey>({
+  const { tableProps } = useTable<IApiKey>({
     resource: "api-tokens", // Specify the resource endpoint
     syncWithLocation: true,
   });
+
+  // State for the newly created API key and triggering the display modal
+  const [newApiKey, setNewApiKey] = useState<string | null>(null);
+  const [displayKeyModalVisible, setDisplayKeyModalVisible] = useState(false);
+  // State to manage the copy button feedback
+  const [isCopied, setIsCopied] = useState(false);
 
   // Hook for the create modal form
   const {
     modalProps: createModalProps,
     formProps: createFormProps,
     show: createModalShow,
+    close: createModalClose, // Destructure the close function
     formLoading: createFormLoading,
   } = useModalForm<IApiKey>({
-    action: "create",
+    action: "create", // Still specify action for context, though we handle mutation
     resource: "api-tokens", // Specify the resource endpoint
     redirect: false, // Prevent redirection after creation
+    autoResetForm: true, // Reset the form after submission
+    warnWhenUnsavedChanges: false,
+    onMutationSuccess: async ({ data }) => {
+      const apiKey = data?.token;
+      if (apiKey) {
+        console.log("onFinish: API Key created successfully.");
+        setNewApiKey(apiKey);
+        setDisplayKeyModalVisible(true); // Trigger the display modal
+        createModalClose(); // Close the creation modal
+      }
+    },
   });
+
+  // Handler function to close the display modal and clear the key
+  const handleDisplayModalClose = () => {
+    setDisplayKeyModalVisible(false);
+    setDisplayKeyModalVisible(false);
+    setNewApiKey(null);
+    setIsCopied(false); // Reset copied state when modal closes
+  };
+
+  // Handler function to copy the API key to the clipboard
+  const handleCopyKey = async () => {
+    if (newApiKey) {
+      try {
+        await navigator.clipboard.writeText(newApiKey);
+        setIsCopied(true);
+        setTimeout(() => {
+          setIsCopied(false);
+        }, 1500); // Reset after 1.5 seconds
+      } catch (err) {
+        console.error("Failed to copy API key to clipboard:", err);
+        // Optionally: Show an error message/notification to the user
+      }
+    }
+  };
 
   return (
     <div data-testid='api-keys-page'>
@@ -84,6 +134,35 @@ export const ApiKeyList = () => {
             </Form.Item>
           </Form>
         </Spin>
+      </Modal>
+
+      {/* Modal to display the newly created API Key */}
+      <Modal
+        title='API Key Generated'
+        open={displayKeyModalVisible}
+        onCancel={handleDisplayModalClose} // Use handler for closing via X or ESC
+        footer={[
+          // Custom footer
+          <Button key='close' onClick={handleDisplayModalClose}>
+            Close
+          </Button>,
+          // Update Copy button: add onClick handler and dynamic text
+          <Button key='copy' type='primary' onClick={handleCopyKey}>
+            {isCopied ? "Copied!" : "Copy Key"}
+          </Button>,
+        ]}
+      >
+        <Space direction='vertical' style={{ width: "100%" }}>
+          <Typography.Paragraph>
+            Please copy your new API key. You won't be able to see it again!
+            Store it securely.
+          </Typography.Paragraph>
+          <Input.TextArea
+            readOnly
+            value={newApiKey ?? "Generating..."}
+            autoSize={{ minRows: 2, maxRows: 5 }} // Adjust size as needed
+          />
+        </Space>
       </Modal>
     </div>
   );
