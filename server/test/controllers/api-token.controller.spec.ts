@@ -228,17 +228,15 @@ describe('API Token Controller', () => {
 
   // --- deleteApiTokenHandler ---
   describe('deleteApiTokenHandler', () => {
-    it('should delete a token and return 200 with the deleted ID', async () => {
+    it('should delete a token and return 204', async () => {
       const mockRequest = new Request(`http://localhost/api-tokens/${mockTokenId}`, { method: 'DELETE' });
       const mockCtx = createMockContext();
       mockDeleteApiToken.mockResolvedValue(true); // Service confirms deletion
 
       const response = await deleteApiTokenHandler(mockRequest, mockEnv, mockCtx, mockTokenId);
-      const responseBody = await response.json();
 
       expect(ApiTokenService.deleteApiToken).toHaveBeenCalledWith(mockEnv.DB, mockUserId, mockTokenId);
-      expect(response.status).toBe(200);
-      expect(responseBody).toEqual({ id: mockTokenId });
+      expect(response.status).toBe(204);
     });
 
     it('should return 404 if service indicates token not found or not owned', async () => {
