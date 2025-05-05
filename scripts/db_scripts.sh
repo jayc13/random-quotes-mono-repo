@@ -33,7 +33,7 @@ case "$1" in
     npx wrangler d1 migrations create "$DB_NAME" "$2"
     ;;
   --apply-migration)
-    npx wrangler d1 migrations apply "$DB_NAME"
+    npx wrangler d1 migrations apply "$DB_NAME" $2 $3
     ;;
   --reset)
     echo "Resetting the database..."
