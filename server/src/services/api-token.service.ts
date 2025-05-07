@@ -147,8 +147,10 @@ export const validateApiToken = async (
   db: D1Database,
   token: string,
 ): Promise<boolean> => {
-  if (!token || typeof token !== 'string' || token.trim().length === 0) {
-    console.warn("validateApiToken: Attempted to validate an empty or invalid token string.");
+  if (!token || typeof token !== "string" || token.trim().length === 0) {
+    console.warn(
+      "validateApiToken: Attempted to validate an empty or invalid token string.",
+    );
     return false;
   }
 
@@ -158,15 +160,21 @@ export const validateApiToken = async (
     // Query for an active token with the matching hash
     // Assuming 'IsActive' is a BOOLEAN or INTEGER (0 or 1) column in your ApiTokens table
     const existingToken = await db
-      .prepare("SELECT TokenId FROM ApiTokens WHERE HashedToken = ? AND IsActive = TRUE")
+      .prepare(
+        "SELECT TokenId FROM ApiTokens WHERE HashedToken = ? AND IsActive = TRUE",
+      )
       .bind(hashedToken)
       .first();
 
     if (existingToken) {
-      console.log(`validateApiToken: Valid token found with ID: ${existingToken.TokenId}`);
+      console.log(
+        `validateApiToken: Valid token found with ID: ${existingToken.TokenId}`,
+      );
       return true; // Token is valid and active
     } else {
-      console.log("validateApiToken: No active token found for the provided hash.");
+      console.log(
+        "validateApiToken: No active token found for the provided hash.",
+      );
       return false; // No matching active token found
     }
   } catch (error) {

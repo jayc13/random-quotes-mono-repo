@@ -6,14 +6,14 @@ interface Env {
   DB: D1Database;
   ALLOWED_ORIGINS?: string;
   // Other env variables used by your application
-  [key: string]: any; 
+  [key: string]: any;
 }
 
 interface ExecutionContext {
   props: {
     user?: Partial<User>; // User context, can be Partial if API user is simpler
     accessGranted?: boolean;
-    authMethod?: 'origin' | 'apitoken' | 'jwt' | string; // To track how auth was granted
+    authMethod?: "origin" | "apitoken" | "jwt" | string; // To track how auth was granted
     [key: string]: any;
   };
   // waitUntil: (promise: Promise<any>) => void;
@@ -30,7 +30,7 @@ export async function accessControlMiddleware(
   request: Request,
   env: Env,
   ctx: ExecutionContext,
-  next: () => Promise<Response | void> // Assuming next is a function returning a Promise
+  next: () => Promise<Response | void>, // Assuming next is a function returning a Promise
 ): Promise<Response | void> {
   // Initialize accessGranted and authMethod in ctx.props if not already present
   if (ctx.props === undefined) {
@@ -44,14 +44,18 @@ export async function accessControlMiddleware(
   if (allowedOriginsEnv) {
     const requestOrigin = request.headers.get("Origin");
     if (requestOrigin) {
-      const allowedOrigins = allowedOriginsEnv.split(",").map(origin => origin.trim().toLowerCase());
+      const allowedOrigins = allowedOriginsEnv
+        .split(",")
+        .map((origin) => origin.trim().toLowerCase());
       if (allowedOrigins.includes(requestOrigin.toLowerCase())) {
         console.log(`Access granted by Origin: ${requestOrigin}`);
         ctx.props.accessGranted = true;
-        ctx.props.authMethod = 'origin';
+        ctx.props.authMethod = "origin";
         return await next(); // Access granted, proceed to next middleware/handler
       }
-      console.log(`Origin ${requestOrigin} not in allowed list: ${allowedOriginsEnv}.`);
+      console.log(
+        `Origin ${requestOrigin} not in allowed list: ${allowedOriginsEnv}.`,
+      );
     } else {
       console.log("No Origin header present for Origin check.");
     }
@@ -68,13 +72,13 @@ export async function accessControlMiddleware(
       if (isValidApiToken) {
         console.log("Access granted by API Token.");
         ctx.props.accessGranted = true;
-        ctx.props.authMethod = 'apitoken';
+        ctx.props.authMethod = "apitoken";
         // Set a basic user context for API token users
-        ctx.props.user = { 
+        ctx.props.user = {
           name: "API Token User",
           // Using 'sub' for id-like field as per User interface
           sub: "api-token-user", // Or generate a unique ID based on token if needed
-          roles: ["ApiUser"] 
+          roles: ["ApiUser"],
         };
         return await next(); // Access granted, proceed
       }
@@ -90,6 +94,8 @@ export async function accessControlMiddleware(
   // 3. No Access Granted by this Middleware
   // If neither Origin nor API Token granted access, proceed to the next middleware in the chain.
   // `ctx.props.accessGranted` will remain `false` (or its previous state if modified by other means).
-  console.log("Access not granted by accessControlMiddleware. Passing to next middleware.");
+  console.log(
+    "Access not granted by accessControlMiddleware. Passing to next middleware.",
+  );
   return await next();
 }

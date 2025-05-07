@@ -81,7 +81,10 @@ export default {
       } catch (e: any) {
         // If JWT authentication fails, and no other access was granted.
         return Response.json(
-          { error: "Unauthorized", message: e.message || "Authentication required." },
+          {
+            error: "Unauthorized",
+            message: e.message || "Authentication required.",
+          },
           { status: 401, headers: DEFAULT_CORS_HEADERS },
         );
       }
