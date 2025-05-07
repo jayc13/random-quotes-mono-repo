@@ -20,6 +20,7 @@ import {
   getRandomQuoteHandler,
   updateQuoteHandler,
 } from "@/controllers/quote.controller";
+import { accessControlMiddleware } from "@/middlewares/accessControl.middleware";
 import {
   authenticationMiddleware,
   isAdmin,
@@ -65,19 +66,37 @@ export default {
       return getQuoteOfTheDayHandler(request, env);
     }
 
-    // --- Routes Requiring Only Authentication ---
+    // --- Authentication & Authorization for non-public routes ---
 
-    // Apply Authentication Middleware globally for remaining routes
-    try {
-      await authenticationMiddleware(request, env, ctx);
-    } catch {
-      return Response.json(
-        { error: "Unauthorized", message: "Authentication failed." },
-        { status: 401, headers: DEFAULT_CORS_HEADERS },
-      );
+    // 1. Apply Access Control Middleware (Origin, API Token)
+    // This middleware will set ctx.props.accessGranted and ctx.props.authMethod if successful.
+    // It calls next() regardless, so subsequent checks are needed.
+    // For this worker structure, the next function is a placeholder.
+    await accessControlMiddleware(request, env, ctx, async () => {});
+
+    // 2. Apply JWT Authentication if Access Control did not grant access
+    if (!ctx.props.accessGranted) {
+      try {
+        await authenticationMiddleware(request, env, ctx);
+      } catch (e: any) {
+        // If JWT authentication fails, and no other access was granted.
+        return Response.json(
+          { error: "Unauthorized", message: e.message || "Authentication required." },
+          { status: 401, headers: DEFAULT_CORS_HEADERS },
+        );
+      }
     }
+    // At this point, if a request is to proceed to an authenticated route,
+    // either ctx.props.accessGranted is true (by origin/API token)
+    // or ctx.props.user is populated by JWT's authenticationMiddleware.
+    // If neither, the catch above (for JWT) or the lack of ctx.props.user for admin routes
+    // will prevent access.
 
     // --- Routes Requiring Authentication + Admin Role ---
+    // The isAdmin check below will use ctx.props.user, which could be from JWT
+    // or from API token (if accessControlMiddleware set it).
+    // If access was granted by origin, ctx.props.user might be undefined or minimal.
+    // The isAdmin check (ctx.props.user?.roles?.includes("Admin")) handles this.
 
     // Apply Admin Check globally for remaining routes
     if (!(await isAdmin(ctx))) {
@@ -123,15 +142,10 @@ export default {
 
       // GET /quotes
       if (url.pathname === "/quotes" && request.method === "GET") {
-        try {
-          await authenticationMiddleware(request, env, ctx);
-          return getAllQuotesHandler(request, env.DB);
-        } catch {
-          return Response.json(
-            { error: "Unauthorized", message: "Authentication required." },
-            { status: 401, headers: DEFAULT_CORS_HEADERS },
-          );
-        }
+        // This route is now covered by the global admin check.
+        // authenticationMiddleware (JWT) would have run if !ctx.props.accessGranted.
+        // The isAdmin check is global for this section.
+        return getAllQuotesHandler(request, env.DB);
       }
 
       // POST /quotes
