@@ -34,6 +34,7 @@ export interface Env {
   QUOTES_KV: KVNamespace;
   AUTH0_DOMAIN: string;
   AUTH0_CLIENT_ID: string;
+  ALLOWED_ORIGINS: string;
 }
 
 const validateId = (id: string): boolean => !/^\d+$/.test(id);
@@ -46,6 +47,16 @@ export default {
       return new Response("OK", {
         headers: DEFAULT_CORS_HEADERS,
       });
+    }
+    // --- Authentication for public routes ---
+    try {
+      await accessControlMiddleware(request, env, ctx);
+    } catch (error) {
+      console.error("Error in access control middleware:", error);
+      return Response.json(
+        { error: "Unauthorized", message: "Access control failed." },
+        { status: 401, headers: DEFAULT_CORS_HEADERS },
+      );
     }
 
     // --- Public Routes (No Authentication Required) ---
@@ -67,33 +78,14 @@ export default {
     }
 
     // --- Authentication & Authorization for non-public routes ---
-
-    // 1. Apply Access Control Middleware (Origin, API Token)
-    // This middleware will set ctx.props.accessGranted and ctx.props.authMethod if successful.
-    // It calls next() regardless, so subsequent checks are needed.
-    // For this worker structure, the next function is a placeholder.
-    await accessControlMiddleware(request, env, ctx, async () => {});
-
-    // 2. Apply JWT Authentication if Access Control did not grant access
-    if (!ctx.props.accessGranted) {
-      try {
-        await authenticationMiddleware(request, env, ctx);
-      } catch (e: any) {
-        // If JWT authentication fails, and no other access was granted.
-        return Response.json(
-          {
-            error: "Unauthorized",
-            message: e.message || "Authentication required.",
-          },
-          { status: 401, headers: DEFAULT_CORS_HEADERS },
-        );
-      }
+    try {
+      await authenticationMiddleware(request, env, ctx);
+    } catch {
+      return Response.json(
+        { error: "Unauthorized", message: "Authentication failed." },
+        { status: 401, headers: DEFAULT_CORS_HEADERS },
+      );
     }
-    // At this point, if a request is to proceed to an authenticated route,
-    // either ctx.props.accessGranted is true (by origin/API token)
-    // or ctx.props.user is populated by JWT's authenticationMiddleware.
-    // If neither, the catch above (for JWT) or the lack of ctx.props.user for admin routes
-    // will prevent access.
 
     // --- Routes Requiring Authentication + Admin Role ---
     // The isAdmin check below will use ctx.props.user, which could be from JWT
