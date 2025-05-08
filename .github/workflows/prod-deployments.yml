@@ -82,6 +82,7 @@ jobs:
       - name: Build
         env:
           VITE_DATA_API: ${{ secrets.API_URL }}
+          VITE_DATA_API_KEY: ${{ secrets.DATA_API_KEY }}
         run: npm run build
       - name: Deploy Client to Cloudflare
         id: deploy

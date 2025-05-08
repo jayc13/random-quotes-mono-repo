@@ -5,11 +5,18 @@ import { DEFAULT_LANG } from "../../components/LangSelector";
 
 export type Data = Awaited<ReturnType<typeof data>>;
 
-const BASE_DATA_API = import.meta.env.VITE_DATA_API || "";
+const BASE_DATA_API: string = import.meta.env.VITE_DATA_API || "";
+const DATA_API_KEY: string = import.meta.env.VITE_DATA_API_KEY || "";
 
 export const data = async (pageContext: PageContextServer) => {
 	// Extract both lang and categoryId from search params
 	const { lang = DEFAULT_LANG, categoryId } = pageContext.urlParsed.search;
+
+	const requestOptions = {
+		headers: {
+			"API-Token": DATA_API_KEY,
+		},
+	};
 
 	// Use URLSearchParams for cleaner query parameter handling
 	const searchParams = new URLSearchParams();
@@ -27,13 +34,14 @@ export const data = async (pageContext: PageContextServer) => {
 	// Construct the final API URL
 	let randomQuoteUrl = `${BASE_DATA_API}/random`;
 	const queryString = searchParams.toString();
+
 	if (queryString) {
 		randomQuoteUrl += `?${queryString}`;
 	}
 
 	const [randomQuoteResponse, categoriesResponse] = await Promise.all([
-		fetch(randomQuoteUrl),
-		fetch(`${BASE_DATA_API}/categories`),
+		fetch(randomQuoteUrl, requestOptions),
+		fetch(`${BASE_DATA_API}/categories`, requestOptions),
 	]);
 
 	if (!randomQuoteResponse.ok || !categoriesResponse.ok) {

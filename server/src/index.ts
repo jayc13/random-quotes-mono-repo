@@ -20,6 +20,7 @@ import {
   getRandomQuoteHandler,
   updateQuoteHandler,
 } from "@/controllers/quote.controller";
+import { accessControlMiddleware } from "@/middlewares/accessControl.middleware";
 import {
   authenticationMiddleware,
   isAdmin,
@@ -33,6 +34,7 @@ export interface Env {
   QUOTES_KV: KVNamespace;
   AUTH0_DOMAIN: string;
   AUTH0_CLIENT_ID: string;
+  ALLOWED_ORIGINS: string;
 }
 
 const validateId = (id: string): boolean => !/^\d+$/.test(id);
@@ -45,6 +47,16 @@ export default {
       return new Response("OK", {
         headers: DEFAULT_CORS_HEADERS,
       });
+    }
+    // --- Authentication for public routes ---
+    await accessControlMiddleware(request, env, ctx);
+    await authenticationMiddleware(request, env, ctx);
+
+    if (!ctx.props.accessGranted || !ctx.props.originAllowed) {
+      return Response.json(
+        { error: "Unauthorized", message: "Access control failed." },
+        { status: 401, headers: DEFAULT_CORS_HEADERS },
+      );
     }
 
     // --- Public Routes (No Authentication Required) ---
@@ -65,20 +77,7 @@ export default {
       return getQuoteOfTheDayHandler(request, env);
     }
 
-    // --- Routes Requiring Only Authentication ---
-
-    // Apply Authentication Middleware globally for remaining routes
-    try {
-      await authenticationMiddleware(request, env, ctx);
-    } catch {
-      return Response.json(
-        { error: "Unauthorized", message: "Authentication failed." },
-        { status: 401, headers: DEFAULT_CORS_HEADERS },
-      );
-    }
-
     // --- Routes Requiring Authentication + Admin Role ---
-
     // Apply Admin Check globally for remaining routes
     if (!(await isAdmin(ctx))) {
       return Response.json(
@@ -123,15 +122,10 @@ export default {
 
       // GET /quotes
       if (url.pathname === "/quotes" && request.method === "GET") {
-        try {
-          await authenticationMiddleware(request, env, ctx);
-          return getAllQuotesHandler(request, env.DB);
-        } catch {
-          return Response.json(
-            { error: "Unauthorized", message: "Authentication required." },
-            { status: 401, headers: DEFAULT_CORS_HEADERS },
-          );
-        }
+        // This route is now covered by the global admin check.
+        // authenticationMiddleware (JWT) would have run if !ctx.props.accessGranted.
+        // The isAdmin check is global for this section.
+        return getAllQuotesHandler(request, env.DB);
       }
 
       // POST /quotes

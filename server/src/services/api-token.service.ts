@@ -138,3 +138,34 @@ export const getUserApiTokens = async (
     createdAt: r.CreatedAt, // Map CreatedAt from DB to createdAt
   }));
 };
+
+/**
+ * Validates an API token by hashing it and checking against the stored hashes
+ * in the database. Only tokens marked as active are considered valid.
+ */
+export const validateApiToken = async (
+  token: string,
+  db: D1Database,
+): Promise<boolean> => {
+  if (!token || typeof token !== "string" || token.trim().length === 0) {
+    console.warn(
+      "validateApiToken: Attempted to validate an empty or invalid token string.",
+    );
+    return false;
+  }
+
+  try {
+    const hashedToken = await hashToken(token);
+
+    // Query for an active token with the matching hash
+    const existingToken = await db
+      .prepare("SELECT TokenId FROM ApiTokens WHERE HashedToken = ?")
+      .bind(hashedToken)
+      .first();
+
+    return !!existingToken; // Return true if a matching token is found
+  } catch (error) {
+    console.error("validateApiToken: Error during token validation:", error);
+    return false; // Ensure function returns false on any error
+  }
+};

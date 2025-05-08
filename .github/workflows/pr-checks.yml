@@ -96,13 +96,12 @@ jobs:
           cd server
           npm install
       - name: Start server
-        env:
-          AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
-          AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
         run: |
           ./scripts/db_scripts.sh --apply-migration
+          ./scripts/db_scripts.sh --execute ../backup/api_tokens.sql
           cd server
-          echo "AUTH0_DOMAIN=${{ secrets.AUTH0_DOMAIN }}" > .dev.vars
+          echo "ALLOWED_ORIGINS=\"http://localhost:3000\"" > .dev.vars
+          echo "AUTH0_DOMAIN=${{ secrets.AUTH0_DOMAIN }}" >> .dev.vars
           echo "AUTH0_CLIENT_ID=${{ secrets.AUTH0_CLIENT_ID }}" >> .dev.vars
           npm run start &
       - name: Install dependencies (integration tests)
@@ -146,12 +145,10 @@ jobs:
           ./scripts/db_scripts.sh --execute ../backup/categories.sql
           ./scripts/db_scripts.sh --execute ../backup/quotes.sql
       - name: Start server
-        env:
-          AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
-          AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
         run: |
           cd server
-          echo "AUTH0_DOMAIN=${{ secrets.AUTH0_DOMAIN }}" > .dev.vars
+          echo "ALLOWED_ORIGINS=\"http://localhost:3000\"" > .dev.vars
+          echo "AUTH0_DOMAIN=${{ secrets.AUTH0_DOMAIN }}" >> .dev.vars
           echo "AUTH0_CLIENT_ID=${{ secrets.AUTH0_CLIENT_ID }}" >> .dev.vars
           npm run start &
       - name: Install dependencies (client/admin)
@@ -219,13 +216,15 @@ jobs:
           ./scripts/db_scripts.sh --apply-migration
           ./scripts/db_scripts.sh --execute ../backup/categories.sql
           ./scripts/db_scripts.sh --execute ../backup/quotes.sql
+          ./scripts/db_scripts.sh --execute ../backup/api_tokens.sql
       - name: Start server
         env:
           AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
           AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
         run: |
           cd server
-          echo "AUTH0_DOMAIN=${{ secrets.AUTH0_DOMAIN }}" > .dev.vars
+          echo "ALLOWED_ORIGINS=\"http://localhost:3000\"" > .dev.vars
+          echo "AUTH0_DOMAIN=${{ secrets.AUTH0_DOMAIN }}" >> .dev.vars
           echo "AUTH0_CLIENT_ID=${{ secrets.AUTH0_CLIENT_ID }}" >> .dev.vars
           npm run start &
       - name: Install dependencies (client/consumer)
@@ -235,6 +234,7 @@ jobs:
       - name: Start Consumer app
         env:
           VITE_DATA_API: "http://localhost:8787"
+          VITE_DATA_API_KEY: ${{ secrets.DATA_API_KEY }}
         run: |
           cd client/consumer
           npm run preview &
@@ -310,6 +310,7 @@ jobs:
       - name: Build
         env:
           VITE_DATA_API: ${{needs.deploy-server-preview.outputs.server-preview-url}}
+          VITE_DATA_API_KEY: ${{ secrets.DATA_API_KEY }}
         run: npm run build
       - name: Deploy Consumer Client to Cloudflare
         id: deploy
@@ -377,3 +378,38 @@ jobs:
             - [${{ needs.deploy-client-admin-preview.outputs.client-admin-preview-url }}](${{ needs.deploy-client-admin-preview.outputs.client-admin-preview-url }})
             ### 🖥️ Server Preview
             - [${{ needs.deploy-client-admin-preview.outputs.server-preview-url }}](${{ needs.deploy-client-admin-preview.outputs.server-preview-url }})
+  post-deploy-e2e-tests-consumer:
+    name: "Post Deploy - E2E Tests - Consumer App"
+    needs:
+      - deploy-client-consumer-preview
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 23
+          cache: 'npm'
+          cache-dependency-path: ./test/e2e-tests/package-lock.json
+      - name: Install dependencies (E2E tests)
+        run: |
+          cd test/e2e-tests
+          npm install
+      - name: Setup Playwright
+        run: |
+          cd test/e2e-tests
+          npx playwright install chromium
+      - name: Run E2E tests
+        env:
+          CONSUMER_BASE_URL: ${{ needs.deploy-client-consumer-preview.outputs.client-consumer-preview-url }}
+        run: |
+          cd test/e2e-tests
+          npm run test-consumer
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        if: ${{ failure() || cancelled() }}
+        with:
+          name: playwright-report-consumer
+          path: test/e2e-tests/playwright-report/
+          retention-days: 30
