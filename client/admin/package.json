@@ -36,7 +36,7 @@
     "@vitejs/plugin-react": "^4.0.0",
     "@biomejs/biome": "latest",
     "typescript": "^5.4.2",
-    "vite": "^4.5.13",
+    "vite": "^4.5.14",
     "wrangler": "^4.9.1"
   },
   "browserslist": {
