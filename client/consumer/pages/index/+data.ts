@@ -18,6 +18,8 @@ export const data = async (pageContext: PageContextServer) => {
 		},
 	};
 
+	console.log({ DATA_API_KEY });
+
 	// Use URLSearchParams for cleaner query parameter handling
 	const searchParams = new URLSearchParams();
 
@@ -43,6 +45,8 @@ export const data = async (pageContext: PageContextServer) => {
 		fetch(randomQuoteUrl, requestOptions),
 		fetch(`${BASE_DATA_API}/categories`, requestOptions),
 	]);
+
+	console.log({ randomQuoteResponse });
 
 	if (!randomQuoteResponse.ok || !categoriesResponse.ok) {
 		throw render(500, "Error fetching quote");
