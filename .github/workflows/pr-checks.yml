@@ -101,8 +101,7 @@ jobs:
           ./scripts/db_scripts.sh --execute ../backup/api_tokens.sql
           cd server
           echo "ALLOWED_ORIGINS=\"http://localhost:3000\"" > .dev.vars
-          cat .dev.vars
-          echo "AUTH0_DOMAIN=${{ secrets.AUTH0_DOMAIN }}" > .dev.vars
+          echo "AUTH0_DOMAIN=${{ secrets.AUTH0_DOMAIN }}" >> .dev.vars
           echo "AUTH0_CLIENT_ID=${{ secrets.AUTH0_CLIENT_ID }}" >> .dev.vars
           npm run start &
       - name: Install dependencies (integration tests)
@@ -149,8 +148,7 @@ jobs:
         run: |
           cd server
           echo "ALLOWED_ORIGINS=\"http://localhost:3000\"" > .dev.vars
-          cat .dev.vars
-          echo "AUTH0_DOMAIN=${{ secrets.AUTH0_DOMAIN }}" > .dev.vars
+          echo "AUTH0_DOMAIN=${{ secrets.AUTH0_DOMAIN }}" >> .dev.vars
           echo "AUTH0_CLIENT_ID=${{ secrets.AUTH0_CLIENT_ID }}" >> .dev.vars
           npm run start &
       - name: Install dependencies (client/admin)
@@ -225,9 +223,9 @@ jobs:
           AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
         run: |
           cd server
-          echo "AUTH0_DOMAIN=${{ secrets.AUTH0_DOMAIN }}" > .dev.vars
+          echo "ALLOWED_ORIGINS=\"http://localhost:3000\"" > .dev.vars
+          echo "AUTH0_DOMAIN=${{ secrets.AUTH0_DOMAIN }}" >> .dev.vars
           echo "AUTH0_CLIENT_ID=${{ secrets.AUTH0_CLIENT_ID }}" >> .dev.vars
-          echo "ALLOWED_ORIGINS=http://localhost:3000" > .dev.vars
           npm run start &
       - name: Install dependencies (client/consumer)
         run: |
