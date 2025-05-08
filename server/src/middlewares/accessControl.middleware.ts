@@ -29,8 +29,6 @@ export async function accessControlMiddleware(
     return;
   }
 
-  console.log(request.headers);
-
   const apiToken = request.headers.get("api-token");
 
   if (!apiToken) {
