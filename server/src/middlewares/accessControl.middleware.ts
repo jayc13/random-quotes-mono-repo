@@ -31,11 +31,14 @@ export async function accessControlMiddleware(
     return;
   }
 
-  const isValid = await validateApiToken(apiToken, env.DB);
-  if (!isValid) {
+  try {
+    const isValid = await validateApiToken(apiToken, env.DB);
+    if (!isValid) {
+      return;
+    }
+  } catch {
     return;
   }
-  console.log("Access granted by API Token.");
   ctx.props.accessGranted = true;
   ctx.props.authMethod = "apitoken";
   ctx.props.user = {

@@ -19,27 +19,34 @@ describe("accessControlMiddleware", () => {
   });
 
   it("should initialize ctx.props if undefined", async () => {
-    await expect(accessControlMiddleware(request, env, {}))
-      .rejects.toThrow("No API-Token provided.");
+    ctx = {}; // No props
+    await accessControlMiddleware(request, env, ctx);
+
+    expect(ctx.props).toBeDefined();
+    expect(ctx.props.accessGranted).toBe(false);
+    expect(ctx.props.originAllowed).toBe(true);
   });
 
   describe("Origin checks", () => {
-    it("should grant access for allowed origin", async () => {
+    it("should mark origin as allowed if it matches ALLOWED_ORIGINS", async () => {
       env.ALLOWED_ORIGINS = "http://allowed.com";
       request.headers.set("Origin", "http://allowed.com");
 
       await accessControlMiddleware(request, env, ctx);
 
-      expect(ctx.props.accessGranted).toBe(true);
-      expect(ctx.props.authMethod).toBe("origin");
+      expect(ctx.props.originAllowed).toBe(true);
+      // Access is not granted just because origin is allowed
+      expect(ctx.props.accessGranted).toBe(false);
     });
 
-    it("should not grant access for disallowed origin", async () => {
+    it("should mark origin as not allowed if it doesn't match ALLOWED_ORIGINS", async () => {
       env.ALLOWED_ORIGINS = "http://allowed.com";
       request.headers.set("Origin", "http://other.com");
 
-      await expect(accessControlMiddleware(request, env, ctx))
-        .rejects.toThrow("No API-Token provided.");
+      await accessControlMiddleware(request, env, ctx);
+
+      expect(ctx.props.originAllowed).toBe(false);
+      expect(ctx.props.accessGranted).toBe(false);
     });
   });
 
@@ -47,7 +54,7 @@ describe("accessControlMiddleware", () => {
     beforeEach(() => env.ALLOWED_ORIGINS = "");
 
     it("should grant access for valid token", async () => {
-      request.headers.set("API-Token", "valid");
+      request.headers.set("api-token", "valid");
       vi.mocked(validateApiToken).mockResolvedValue(true);
 
       await accessControlMiddleware(request, env, ctx);
@@ -62,34 +69,44 @@ describe("accessControlMiddleware", () => {
     });
 
     it("should not grant access for invalid token", async () => {
-      request.headers.set("API-Token", "invalid");
+      request.headers.set("api-token", "invalid");
       vi.mocked(validateApiToken).mockResolvedValue(false);
 
-      await expect(accessControlMiddleware(request, env, ctx))
-        .rejects.toThrow("Invalid API Token.");
+      await accessControlMiddleware(request, env, ctx);
+
+      expect(ctx.props.accessGranted).toBe(false);
+      expect(ctx.props.authMethod).toBeUndefined();
+    });
+
+    it("should not grant access when no token is provided", async () => {
+      await accessControlMiddleware(request, env, ctx);
+
+      expect(validateApiToken).not.toHaveBeenCalled();
+      expect(ctx.props.accessGranted).toBe(false);
+      expect(ctx.props.authMethod).toBeUndefined();
     });
 
     it("should handle validation errors", async () => {
-      request.headers.set("API-Token", "error");
-      vi.mocked(validateApiToken).mockRejectedValue(new Error());
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      request.headers.set("api-token", "error");
+      vi.mocked(validateApiToken).mockRejectedValue(new Error("Token validation error"));
 
-      await expect(accessControlMiddleware(request, env, ctx))
-        .rejects.toThrow();
+      await accessControlMiddleware(request, env, ctx);
 
       expect(ctx.props.accessGranted).toBe(false);
-      consoleSpy.mockRestore();
     });
   });
 
-  it("should prioritize origin over token", async () => {
+  it("should process API token even if Origin is provided", async () => {
     env.ALLOWED_ORIGINS = "http://allowed.com";
     request.headers.set("Origin", "http://allowed.com");
-    request.headers.set("API-Token", "valid");
+    request.headers.set("api-token", "valid");
+    vi.mocked(validateApiToken).mockResolvedValue(true);
 
     await accessControlMiddleware(request, env, ctx);
 
-    expect(ctx.props.authMethod).toBe("origin");
-    expect(validateApiToken).not.toHaveBeenCalled();
+    expect(ctx.props.originAllowed).toBe(true);
+    expect(ctx.props.accessGranted).toBe(true);
+    expect(ctx.props.authMethod).toBe("apitoken");
+    expect(validateApiToken).toHaveBeenCalled();
   });
 });
