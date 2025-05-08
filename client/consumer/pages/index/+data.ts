@@ -18,6 +18,8 @@ export const data = async (pageContext: PageContextServer) => {
 		},
 	};
 
+	console.log({ DATA_API_KEY });
+
 	// Use URLSearchParams for cleaner query parameter handling
 	const searchParams = new URLSearchParams();
 
