@@ -310,7 +310,7 @@ jobs:
       - name: Build
         env:
           VITE_DATA_API: ${{needs.deploy-server-preview.outputs.server-preview-url}}
-          VITE_DATA_API_KEY: ${{ secrets.VITE_DATA_API_KEY }}
+          VITE_DATA_API_KEY: ${{ secrets.DATA_API_KEY }}
         run: npm run build
       - name: Deploy Consumer Client to Cloudflare
         id: deploy

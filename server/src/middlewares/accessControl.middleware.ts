@@ -19,10 +19,26 @@ export async function accessControlMiddleware(
   );
   const requestOrigin = request.headers.get("Origin");
 
+  console.log("Allowed Origins:", allowedOrigins);
+  console.log("Request Origin:", requestOrigin);
+
   if (allowedOrigins && requestOrigin) {
-    ctx.props.originAllowed = allowedOrigins.includes(
-      requestOrigin.toLowerCase(),
-    );
+    const lowerRequestOrigin = requestOrigin.toLowerCase();
+    ctx.props.originAllowed = allowedOrigins.some((pattern) => {
+      // Exact match
+      if (pattern === lowerRequestOrigin) return true;
+
+      // Wildcard match (*.example.com)
+      if (
+        pattern.startsWith("*") &&
+        lowerRequestOrigin.endsWith(pattern.slice(1))
+      ) {
+        return true;
+      }
+
+      // Full wildcard
+      return pattern === "*";
+    });
   }
 
   const apiToken = request.headers.get("api-token");
