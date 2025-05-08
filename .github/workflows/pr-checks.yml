@@ -234,7 +234,7 @@ jobs:
       - name: Start Consumer app
         env:
           VITE_DATA_API: "http://localhost:8787"
-          VITE_DATA_API_KEY: ${{ secrets.DATA_API_KEY }}
+          VITE_DATA_API_KEY: ${{ secrets.DEV_DATA_API_KEY }}
         run: |
           cd client/consumer
           npm run preview &
