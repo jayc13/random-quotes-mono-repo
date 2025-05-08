@@ -41,7 +41,10 @@ export async function accessControlMiddleware(
     });
   }
 
-  const apiToken = request.headers.get("api-token");
+  const apiTokenHeaders = request.headers.get("api-token");
+  const apiTokenQuery = new URL(request.url).searchParams.get("api-token");
+
+  const apiToken = apiTokenHeaders || apiTokenQuery;
 
   if (!apiToken) {
     return;

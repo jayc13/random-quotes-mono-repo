@@ -24,7 +24,11 @@
 		}
 	],
 	"kv_namespaces": [
-		{ "binding": "QUOTES_KV", "id": "7670f60623a744f1a931b5bf49da124a", "preview_id": "9cef104895f24284ab025bc17eb1471d" }
+		{
+			"binding": "QUOTES_KV",
+			"id": "7670f60623a744f1a931b5bf49da124a",
+			"preview_id": "9cef104895f24284ab025bc17eb1471d"
+		}
 	],
 	"env": {
 		"preview": {
@@ -35,6 +39,12 @@
 					"database_id": "3698514b-4d80-406f-9bfa-017317db8672",
 					"migrations_dir": "./database/migrations"
 				}
+			],
+			"kv_namespaces": [
+				{
+					"binding": "QUOTES_KV",
+					"id": "9cef104895f24284ab025bc17eb1471d"
+				}
 			]
 		},
 		"production": {
@@ -44,6 +54,12 @@
 					"database_name": "prod-random-quotes",
 					"database_id": "18896754-8df8-44de-9711-1dfdb5078448",
 					"migrations_dir": "./database/migrations"
+				}
+			],
+			"kv_namespaces": [
+				{
+					"binding": "QUOTES_KV",
+					"id": "7670f60623a744f1a931b5bf49da124a"
 				}
 			]
 		}
