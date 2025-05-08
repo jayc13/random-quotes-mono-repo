@@ -12,6 +12,7 @@ export default defineWorkersConfig({
 				'src/services/*.{ts,tsx}',
 				'src/controllers/*.{ts,tsx}',
 				'src/validators/*.{ts,tsx}',
+				'src/middlewares/*.{ts,tsx}',
 			],
 			provider: 'istanbul',
 			reporter: ['text', 'html'],
