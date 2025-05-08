@@ -19,11 +19,10 @@ export async function accessControlMiddleware(
   );
   const requestOrigin = request.headers.get("Origin");
 
-  if (
-    allowedOrigins &&
-    requestOrigin
-  ) {
-    ctx.props.originAllowed = allowedOrigins.includes(requestOrigin.toLowerCase());
+  if (allowedOrigins && requestOrigin) {
+    ctx.props.originAllowed = allowedOrigins.includes(
+      requestOrigin.toLowerCase(),
+    );
   }
 
   const apiToken = request.headers.get("api-token");
