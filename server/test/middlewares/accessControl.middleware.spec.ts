@@ -13,7 +13,10 @@ describe("accessControlMiddleware", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
-    request = { headers: new Headers() } as Request;
+    request = {
+      url: 'http://example.com',
+      headers: new Headers()
+    } as Request;
     env = { DB: {}, ALLOWED_ORIGINS: "" };
     ctx = { props: {} };
   });
