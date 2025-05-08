@@ -13,7 +13,7 @@ async function getRandomQuote(filters: RandomQuoteFilter) {
 
 	const requestOptions = {
 		headers: {
-			'API-Token': DATA_API_KEY,
+			"API-Token": DATA_API_KEY,
 		},
 	};
 

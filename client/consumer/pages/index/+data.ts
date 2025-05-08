@@ -14,7 +14,7 @@ export const data = async (pageContext: PageContextServer) => {
 
 	const requestOptions = {
 		headers: {
-			'API-Token': DATA_API_KEY,
+			"API-Token": DATA_API_KEY,
 		},
 	};
 
