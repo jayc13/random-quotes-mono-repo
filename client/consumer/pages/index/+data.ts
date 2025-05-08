@@ -44,6 +44,8 @@ export const data = async (pageContext: PageContextServer) => {
 		fetch(`${BASE_DATA_API}/categories`, requestOptions),
 	]);
 
+	console.log({ randomQuoteResponse });
+
 	if (!randomQuoteResponse.ok || !categoriesResponse.ok) {
 		throw render(500, "Error fetching quote");
 	}
