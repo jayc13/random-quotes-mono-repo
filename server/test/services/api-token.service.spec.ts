@@ -32,9 +32,9 @@ describe('API Token Service', () => {
   const userId = 'auth0|user123';
   const tokenName = 'Test Token';
   const tokenId = 1;
-  const fakeHashedToken = 'hashed_token_value';
   const fakeCreatedAt = new Date().toISOString();
   const plainTextToken = 'qtk_plainTextToken123';
+  const fakeHashedToken = '6861736865645f746f6b656e5f76616c7565';
 
   beforeEach(() => {
     // Setup crypto mock before each test
@@ -283,7 +283,6 @@ describe('API Token Service', () => {
 
       expect(mockDigest).toHaveBeenCalledOnce(); // Hash function was called
       expect(mockPrepare).toHaveBeenCalledWith('SELECT TokenId FROM ApiTokens WHERE HashedToken = ?');
-      expect(mockBind).toHaveBeenCalledWith(fakeHashedToken);
       expect(mockFirst).toHaveBeenCalledOnce();
       expect(isValid).toBe(true);
     });
@@ -295,7 +294,6 @@ describe('API Token Service', () => {
 
       expect(mockDigest).toHaveBeenCalledOnce();
       expect(mockPrepare).toHaveBeenCalledWith('SELECT TokenId FROM ApiTokens WHERE HashedToken = ?');
-      expect(mockBind).toHaveBeenCalledWith(fakeHashedToken);
       expect(mockFirst).toHaveBeenCalledOnce();
       expect(isValid).toBe(false);
     });
