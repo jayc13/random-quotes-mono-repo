@@ -48,13 +48,10 @@ describe("authenticationMiddleware (JWT Focus)", () => {
     mockEnv = {
       AUTH0_DOMAIN: "test.auth0.com",
       AUTH0_CLIENT_ID: "test-client-id",
-      // Other env vars if needed by the middleware directly
     };
 
     mockCtx = {
       props: {},
-      // waitUntil: vi.fn(),
-      // passThroughOnException: vi.fn(),
     };
   });
 
@@ -74,6 +71,7 @@ describe("authenticationMiddleware (JWT Focus)", () => {
     expect(mockCtx.props.user.name).toBe("Test User");
     expect(mockCtx.props.user.email).toBe("testuser@example.com");
     expect(mockCtx.props.user.roles).toEqual(["Admin", "User"]);
+    expect(mockCtx.props.accessGranted).toBe(true);
   });
 
   it("should correctly handle JWT payload without custom roles", async () => {
@@ -86,32 +84,48 @@ describe("authenticationMiddleware (JWT Focus)", () => {
 
     expect(mockCtx.props.user).toBeDefined();
     expect(mockCtx.props.user.roles).toEqual([]);
+    expect(mockCtx.props.accessGranted).toBe(true);
   });
 
-  it("should throw 'Invalid token' if parseJwt returns not valid", async () => {
+  it("should not set user context if parseJwt returns not valid", async () => {
     mockRequest.headers.set("Authorization", "Bearer invalid-jwt-token");
-    mockParseJwt.mockResolvedValue({ valid: false, payload: {} }); // Payload doesn't matter if invalid
+    mockParseJwt.mockResolvedValue({ valid: false, payload: {} });
 
-    await expect(authenticationMiddleware(mockRequest, mockEnv, mockCtx))
-      .rejects.toThrow("Invalid token");
+    await authenticationMiddleware(mockRequest, mockEnv, mockCtx);
+
+    expect(mockParseJwt).toHaveBeenCalledWith({
+      jwt: "invalid-jwt-token",
+      issuer: `https://${mockEnv.AUTH0_DOMAIN}/`,
+      audience: mockEnv.AUTH0_CLIENT_ID,
+    });
+    expect(mockCtx.props.user).toBeUndefined();
+    expect(mockCtx.props.accessGranted).toBeUndefined();
   });
 
-  it("should throw 'Token not found' if Authorization header is missing", async () => {
-    // No Authorization header
-    await expect(authenticationMiddleware(mockRequest, mockEnv, mockCtx))
-      .rejects.toThrow("Token not found");
+  it("should not set user context if Authorization header is missing", async () => {
+    await authenticationMiddleware(mockRequest, mockEnv, mockCtx);
+
+    expect(mockParseJwt).not.toHaveBeenCalled();
+    expect(mockCtx.props.user).toBeUndefined();
+    expect(mockCtx.props.accessGranted).toBeUndefined();
   });
 
-  it("should throw 'Token not found' if Authorization header is not a Bearer token", async () => {
+  it("should not set user context if Authorization header is not a Bearer token", async () => {
     mockRequest.headers.set("Authorization", "Basic someotherformoftoken");
-    await expect(authenticationMiddleware(mockRequest, mockEnv, mockCtx))
-      .rejects.toThrow("Token not found");
+    await authenticationMiddleware(mockRequest, mockEnv, mockCtx);
+
+    expect(mockParseJwt).not.toHaveBeenCalled();
+    expect(mockCtx.props.user).toBeUndefined();
+    expect(mockCtx.props.accessGranted).toBeUndefined();
   });
-  
-  it("should throw 'Token not found' if Authorization header Bearer part is empty", async () => {
+
+  it("should not set user context if Authorization header Bearer part is empty", async () => {
     mockRequest.headers.set("Authorization", "Bearer "); // Empty token
-    await expect(authenticationMiddleware(mockRequest, mockEnv, mockCtx))
-      .rejects.toThrow("Token not found");
+    await authenticationMiddleware(mockRequest, mockEnv, mockCtx);
+
+    expect(mockParseJwt).not.toHaveBeenCalled();
+    expect(mockCtx.props.user).toBeUndefined();
+    expect(mockCtx.props.accessGranted).toBeUndefined();
   });
 
   it("should correctly pass issuer and audience to parseJwt", async () => {
@@ -127,5 +141,6 @@ describe("authenticationMiddleware (JWT Focus)", () => {
       issuer: "https://custom.domain.com/",
       audience: "custom-client-id",
     });
+    expect(mockCtx.props.accessGranted).toBe(true);
   });
 });
