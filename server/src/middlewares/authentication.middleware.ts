@@ -31,7 +31,7 @@ export async function authenticationMiddleware(
   const token = request.headers.get("authorization")?.split("Bearer ")?.[1];
 
   if (!token) {
-    throw new Error("Token not found");
+    return;
   }
 
   const result = await parseJwt({
@@ -41,7 +41,7 @@ export async function authenticationMiddleware(
   });
 
   if (!result || !result.valid) {
-    throw new Error("Invalid token");
+    return;
   }
 
   let roles: string[] = [];
@@ -49,7 +49,7 @@ export async function authenticationMiddleware(
     roles = result.payload["random_quotes/roles"] as string[];
     result.payload["random_quotes/roles"] = undefined;
   }
-
+  ctx.props.accessGranted = true;
   ctx.props.user = {
     ...result.payload,
     roles,

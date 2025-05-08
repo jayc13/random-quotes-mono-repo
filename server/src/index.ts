@@ -49,10 +49,10 @@ export default {
       });
     }
     // --- Authentication for public routes ---
-    try {
-      await accessControlMiddleware(request, env, ctx);
-    } catch (error) {
-      console.error("Error in access control middleware:", error);
+    await accessControlMiddleware(request, env, ctx);
+    await authenticationMiddleware(request, env, ctx);
+
+    if (!ctx.props.accessGranted || !ctx.props.originAllowed) {
       return Response.json(
         { error: "Unauthorized", message: "Access control failed." },
         { status: 401, headers: DEFAULT_CORS_HEADERS },
@@ -77,22 +77,7 @@ export default {
       return getQuoteOfTheDayHandler(request, env);
     }
 
-    // --- Authentication & Authorization for non-public routes ---
-    try {
-      await authenticationMiddleware(request, env, ctx);
-    } catch {
-      return Response.json(
-        { error: "Unauthorized", message: "Authentication failed." },
-        { status: 401, headers: DEFAULT_CORS_HEADERS },
-      );
-    }
-
     // --- Routes Requiring Authentication + Admin Role ---
-    // The isAdmin check below will use ctx.props.user, which could be from JWT
-    // or from API token (if accessControlMiddleware set it).
-    // If access was granted by origin, ctx.props.user might be undefined or minimal.
-    // The isAdmin check (ctx.props.user?.roles?.includes("Admin")) handles this.
-
     // Apply Admin Check globally for remaining routes
     if (!(await isAdmin(ctx))) {
       return Response.json(

@@ -12,6 +12,7 @@ export async function accessControlMiddleware(
 ) {
   if (!ctx.props) ctx.props = {};
   ctx.props.accessGranted = false;
+  ctx.props.originAllowed = true;
 
   const allowedOrigins = env.ALLOWED_ORIGINS?.split(",").map((o: string) =>
     o.trim().toLowerCase(),
@@ -20,24 +21,20 @@ export async function accessControlMiddleware(
 
   if (
     allowedOrigins &&
-    requestOrigin &&
-    allowedOrigins.includes(requestOrigin.toLowerCase())
+    requestOrigin
   ) {
-    console.log(`Access granted by Origin: ${requestOrigin}`);
-    ctx.props.accessGranted = true;
-    ctx.props.authMethod = "origin";
-    return;
+    ctx.props.originAllowed = allowedOrigins.includes(requestOrigin.toLowerCase());
   }
 
   const apiToken = request.headers.get("api-token");
 
   if (!apiToken) {
-    throw new Error("No API-Token provided.");
+    return;
   }
 
   const isValid = await validateApiToken(apiToken, env.DB);
   if (!isValid) {
-    throw new Error("Invalid API Token.");
+    return;
   }
   console.log("Access granted by API Token.");
   ctx.props.accessGranted = true;

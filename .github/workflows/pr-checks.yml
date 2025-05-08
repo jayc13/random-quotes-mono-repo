@@ -104,6 +104,7 @@ jobs:
           cd server
           echo "AUTH0_DOMAIN=${{ secrets.AUTH0_DOMAIN }}" > .dev.vars
           echo "AUTH0_CLIENT_ID=${{ secrets.AUTH0_CLIENT_ID }}" >> .dev.vars
+          echo "ALLOWED_ORIGINS=http://localhost:3000" > .dev.vars
           npm run start &
       - name: Install dependencies (integration tests)
         run: |
