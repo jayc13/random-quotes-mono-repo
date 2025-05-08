@@ -5,10 +5,17 @@ export interface RandomQuoteFilter {
 	categoryId: string | null;
 }
 
-const BASE_DATA_API = import.meta.env.VITE_DATA_API || "";
+const BASE_DATA_API: string = import.meta.env.VITE_DATA_API || "";
+const DATA_API_KEY: string = import.meta.env.VITE_DATA_API_KEY || "";
 
 async function getRandomQuote(filters: RandomQuoteFilter) {
 	const { lang, categoryId } = filters;
+
+	const requestOptions = {
+		headers: {
+			'API-Token': DATA_API_KEY,
+		},
+	};
 
 	let randomQuoteUrl = `${BASE_DATA_API}/random`;
 	const searchParams = new URLSearchParams();
@@ -21,7 +28,7 @@ async function getRandomQuote(filters: RandomQuoteFilter) {
 		randomQuoteUrl += `?${queryString}`;
 	}
 
-	const randomQuoteResponse = await fetch(randomQuoteUrl);
+	const randomQuoteResponse = await fetch(randomQuoteUrl, requestOptions);
 
 	if (!randomQuoteResponse.ok) {
 		throw render(500, "Error fetching quote");
