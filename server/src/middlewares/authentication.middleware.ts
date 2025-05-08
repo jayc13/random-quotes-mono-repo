@@ -28,7 +28,7 @@ export async function authenticationMiddleware(
   env: Env,
   ctx: ExecutionContext,
 ) {
-  const token = request.headers.get("authorization")?.split(" ")?.[1];
+  const token = request.headers.get("authorization")?.split("Bearer ")?.[1];
 
   if (!token) {
     throw new Error("Token not found");
@@ -40,7 +40,7 @@ export async function authenticationMiddleware(
     audience: env.AUTH0_CLIENT_ID,
   });
 
-  if (!result.valid) {
+  if (!result || !result.valid) {
     throw new Error("Invalid token");
   }
 

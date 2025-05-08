@@ -1,4 +1,5 @@
-import { authenticationMiddleware, User } from "@/middlewares/authentication.middleware";
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { authenticationMiddleware } from "@/middlewares/authentication.middleware";
 import { parseJwt } from "@cfworker/jwt";
 
 // Mock @cfworker/jwt
@@ -104,7 +105,7 @@ describe("authenticationMiddleware (JWT Focus)", () => {
   it("should throw 'Token not found' if Authorization header is not a Bearer token", async () => {
     mockRequest.headers.set("Authorization", "Basic someotherformoftoken");
     await expect(authenticationMiddleware(mockRequest, mockEnv, mockCtx))
-      .rejects.toThrow("Token not found"); // Because token.split(" ")[1] will be undefined
+      .rejects.toThrow("Token not found");
   });
   
   it("should throw 'Token not found' if Authorization header Bearer part is empty", async () => {

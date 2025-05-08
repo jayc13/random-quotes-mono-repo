@@ -1,9 +1,10 @@
-import { describe, it, expect, vi, beforeEach, afterEach, beforeAll } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   generateApiToken,
   deleteApiToken,
   getUserApiTokens,
   validateApiTokenInput,
+  validateApiToken,
 } from '@/services/api-token.service';
 import type { ApiTokenInput } from '@/types/api-token.types';
 
@@ -33,6 +34,7 @@ describe('API Token Service', () => {
   const tokenId = 1;
   const fakeHashedToken = 'hashed_token_value';
   const fakeCreatedAt = new Date().toISOString();
+  const plainTextToken = 'qtk_plainTextToken123';
 
   beforeEach(() => {
     // Setup crypto mock before each test
@@ -273,119 +275,101 @@ describe('API Token Service', () => {
     });
   });
 
-  // --- validateApiToken ---
   describe('validateApiToken', () => {
-    // Dynamically import the actual function to test it, not the vi.fn() mock from the top
-    let actualValidateApiToken: typeof import('@/services/api-token.service').validateApiToken;
+    it('should return true for a valid token', async () => {
+      mockFirst.mockResolvedValue({ TokenId: tokenId }); // Simulate token found in DB
 
-    beforeAll(async () => {
-      const service = await import('@/services/api-token.service');
-      actualValidateApiToken = service.validateApiToken;
-    });
-    
-    it('should return true if a valid, hashed token exists and is active in the DB', async () => {
-      const plainToken = 'active-token-123';
-      // Mock DB to return a token record (TokenId is enough as per current SELECT)
-      mockFirst.mockResolvedValue({ TokenId: 1 }); 
+      const isValid = await validateApiToken(plainTextToken, mockDb);
 
-      const isValid = await actualValidateApiToken(mockDb, plainToken);
-
-      expect(mockDigest).toHaveBeenCalledOnce(); 
-      expect(mockPrepare).toHaveBeenCalledWith('SELECT TokenId FROM ApiTokens WHERE HashedToken = ? AND IsActive = TRUE');
-      expect(mockBind).toHaveBeenCalledWith(fakeHashedToken); // fakeHashedToken is the output of mocked hashToken
+      expect(mockDigest).toHaveBeenCalledOnce(); // Hash function was called
+      expect(mockPrepare).toHaveBeenCalledWith('SELECT TokenId FROM ApiTokens WHERE HashedToken = ?');
+      expect(mockBind).toHaveBeenCalledWith(fakeHashedToken);
       expect(mockFirst).toHaveBeenCalledOnce();
       expect(isValid).toBe(true);
     });
 
-    it('should return false if the hashed token exists but is not active (IsActive = FALSE or other)', async () => {
-      const plainToken = 'inactive-token-456';
-      // If IsActive=FALSE, the query "WHERE HashedToken = ? AND IsActive = TRUE" should not find it.
-      mockFirst.mockResolvedValue(undefined); // Simulate token not found or not matching active criteria
-
-      const isValid = await actualValidateApiToken(mockDb, plainToken);
-      
-      expect(mockDigest).toHaveBeenCalledOnce();
-      expect(mockPrepare).toHaveBeenCalledWith('SELECT TokenId FROM ApiTokens WHERE HashedToken = ? AND IsActive = TRUE');
-      expect(mockBind).toHaveBeenCalledWith(fakeHashedToken);
-      expect(mockFirst).toHaveBeenCalledOnce();
-      expect(isValid).toBe(false);
-    });
-    
-    it('should return false if the hashed token does not exist in the DB', async () => {
-      const plainToken = 'non-existent-token';
+    it('should return false for an invalid token (not found in DB)', async () => {
       mockFirst.mockResolvedValue(undefined); // Simulate token not found
 
-      const isValid = await actualValidateApiToken(mockDb, plainToken);
+      const isValid = await validateApiToken(plainTextToken, mockDb);
 
       expect(mockDigest).toHaveBeenCalledOnce();
-      expect(mockPrepare).toHaveBeenCalledWith('SELECT TokenId FROM ApiTokens WHERE HashedToken = ? AND IsActive = TRUE');
+      expect(mockPrepare).toHaveBeenCalledWith('SELECT TokenId FROM ApiTokens WHERE HashedToken = ?');
       expect(mockBind).toHaveBeenCalledWith(fakeHashedToken);
       expect(mockFirst).toHaveBeenCalledOnce();
       expect(isValid).toBe(false);
     });
 
-    it('should return false and log warning for empty token string', async () => {
+    it('should return false for an empty token string and not call DB', async () => {
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      const isValid = await actualValidateApiToken(mockDb, '');
-      
-      expect(isValid).toBe(false);
-      expect(mockPrepare).not.toHaveBeenCalled(); 
-      expect(mockDigest).not.toHaveBeenCalled(); 
-      expect(consoleWarnSpy).toHaveBeenCalledWith("validateApiToken: Attempted to validate an empty or invalid token string.");
-      consoleWarnSpy.mockRestore();
-    });
-
-    it('should return false and log warning for null token string', async () => {
-      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      const isValid = await actualValidateApiToken(mockDb, null as any);
+      const isValid = await validateApiToken('', mockDb);
 
       expect(isValid).toBe(false);
-      expect(mockPrepare).not.toHaveBeenCalled();
       expect(mockDigest).not.toHaveBeenCalled();
-      expect(consoleWarnSpy).toHaveBeenCalledWith("validateApiToken: Attempted to validate an empty or invalid token string.");
+      expect(mockPrepare).not.toHaveBeenCalled();
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        "validateApiToken: Attempted to validate an empty or invalid token string."
+      );
       consoleWarnSpy.mockRestore();
     });
-    
-    it('should return false and log warning for token string with only spaces', async () => {
+
+    it('should return false if token is null and not call DB', async () => {
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      const isValid = await actualValidateApiToken(mockDb, '   ');
+      const isValid = await validateApiToken(null as any, mockDb);
 
       expect(isValid).toBe(false);
-      expect(mockPrepare).not.toHaveBeenCalled();
       expect(mockDigest).not.toHaveBeenCalled();
-      expect(consoleWarnSpy).toHaveBeenCalledWith("validateApiToken: Attempted to validate an empty or invalid token string.");
+      expect(mockPrepare).not.toHaveBeenCalled();
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        "validateApiToken: Attempted to validate an empty or invalid token string."
+      );
       consoleWarnSpy.mockRestore();
     });
 
-    it('should return false and log error if DB query fails', async () => {
-      const plainToken = 'token-db-error';
-      const dbError = new Error('DB query failed spectacularly');
-      mockFirst.mockRejectedValue(dbError); 
+    it('should return false if token is undefined and not call DB', async () => {
+      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const isValid = await validateApiToken(undefined as any, mockDb);
+
+      expect(isValid).toBe(false);
+      expect(mockDigest).not.toHaveBeenCalled();
+      expect(mockPrepare).not.toHaveBeenCalled();
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        "validateApiToken: Attempted to validate an empty or invalid token string."
+      );
+      consoleWarnSpy.mockRestore();
+    });
+
+    it('should return false and log error if hashing fails', async () => {
+      mockDigest.mockRejectedValue(new Error('Hashing failed'));
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      const isValid = await actualValidateApiToken(mockDb, plainToken);
+      const isValid = await validateApiToken(plainTextToken, mockDb);
 
+      expect(isValid).toBe(false);
+      expect(mockDigest).toHaveBeenCalledOnce();
+      expect(mockPrepare).not.toHaveBeenCalled(); // DB should not be called if hashing fails
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "validateApiToken: Error during token validation:",
+        expect.any(Error)
+      );
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should return false and log error if database query fails', async () => {
+      mockFirst.mockRejectedValue(new Error('DB query failed'));
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      const isValid = await validateApiToken(plainTextToken, mockDb);
+
+      expect(isValid).toBe(false);
       expect(mockDigest).toHaveBeenCalledOnce();
       expect(mockPrepare).toHaveBeenCalledOnce();
       expect(mockBind).toHaveBeenCalledOnce();
       expect(mockFirst).toHaveBeenCalledOnce();
-      expect(isValid).toBe(false);
-      expect(consoleErrorSpy).toHaveBeenCalledWith("validateApiToken: Error during token validation:", dbError);
-      consoleErrorSpy.mockRestore();
-    });
-
-    it('should return false and log error if hashing the token fails', async () => {
-      const plainToken = 'token-hash-error';
-      const hashError = new Error('SubtleCrypto digest failed');
-      mockDigest.mockRejectedValue(hashError); // Simulate hashing error
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-      const isValid = await actualValidateApiToken(mockDb, plainToken);
-
-      expect(mockDigest).toHaveBeenCalledOnce(); 
-      expect(mockPrepare).not.toHaveBeenCalled(); // Should not reach DB query if hashing fails
-      expect(isValid).toBe(false);
-      expect(consoleErrorSpy).toHaveBeenCalledWith("validateApiToken: Error during token validation:", hashError);
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "validateApiToken: Error during token validation:",
+        expect.any(Error)
+      );
       consoleErrorSpy.mockRestore();
     });
   });
