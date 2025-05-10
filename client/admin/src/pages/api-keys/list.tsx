@@ -108,7 +108,8 @@ export const ApiKeyList = () => {
               if (value) {
                 return formatExpirationDate(value);
               }
-              // Default to 90 days from creation date if no explicit expiration
+              // If the 'expiresAt' value is null, default to 90 days from the 'createdAt' date.
+              // This ensures that tokens without an explicit expiration date are given a reasonable default lifespan.
               const expiresAtDate = new Date(apiKey.createdAt);
               expiresAtDate.setDate(expiresAtDate.getDate() + 90);
               return formatExpirationDate(expiresAtDate.toISOString());
