@@ -5,18 +5,21 @@ import {
   Form,
   Input,
   Modal,
+  Select,
   Space,
   Spin,
   Table,
   Typography,
 } from "antd";
 import React, { useState } from "react";
+import { formatDate, formatExpirationDate } from "../../utils/dateHelpers";
 
 export interface IApiKey {
   id: number;
   name: string;
   token: string;
   createdAt: string;
+  expiresAt?: string; // Add expiresAt field
 }
 
 export const ApiKeyList = () => {
@@ -96,7 +99,21 @@ export const ApiKeyList = () => {
           <Table.Column
             dataIndex='createdAt'
             title={"Created At"}
-            render={(value) => new Date(value).toLocaleString()}
+            render={formatDate}
+          />
+          <Table.Column
+            dataIndex='expiresAt' // Add expiresAt column
+            title={"Expires At"}
+            render={(value: string, apiKey: IApiKey) => {
+              if (value) {
+                return formatExpirationDate(value);
+              }
+              // If the 'expiresAt' value is null, default to 90 days from the 'createdAt' date.
+              // This ensures that tokens without an explicit expiration date are given a reasonable default lifespan.
+              const expiresAtDate = new Date(apiKey.createdAt);
+              expiresAtDate.setDate(expiresAtDate.getDate() + 90);
+              return formatExpirationDate(expiresAtDate.toISOString());
+            }}
           />
           <Table.Column
             title={"Actions"}
@@ -130,6 +147,21 @@ export const ApiKeyList = () => {
               ]}
             >
               <Input />
+            </Form.Item>
+            <Form.Item
+              label='Expiration'
+              name='duration'
+              initialValue='90 days' // Set default value for the form item
+            >
+              <Select
+                options={[
+                  { value: "1 day", label: "1 day" },
+                  { value: "1 week", label: "1 week" },
+                  { value: "30 days", label: "30 days" },
+                  { value: "60 days", label: "60 days" },
+                  { value: "90 days", label: "90 days" },
+                ]}
+              />
             </Form.Item>
           </Form>
         </Spin>
