@@ -51,7 +51,7 @@ export const generateApiToken = async (
   const hashedToken = await hashToken(plainTextToken);
   const createdAt = new Date().toISOString();
 
-  let expiresAtDate = new Date();
+  const expiresAtDate = new Date();
   switch (duration) {
     case "1 day":
       expiresAtDate.setDate(expiresAtDate.getDate() + 1);
@@ -65,7 +65,6 @@ export const generateApiToken = async (
     case "60 days":
       expiresAtDate.setDate(expiresAtDate.getDate() + 60);
       break;
-    case "90 days":
     default: // Default to 90 days if duration is undefined or invalid
       expiresAtDate.setDate(expiresAtDate.getDate() + 90);
       break;
@@ -191,8 +190,13 @@ export const validateApiToken = async (
     }
 
     // Check if the token is expired
-    if (existingToken.ExpiresAt && new Date(existingToken.ExpiresAt) < new Date()) {
-      console.warn(`validateApiToken: Token ID ${existingToken.TokenId} has expired.`);
+    if (
+      existingToken.ExpiresAt &&
+      new Date(existingToken.ExpiresAt) < new Date()
+    ) {
+      console.warn(
+        `validateApiToken: Token ID ${existingToken.TokenId} has expired.`,
+      );
       return false; // Token is expired
     }
 

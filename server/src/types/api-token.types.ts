@@ -5,7 +5,7 @@ export interface ApiTokenRecord {
   HashedToken: string; // Only the hash is stored
   UserId: string; // User ID from the authentication provider (e.g., Auth0 sub)
   CreatedAt: string; // ISO 8601 timestamp
-  expiresAt?: string;
+  ExpiresAt?: string;
 }
 
 // Defines the structure for listing tokens (omits the hash)
