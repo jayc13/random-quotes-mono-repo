@@ -6,8 +6,7 @@ CREATE TABLE IF NOT EXISTS ApiTokens (
     TokenName TEXT NOT NULL,
     HashedToken TEXT NOT NULL UNIQUE, -- Store only the hash of the token, ensure uniqueness
     UserId TEXT NOT NULL,             -- User ID from the authentication provider
-    CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, -- Store creation time
-    ExpiresAt TEXT -- Store expiration time
+    CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP -- Store creation time
 );
 
 -- Optional: Add an index on UserId for faster lookups
