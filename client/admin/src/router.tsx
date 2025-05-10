@@ -8,6 +8,7 @@ import { ApiKeyList } from "./pages/api-keys"; // Import the new component
 import { CategoryList, CategoryShow } from "./pages/categories";
 import { HomePage } from "./pages/home";
 import { Login } from "./pages/login";
+import { ProfilePage } from "./pages/profile/ProfilePage"; // Import ProfilePage
 import { QuoteList } from "./pages/quotes";
 
 const AppRouter = () => {
@@ -43,6 +44,8 @@ const AppRouter = () => {
         <Route path='/api-keys'>
           <Route index element={<ApiKeyList />} />
         </Route>
+        {/* Add the route for Profile Page */}
+        <Route path='/profile' element={<ProfilePage />} />
         <Route path='/' element={<HomePage />} />
         <Route path='*' element={<ErrorComponent />} />
       </Route>
