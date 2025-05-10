@@ -5,13 +5,14 @@ import {
   Form,
   Input,
   Modal,
-  Select, // Import Select
+  Select,
   Space,
   Spin,
   Table,
   Typography,
 } from "antd";
 import React, { useState } from "react";
+import { formatDate, formatExpirationDate } from "../../utils/dateHelpers";
 
 export interface IApiKey {
   id: number;
@@ -98,14 +99,20 @@ export const ApiKeyList = () => {
           <Table.Column
             dataIndex='createdAt'
             title={"Created At"}
-            render={(value) => new Date(value).toLocaleString()}
+            render={formatDate}
           />
           <Table.Column
             dataIndex='expiresAt' // Add expiresAt column
             title={"Expires At"}
-            render={(value) =>
-              value ? new Date(value).toLocaleDateString() : "N/A"
-            }
+            render={(value: string, apiKey: IApiKey) => {
+              if (value) {
+                return formatExpirationDate(value);
+              }
+              // Default to 90 days from creation date if no explicit expiration
+              const expiresAtDate = new Date(apiKey.createdAt);
+              expiresAtDate.setDate(expiresAtDate.getDate() + 90);
+              return formatExpirationDate(expiresAtDate.toISOString());
+            }}
           />
           <Table.Column
             title={"Actions"}
