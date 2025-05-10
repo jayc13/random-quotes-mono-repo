@@ -5,6 +5,7 @@ export interface ApiTokenRecord {
   HashedToken: string; // Only the hash is stored
   UserId: string; // User ID from the authentication provider (e.g., Auth0 sub)
   CreatedAt: string; // ISO 8601 timestamp
+  ExpiresAt?: string;
 }
 
 // Defines the structure for listing tokens (omits the hash)
@@ -13,6 +14,7 @@ export interface ApiTokenInfo {
   name: string;
   userId: string;
   createdAt: string;
+  expiresAt?: string;
 }
 
 export interface NewApiToken extends ApiTokenInfo {
@@ -22,4 +24,5 @@ export interface NewApiToken extends ApiTokenInfo {
 // Defines the input structure for creating a new token
 export interface ApiTokenInput {
   name: string;
+  duration?: string;
 }

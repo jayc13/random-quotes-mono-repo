@@ -19,8 +19,9 @@ describe('API Token Controller', () => {
   const mockTokenId = 1;
   const mockTokenName = 'Test Token';
   const mockPlainTextToken = 'qtk_mockgeneratedtoken12345';
-  const mockHashedToken = 'hashed_mock_token';
-  const mockCreatedAt = new Date().toISOString();
+  // const mockHashedToken = 'hashed_mock_token'; // Not directly used in controller tests
+  const mockCreatedAt = new Date('2024-01-01T12:00:00.000Z').toISOString();
+  const mockExpiresAt = new Date('2024-04-01T12:00:00.000Z').toISOString(); // 90 days later
 
   // Mock service functions
   const mockGenerateApiToken = vi.mocked(ApiTokenService.generateApiToken);
@@ -66,7 +67,8 @@ describe('API Token Controller', () => {
         name: mockTokenName,
         userId: mockUserId,
         createdAt: mockCreatedAt,
-        token: mockPlainTextToken, // This is included in the response
+        token: mockPlainTextToken,
+        expiresAt: mockExpiresAt, // Added expiresAt
       };
       mockGenerateApiToken.mockResolvedValue(newApiToken);
 
@@ -76,11 +78,45 @@ describe('API Token Controller', () => {
       expect(ApiTokenService.generateApiToken).toHaveBeenCalledWith(
         mockEnv.DB,
         mockUserId,
-        requestBody,
+        requestBody, // This should be { name: mockTokenName }
       );
       expect(response.status).toBe(201);
       expect(response.headers.get('content-type')).toContain('application/json');
-      expect(responseBody).toEqual(newApiToken); // Ensure plain text token is returned
+      expect(responseBody).toEqual(newApiToken);
+      expect(responseBody.expiresAt).toBe(mockExpiresAt); // Verify expiresAt in response
+    });
+
+    it('should call generateApiToken with duration and return expiresAt in response', async () => {
+      const requestBodyWithDuration = { name: mockTokenName, duration: '30 days' };
+      const mockRequest = new Request('http://localhost/api-tokens', {
+        method: 'POST',
+        body: JSON.stringify(requestBodyWithDuration),
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const mockCtx = createMockContext();
+      const specificExpiresAt = new Date('2024-01-31T12:00:00.000Z').toISOString(); // Example for 30 days
+
+      const newApiTokenWithDuration: NewApiToken = {
+        id: mockTokenId,
+        name: mockTokenName,
+        userId: mockUserId,
+        createdAt: mockCreatedAt,
+        token: mockPlainTextToken,
+        expiresAt: specificExpiresAt,
+      };
+      mockGenerateApiToken.mockResolvedValue(newApiTokenWithDuration);
+
+      const response = await createApiTokenHandler(mockRequest, mockEnv, mockCtx);
+      const responseBody = await response.json();
+
+      expect(ApiTokenService.generateApiToken).toHaveBeenCalledWith(
+        mockEnv.DB,
+        mockUserId,
+        requestBodyWithDuration, // Ensure duration is passed
+      );
+      expect(response.status).toBe(201);
+      expect(responseBody).toEqual(newApiTokenWithDuration);
+      expect(responseBody.expiresAt).toBe(specificExpiresAt);
     });
 
     it('should return 400 for invalid JSON body', async () => {
@@ -167,8 +203,8 @@ describe('API Token Controller', () => {
       const mockRequest = new Request('http://localhost/api-tokens', { method: 'GET' });
       const mockCtx = createMockContext();
       const mockTokens: ApiTokenInfo[] = [
-        { id: 1, name: 'Token 1', userId: mockUserId, createdAt: mockCreatedAt },
-        { id: 2, name: 'Token 2', userId: mockUserId, createdAt: mockCreatedAt },
+        { id: 1, name: 'Token 1', userId: mockUserId, createdAt: mockCreatedAt, expiresAt: mockExpiresAt },
+        { id: 2, name: 'Token 2', userId: mockUserId, createdAt: mockCreatedAt, expiresAt: null }, // Example with null expiresAt
       ];
       mockGetUserApiTokens.mockResolvedValue(mockTokens);
 
@@ -178,6 +214,8 @@ describe('API Token Controller', () => {
       expect(ApiTokenService.getUserApiTokens).toHaveBeenCalledWith(mockEnv.DB, mockUserId);
       expect(response.status).toBe(200);
       expect(responseBody).toEqual(mockTokens);
+      expect(responseBody[0].expiresAt).toBe(mockExpiresAt);
+      expect(responseBody[1].expiresAt).toBeNull();
       expect(response.headers.get('content-type')).toContain('application/json');
       expect(response.headers.get('content-range')).toBe(`apitokens 0-${mockTokens.length}/${mockTokens.length}`);
       expect(response.headers.get('x-total-count')).toBe(`${mockTokens.length}`);

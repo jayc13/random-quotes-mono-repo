@@ -46,17 +46,29 @@ export const generateApiToken = async (
   if (!validateApiTokenInput(input)) {
     throw new Error("Invalid API token input: Name is required.");
   }
-  const { name } = input;
+  const { name, duration } = input;
   const plainTextToken = generateSecureToken();
   const hashedToken = await hashToken(plainTextToken);
   const createdAt = new Date().toISOString();
 
+  const expiresAtDate = new Date();
+  const DURATION_TO_DAYS: Record<string, number> = {
+    "1 day": 1,
+    "1 week": 7,
+    "30 days": 30,
+    "60 days": 60,
+  };
+  const dayIncrement =
+    duration && DURATION_TO_DAYS[duration] ? DURATION_TO_DAYS[duration] : 90; // Default to 90 days
+  expiresAtDate.setDate(expiresAtDate.getDate() + dayIncrement);
+  const expiresAt = expiresAtDate.toISOString();
+
   // Corrected column names to match the SQL migration
   const result = await db
     .prepare(
-      "INSERT INTO ApiTokens (TokenName, HashedToken, UserId, CreatedAt) VALUES (?, ?, ?, ?)",
+      "INSERT INTO ApiTokens (TokenName, HashedToken, UserId, CreatedAt, ExpiresAt) VALUES (?, ?, ?, ?, ?)",
     )
-    .bind(name, hashedToken, userId, createdAt)
+    .bind(name, hashedToken, userId, createdAt, expiresAt)
     .run();
 
   const id: number = result.meta.last_row_id as number;
@@ -73,6 +85,7 @@ export const generateApiToken = async (
     name,
     userId,
     createdAt,
+    expiresAt,
     token: plainTextToken, // The actual token to show the user ONCE
   };
 };
@@ -120,7 +133,7 @@ export const getUserApiTokens = async (
   // Corrected column names to match the SQL migration
   const { results } = await db
     .prepare(
-      "SELECT TokenId, TokenName, UserId, CreatedAt FROM ApiTokens WHERE UserId = ? ORDER BY CreatedAt DESC",
+      "SELECT TokenId, TokenName, UserId, CreatedAt, ExpiresAt FROM ApiTokens WHERE UserId = ? ORDER BY CreatedAt DESC",
     )
     .bind(userId)
     .all<ApiTokenRecord>(); // Fetch records matching the DB structure
@@ -136,6 +149,7 @@ export const getUserApiTokens = async (
     name: r.TokenName, // Map TokenName from DB to name
     userId: r.UserId, // Map UserId from DB to userId
     createdAt: r.CreatedAt, // Map CreatedAt from DB to createdAt
+    expiresAt: r.ExpiresAt as string | undefined, // Map ExpiresAt from DB to expiresAt
   }));
 };
 
@@ -159,11 +173,26 @@ export const validateApiToken = async (
 
     // Query for an active token with the matching hash
     const existingToken = await db
-      .prepare("SELECT TokenId FROM ApiTokens WHERE HashedToken = ?")
+      .prepare("SELECT TokenId, ExpiresAt FROM ApiTokens WHERE HashedToken = ?")
       .bind(hashedToken)
-      .first();
+      .first<Pick<ApiTokenRecord, "TokenId" | "ExpiresAt">>();
 
-    return !!existingToken; // Return true if a matching token is found
+    if (!existingToken) {
+      return false; // Token not found
+    }
+
+    // Check if the token is expired
+    if (
+      existingToken.ExpiresAt &&
+      new Date(existingToken.ExpiresAt) < new Date()
+    ) {
+      console.warn(
+        `validateApiToken: Token ID ${existingToken.TokenId} has expired.`,
+      );
+      return false; // Token is expired
+    }
+
+    return true; // Token is valid and not expired
   } catch (error) {
     console.error("validateApiToken: Error during token validation:", error);
     return false; // Ensure function returns false on any error
