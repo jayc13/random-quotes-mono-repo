@@ -58,7 +58,8 @@ export const generateApiToken = async (
     "30 days": 30,
     "60 days": 60,
   };
-  const dayIncrement = DURATION_TO_DAYS[duration] || 90; // Default to 90 days
+  const dayIncrement =
+    duration && DURATION_TO_DAYS[duration] ? DURATION_TO_DAYS[duration] : 90; // Default to 90 days
   expiresAtDate.setDate(expiresAtDate.getDate() + dayIncrement);
   const expiresAt = expiresAtDate.toISOString();
 
