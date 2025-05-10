@@ -52,23 +52,14 @@ export const generateApiToken = async (
   const createdAt = new Date().toISOString();
 
   const expiresAtDate = new Date();
-  switch (duration) {
-    case "1 day":
-      expiresAtDate.setDate(expiresAtDate.getDate() + 1);
-      break;
-    case "1 week":
-      expiresAtDate.setDate(expiresAtDate.getDate() + 7);
-      break;
-    case "30 days":
-      expiresAtDate.setDate(expiresAtDate.getDate() + 30);
-      break;
-    case "60 days":
-      expiresAtDate.setDate(expiresAtDate.getDate() + 60);
-      break;
-    default: // Default to 90 days if duration is undefined or invalid
-      expiresAtDate.setDate(expiresAtDate.getDate() + 90);
-      break;
-  }
+  const DURATION_TO_DAYS: Record<string, number> = {
+    "1 day": 1,
+    "1 week": 7,
+    "30 days": 30,
+    "60 days": 60,
+  };
+  const dayIncrement = DURATION_TO_DAYS[duration] || 90; // Default to 90 days
+  expiresAtDate.setDate(expiresAtDate.getDate() + dayIncrement);
   const expiresAt = expiresAtDate.toISOString();
 
   // Corrected column names to match the SQL migration
