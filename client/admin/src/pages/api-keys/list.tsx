@@ -5,6 +5,7 @@ import {
   Form,
   Input,
   Modal,
+  Select, // Import Select
   Space,
   Spin,
   Table,
@@ -17,6 +18,7 @@ export interface IApiKey {
   name: string;
   token: string;
   createdAt: string;
+  expiresAt?: string; // Add expiresAt field
 }
 
 export const ApiKeyList = () => {
@@ -99,6 +101,13 @@ export const ApiKeyList = () => {
             render={(value) => new Date(value).toLocaleString()}
           />
           <Table.Column
+            dataIndex='expiresAt' // Add expiresAt column
+            title={"Expires At"}
+            render={(value) =>
+              value ? new Date(value).toLocaleDateString() : "N/A"
+            }
+          />
+          <Table.Column
             title={"Actions"}
             dataIndex='actions'
             render={(_, record: BaseRecord) => (
@@ -130,6 +139,21 @@ export const ApiKeyList = () => {
               ]}
             >
               <Input />
+            </Form.Item>
+            <Form.Item
+              label='Expiration'
+              name='duration'
+              initialValue='90 days' // Set default value for the form item
+            >
+              <Select
+                options={[
+                  { value: "1 day", label: "1 day" },
+                  { value: "1 week", label: "1 week" },
+                  { value: "30 days", label: "30 days" },
+                  { value: "60 days", label: "60 days" },
+                  { value: "90 days", label: "90 days" },
+                ]}
+              />
             </Form.Item>
           </Form>
         </Spin>
