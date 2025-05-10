@@ -1,6 +1,6 @@
 import { LogoutOutlined, UserOutlined } from "@ant-design/icons"; // Import UserOutlined
 import type { RefineThemedLayoutV2HeaderProps } from "@refinedev/antd";
-import { useGetIdentity, useLogout, useTranslate } from "@refinedev/core";
+import { Link, useGetIdentity, useLogout, useTranslate } from "@refinedev/core";
 import {
   Layout as AntdLayout,
   Avatar,
@@ -13,7 +13,6 @@ import {
 } from "antd";
 import type React from "react";
 import { useContext } from "react";
-import { Link } from "react-router-dom"; // Import Link
 import { ColorModeContext } from "../../contexts/color-mode";
 
 const { useToken } = theme;
@@ -36,7 +35,9 @@ export const Header: React.FC<RefineThemedLayoutV2HeaderProps> = ({
 
   const items: MenuProps["items"] = [
     {
-      label: <Link to="/profile">{translate("buttons.profile", "Profile")}</Link>,
+      label: (
+        <Link to='/profile'>{translate("buttons.profile", "Profile")}</Link>
+      ),
       icon: <UserOutlined />,
       key: "profile", // Or "1"
     },

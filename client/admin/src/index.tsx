@@ -15,7 +15,8 @@ root.render(
       authorizationParams={{
         redirect_uri: window.location.origin,
         audience: `https://${import.meta.env.VITE_AUTH0_DOMAIN}/api/v2/`,
-        scope: "openid profile email read:current_user update:current_user_metadata update:users_app_metadata delete:current_user",
+        scope:
+          "openid profile email read:current_user update:current_user_metadata update:users_app_metadata delete:current_user",
       }}
     >
       <App />

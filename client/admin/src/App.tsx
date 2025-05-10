@@ -3,7 +3,7 @@ import {
   KeyOutlined,
   MessageOutlined,
   TagsOutlined,
-} from "@ant-design/icons"; // Import KeyOutlined
+} from "@ant-design/icons";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useNotificationProvider } from "@refinedev/antd";
 import { type AuthBindings, Refine } from "@refinedev/core";
@@ -17,6 +17,7 @@ import { App as AntdApp, Layout, Spin } from "antd";
 import axios from "axios";
 import React from "react";
 import { BrowserRouter } from "react-router";
+import { ToastContainer } from "react-toastify";
 import { AppIcon } from "./components/app-icon";
 import { ColorModeContextProvider } from "./contexts/color-mode";
 import AppRouter from "./router";
@@ -171,6 +172,7 @@ function App() {
               <AppRouter />
               <UnsavedChangesNotifier />
               <DocumentTitleHandler />
+              <ToastContainer />
             </Refine>
           </AntdApp>
         </ColorModeContextProvider>

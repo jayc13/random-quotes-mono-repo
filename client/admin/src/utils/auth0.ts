@@ -31,9 +31,9 @@ export const updateUserName = async (
     const response = await fetch(
       `https://${auth0Domain}/api/v2/users/${userId}`,
       {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
@@ -41,12 +41,16 @@ export const updateUserName = async (
     );
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ message: response.statusText }));
-      throw new Error(errorData.message || `Failed to update user name: ${response.status}`);
+      const errorData = await response
+        .json()
+        .catch(() => ({ message: response.statusText }));
+      throw new Error(
+        errorData.message || `Failed to update user name: ${response.status}`,
+      );
     }
     return await response.json();
   } catch (error) {
-    console.error('Error updating user name:', error);
+    console.error("Error updating user name:", error);
     throw error;
   }
 };
@@ -74,9 +78,9 @@ export const changeUserPassword = async (
     const response = await fetch(
       `https://${auth0Domain}/api/v2/tickets/password-change`,
       {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
@@ -84,12 +88,17 @@ export const changeUserPassword = async (
     );
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ message: response.statusText }));
-      throw new Error(errorData.message || `Failed to create password change ticket: ${response.status}`);
+      const errorData = await response
+        .json()
+        .catch(() => ({ message: response.statusText }));
+      throw new Error(
+        errorData.message ||
+          `Failed to create password change ticket: ${response.status}`,
+      );
     }
     return await response.json(); // This usually contains a ticket URL
   } catch (error) {
-    console.error('Error creating password change ticket:', error);
+    console.error("Error creating password change ticket:", error);
     throw error;
   }
 };
@@ -106,7 +115,7 @@ export const deleteUserAccount = async (options: Auth0ManagementApiOptions) => {
     const response = await fetch(
       `https://${auth0Domain}/api/v2/users/${userId}`,
       {
-        method: 'DELETE',
+        method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -115,8 +124,13 @@ export const deleteUserAccount = async (options: Auth0ManagementApiOptions) => {
 
     if (!response.ok) {
       // For DELETE, Auth0 might return error details in JSON format
-      const errorData = await response.json().catch(() => ({ message: response.statusText }));
-      throw new Error(errorData.message || `Failed to delete user account: ${response.status}`);
+      const errorData = await response
+        .json()
+        .catch(() => ({ message: response.statusText }));
+      throw new Error(
+        errorData.message ||
+          `Failed to delete user account: ${response.status}`,
+      );
     }
 
     // For DELETE, a 204 No Content is a success and there's no body to parse.
@@ -126,7 +140,7 @@ export const deleteUserAccount = async (options: Auth0ManagementApiOptions) => {
     }
     return await response.json(); // If there could be a body on other 2xx success
   } catch (error) {
-    console.error('Error deleting user account:', error);
+    console.error("Error deleting user account:", error);
     throw error;
   }
 };
