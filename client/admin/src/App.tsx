@@ -151,13 +151,21 @@ function App() {
                     icon: <MessageOutlined />,
                   },
                 },
-                // Add the API Keys resource
                 {
                   name: "api-tokens",
                   list: "/api-keys",
                   options: {
                     label: "API Keys",
                     icon: <KeyOutlined />,
+                  },
+                },
+                {
+                  name: "profile",
+                  list: "/profile",
+                  options: {
+                    label: "Profile",
+                    icon: <AppIcon />,
+                    hide: true,
                   },
                 },
               ]}

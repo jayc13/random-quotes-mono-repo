@@ -4,11 +4,11 @@ import { CatchAllNavigate } from "@refinedev/react-router";
 import React from "react";
 import { Outlet, Route, Routes } from "react-router";
 import { Header } from "./components";
-import { ApiKeyList } from "./pages/api-keys"; // Import the new component
+import { ApiKeyList } from "./pages/api-keys";
 import { CategoryList, CategoryShow } from "./pages/categories";
 import { HomePage } from "./pages/home";
 import { Login } from "./pages/login";
-import { ProfilePage } from "./pages/profile/ProfilePage"; // Import ProfilePage
+import { ProfilePage } from "./pages/profile/ProfilePage";
 import { QuoteList } from "./pages/quotes";
 
 const AppRouter = () => {
@@ -40,11 +40,9 @@ const AppRouter = () => {
         <Route path='/quotes'>
           <Route index element={<QuoteList />} />
         </Route>
-        {/* Add the route for API Keys */}
         <Route path='/api-keys'>
           <Route index element={<ApiKeyList />} />
         </Route>
-        {/* Add the route for Profile Page */}
         <Route path='/profile' element={<ProfilePage />} />
         <Route path='/' element={<HomePage />} />
         <Route path='*' element={<ErrorComponent />} />

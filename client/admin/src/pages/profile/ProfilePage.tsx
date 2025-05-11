@@ -59,11 +59,11 @@ export const ProfilePage: React.FC = () => {
       // For example, by calling getAccessTokenSilently again to get an updated token/user profile
       // or by re-fetching user data if you have a separate mechanism.
       // Auth0's `user` object might not update immediately without a new login or token refresh.
-    } catch (error: any) {
+    } catch {
       open?.({
         type: "error",
         message: "Error",
-        description: error.message || "Failed to update name.",
+        description: "Failed to update name.",
       });
     } finally {
       setIsNameUpdating(false);
@@ -85,15 +85,13 @@ export const ProfilePage: React.FC = () => {
       open?.({
         type: "success",
         message: "Success",
-        description:
-          "Password change email sent. Please check your inbox. Ticket URL: " +
-          result.ticket_url,
+        description: `Password·change·email·sent.·Please·check·your·inbox.·Ticket·URL:·${result.ticket_url}`,
       });
-    } catch (error: any) {
+    } catch {
       open?.({
         type: "error",
         message: "Error",
-        description: error.message || "Failed to send password change email.",
+        description: "Failed to send password change email.",
       });
     } finally {
       setIsPasswordTicketSending(false);
@@ -125,11 +123,11 @@ export const ProfilePage: React.FC = () => {
             description: "Account deleted successfully.",
           });
           logout({ logoutParams: { returnTo: window.location.origin } });
-        } catch (error: any) {
+        } catch {
           open?.({
             type: "error",
             message: "Error",
-            description: error.message || "Failed to delete account.",
+            description: "Failed to delete account.",
           });
         } finally {
           setIsDeletingAccount(false);
