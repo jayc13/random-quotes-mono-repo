@@ -1,6 +1,6 @@
-import { LogoutOutlined } from "@ant-design/icons";
+import { LogoutOutlined, UserOutlined } from "@ant-design/icons"; // Import UserOutlined
 import type { RefineThemedLayoutV2HeaderProps } from "@refinedev/antd";
-import { useGetIdentity, useLogout, useTranslate } from "@refinedev/core";
+import { Link, useGetIdentity, useLogout, useTranslate } from "@refinedev/core";
 import {
   Layout as AntdLayout,
   Avatar,
@@ -36,6 +36,13 @@ export const Header: React.FC<RefineThemedLayoutV2HeaderProps> = ({
   const items: MenuProps["items"] = [
     {
       label: (
+        <Link to='/profile'>{translate("buttons.profile", "Profile")}</Link>
+      ),
+      icon: <UserOutlined />,
+      key: "profile", // Or "1"
+    },
+    {
+      label: (
         <div
           key='logout'
           onClick={() => mutateLogout()}
@@ -45,7 +52,7 @@ export const Header: React.FC<RefineThemedLayoutV2HeaderProps> = ({
         </div>
       ),
       icon: <LogoutOutlined />,
-      key: "0",
+      key: "logout", // Changed key to be more descriptive, was "0"
     },
   ];
 
