@@ -35,7 +35,8 @@ export async function updateUserNameHandler(
     updateUserNameInput,
     {
       env,
-      auth0Token: request.headers.get("authorization")?.split("Bearer ")?.[1],
+      auth0Token:
+        request.headers.get("authorization")?.split("Bearer ")?.[1] ?? "",
     },
   );
   if (success) {

@@ -150,7 +150,12 @@ async function getAuth0ManagementToken(env: Env): Promise<string> {
       }),
     });
 
-    const data = await response.json();
+    const data: {
+      access_token: string;
+      token_type: string;
+      expires_in: number;
+      scope: string;
+    } = await response.json();
     return data.access_token;
   } catch (error) {
     console.error("Error getting management token:", error);
