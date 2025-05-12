@@ -54,7 +54,7 @@ export const getAllQuotesHandler = async (request: Request, db: D1Database) => {
   return json(quotes, {
     headers: {
       "content-range": `quotes ${start}-${end}/${count}`,
-      "x-total-count": total,
+      "x-total-count": total.toString(),
       "Access-Control-Expose-Headers": "content-range, x-total-count",
     },
   });
