@@ -35,13 +35,6 @@ import type { CategoryInput } from "@/types/category.types";
 import type { QuoteInput } from "@/types/quote.types";
 import { AutoRouter, type IRequest, cors, error } from "itty-router";
 
-export const DEFAULT_CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "*",
-  "Access-Control-Expose-Headers": "*",
-};
-
 const { preflight, corsify } = cors({
   origin: true,
   allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
