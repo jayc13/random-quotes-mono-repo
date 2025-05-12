@@ -56,6 +56,14 @@ const router = Router({
 // Apply middlewares in correct order
 router.all("*", accessControlMiddleware);
 router.all("*", authenticationMiddleware);
+router.all("*", (request: IRequest, env: Env, ctx: ExecutionContext) => {
+  if (!ctx.props.accessGranted) {
+    return error(401, {
+      success: false,
+      error: "Unauthorized. Access denied.",
+    });
+  }
+});
 
 // --- Public Routes (No Authentication Middleware here, handled globally before router) ---
 router.get("/random", getRandomQuoteHandler);

@@ -28,7 +28,7 @@ export async function authenticationMiddleware(
   const token = request.headers.get("authorization")?.split("Bearer ")?.[1];
 
   if (!token) {
-    return return401();
+    return;
   }
 
   const result = await parseJwt({
