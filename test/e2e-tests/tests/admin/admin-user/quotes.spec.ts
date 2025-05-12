@@ -65,12 +65,17 @@ test.describe('Admin Quotes Page', () => {
       return request.url().includes(`${API_BASE_URL}/quotes`) && request.method() === 'GET';
     });
 
+    const getAllCategoriesRequest = page.waitForRequest((request) => {
+      return request.url().includes(`${API_BASE_URL}/categories`) && request.method() === 'GET';
+    });
+
     await page.getByRole('button', { name: 'Save' }).click();
 
     // Wait for the request to complete
     await Promise.all([
       createQuotesRequest,
       getAllQuotesRequest,
+      getAllCategoriesRequest,
     ]);
 
     const createQuoteResponse = await (await createQuotesRequest).response();

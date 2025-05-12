@@ -18,6 +18,7 @@
     "@cfworker/jwt": "^7.0.4",
     "@cloudflare/vitest-pool-workers": "^0.8.15",
     "@tsndr/cloudflare-worker-jwt": "^3.1.4",
+    "itty-router": "^5.0.10",
     "typescript": "^5.2.2",
     "vitest": "3.0.9",
     "workers-qb": "^1.10.2",

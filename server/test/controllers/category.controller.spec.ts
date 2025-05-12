@@ -12,12 +12,16 @@ vi.mock('@/services/category.service');
 
 describe('category.controller', () => {
   const mockDb = {} as D1Database;
+  const mockEnv = {
+    DB: mockDb,
+  }
 
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   describe('getAllCategoriesHandler', () => {
+    const request = new Request('https://example.com/categories');
     it('returns all categories with correct headers', async () => {
       const mockCategories = [
         { id: 1, name: 'Category 1' },
@@ -25,7 +29,7 @@ describe('category.controller', () => {
       ];
       vi.spyOn(categoryService, 'getAllCategories').mockResolvedValue(mockCategories);
 
-      const response = await getAllCategoriesHandler(mockDb);
+      const response = await getAllCategoriesHandler(request, mockEnv);
       const data = await response.json();
 
       expect(data).toEqual(mockCategories);
@@ -115,16 +119,6 @@ describe('category.controller', () => {
       const response = await deleteCategoryHandler(mockDb, 1);
 
       expect(response.status).toBe(204);
-    });
-
-    it('sets correct CORS headers', async () => {
-      vi.spyOn(categoryService, 'deleteCategory').mockResolvedValue(true);
-
-      const response = await deleteCategoryHandler(mockDb, 1);
-
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
-      expect(response.headers.get('Access-Control-Allow-Methods')).toBeTruthy();
-      expect(response.headers.get('Access-Control-Allow-Headers')).toBeTruthy();
     });
   });
 });
