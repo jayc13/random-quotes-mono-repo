@@ -30,6 +30,9 @@ const sampleQuote: Quote = {
 };
 
 const mockDb = {} as D1Database; // Mock D1Database (can be empty object for these tests)
+const mockEnv = {
+  DB: mockDb,
+}
 const dummySvgString = '<svg>Mock SVG</svg>';
 
 // --- Tests for getRandomQuoteSvgHandler ---
@@ -54,7 +57,7 @@ describe('getRandomQuoteSvgHandler Controller', () => {
     vi.mocked(getRandomQuote).mockResolvedValue(sampleQuote);
 
     const request = new Request('https://example.com/random.svg');
-    const response = await getRandomQuoteSvgHandler(request, mockDb);
+    const response = await getRandomQuoteSvgHandler(request, mockEnv)
     const responseBody = await response.text();
 
     expect(getRandomQuote).toHaveBeenCalledTimes(1);
@@ -75,7 +78,7 @@ describe('getRandomQuoteSvgHandler Controller', () => {
     vi.mocked(getRandomQuote).mockResolvedValue(sampleQuote);
 
     const request = new Request('https://example.com/random.svg?theme=dark');
-    const response = await getRandomQuoteSvgHandler(request, mockDb);
+    const response = await getRandomQuoteSvgHandler(request, mockEnv)
 
     expect(getRandomQuote).toHaveBeenCalledTimes(1);
     // Expect call with default lang
@@ -93,7 +96,7 @@ describe('getRandomQuoteSvgHandler Controller', () => {
     vi.mocked(getRandomQuote).mockResolvedValue(sampleQuote);
 
     const request = new Request('https://example.com/random.svg?categoryId=5');
-    const response = await getRandomQuoteSvgHandler(request, mockDb);
+    const response = await getRandomQuoteSvgHandler(request, mockEnv)
 
     expect(getRandomQuote).toHaveBeenCalledTimes(1);
     // Expect call with categoryId and default lang
@@ -111,7 +114,7 @@ describe('getRandomQuoteSvgHandler Controller', () => {
      vi.mocked(getRandomQuote).mockResolvedValue(sampleQuote);
 
      const request = new Request('https://example.com/random.svg?theme=light&categoryId=2');
-     const response = await getRandomQuoteSvgHandler(request, mockDb);
+     const response = await getRandomQuoteSvgHandler(request, mockEnv)
 
      expect(getRandomQuote).toHaveBeenCalledTimes(1);
      // Expect call with categoryId and default lang
@@ -129,7 +132,7 @@ describe('getRandomQuoteSvgHandler Controller', () => {
     vi.mocked(getRandomQuote).mockResolvedValue(null); // Simulate no quote found
 
     const request = new Request('https://example.com/random.svg');
-    const response = await getRandomQuoteSvgHandler(request, mockDb);
+    const response = await getRandomQuoteSvgHandler(request, mockEnv)
     const responseBody = await response.text();
 
     expect(getRandomQuote).toHaveBeenCalledTimes(1);
@@ -146,7 +149,7 @@ describe('getRandomQuoteSvgHandler Controller', () => {
     vi.mocked(getRandomQuote).mockResolvedValue(null); // Simulate no quote found
 
     const request = new Request('https://example.com/random.svg?categoryId=99');
-    const response = await getRandomQuoteSvgHandler(request, mockDb);
+    const response = await getRandomQuoteSvgHandler(request, mockEnv)
     const responseBody = await response.text();
 
     expect(getRandomQuote).toHaveBeenCalledTimes(1);
@@ -164,7 +167,7 @@ describe('getRandomQuoteSvgHandler Controller', () => {
     vi.mocked(getRandomQuote).mockRejectedValue(error); // Simulate service error
 
     const request = new Request('https://example.com/random.svg');
-    const response = await getRandomQuoteSvgHandler(request, mockDb);
+    const response = await getRandomQuoteSvgHandler(request, mockEnv)
     const responseBody = await response.text();
 
     expect(getRandomQuote).toHaveBeenCalledTimes(1);
@@ -182,7 +185,7 @@ describe('getRandomQuoteSvgHandler Controller', () => {
   it('should handle valid lang parameter', async () => {
     vi.mocked(getRandomQuote).mockResolvedValue(sampleQuote);
     const request = new Request('https://example.com/random.svg?lang=es');
-    await getRandomQuoteSvgHandler(request, mockDb);
+    await getRandomQuoteSvgHandler(request, mockEnv)
 
     expect(getRandomQuote).toHaveBeenCalledWith(mockDb, { lang: 'es' });
     expect(generateQuoteSvg).toHaveBeenCalledWith(sampleQuote, { theme: 'light', width: 800, height: 200 });
@@ -191,7 +194,7 @@ describe('getRandomQuoteSvgHandler Controller', () => {
   it('should handle unsupported lang parameter by using default', async () => {
     vi.mocked(getRandomQuote).mockResolvedValue(sampleQuote);
     const request = new Request('https://example.com/random.svg?lang=fr'); // 'fr' not in mocked ['en', 'es']
-    await getRandomQuoteSvgHandler(request, mockDb);
+    await getRandomQuoteSvgHandler(request, mockEnv)
 
     // Should fall back to DEFAULT_LANG ('en' in this mock setup)
     expect(getRandomQuote).toHaveBeenCalledWith(mockDb, { lang: DEFAULT_LANG });
@@ -201,7 +204,7 @@ describe('getRandomQuoteSvgHandler Controller', () => {
   it('should handle valid width parameter', async () => {
     vi.mocked(getRandomQuote).mockResolvedValue(sampleQuote);
     const request = new Request('https://example.com/random.svg?width=1000');
-    await getRandomQuoteSvgHandler(request, mockDb);
+    await getRandomQuoteSvgHandler(request, mockEnv)
 
     expect(getRandomQuote).toHaveBeenCalledWith(mockDb, { lang: DEFAULT_LANG });
     expect(generateQuoteSvg).toHaveBeenCalledWith(sampleQuote, { theme: 'light', width: 1000, height: 200 });
@@ -210,7 +213,7 @@ describe('getRandomQuoteSvgHandler Controller', () => {
   it('should handle valid height parameter', async () => {
     vi.mocked(getRandomQuote).mockResolvedValue(sampleQuote);
     const request = new Request('https://example.com/random.svg?height=300');
-    await getRandomQuoteSvgHandler(request, mockDb);
+    await getRandomQuoteSvgHandler(request, mockEnv)
 
     expect(getRandomQuote).toHaveBeenCalledWith(mockDb, { lang: DEFAULT_LANG });
     expect(generateQuoteSvg).toHaveBeenCalledWith(sampleQuote, { theme: 'light', width: 800, height: 300 });
@@ -219,7 +222,7 @@ describe('getRandomQuoteSvgHandler Controller', () => {
   it('should handle invalid width parameter (string) by using default', async () => {
     vi.mocked(getRandomQuote).mockResolvedValue(sampleQuote);
     const request = new Request('https://example.com/random.svg?width=abc');
-    await getRandomQuoteSvgHandler(request, mockDb);
+    await getRandomQuoteSvgHandler(request, mockEnv)
 
     expect(getRandomQuote).toHaveBeenCalledWith(mockDb, { lang: DEFAULT_LANG });
     // Should use default width 800
@@ -229,7 +232,7 @@ describe('getRandomQuoteSvgHandler Controller', () => {
    it('should handle invalid width parameter (negative) by using default', async () => {
     vi.mocked(getRandomQuote).mockResolvedValue(sampleQuote);
     const request = new Request('https://example.com/random.svg?width=-50');
-    await getRandomQuoteSvgHandler(request, mockDb);
+    await getRandomQuoteSvgHandler(request, mockEnv)
 
     expect(getRandomQuote).toHaveBeenCalledWith(mockDb, { lang: DEFAULT_LANG });
     // Should use default width 800
@@ -239,7 +242,7 @@ describe('getRandomQuoteSvgHandler Controller', () => {
   it('should handle invalid height parameter (string) by using default', async () => {
     vi.mocked(getRandomQuote).mockResolvedValue(sampleQuote);
     const request = new Request('https://example.com/random.svg?height=xyz');
-    await getRandomQuoteSvgHandler(request, mockDb);
+    await getRandomQuoteSvgHandler(request, mockEnv)
 
     expect(getRandomQuote).toHaveBeenCalledWith(mockDb, { lang: DEFAULT_LANG });
     // Should use default height 200
@@ -249,7 +252,7 @@ describe('getRandomQuoteSvgHandler Controller', () => {
    it('should handle invalid height parameter (zero) by using default', async () => {
     vi.mocked(getRandomQuote).mockResolvedValue(sampleQuote);
     const request = new Request('https://example.com/random.svg?height=0');
-    await getRandomQuoteSvgHandler(request, mockDb);
+    await getRandomQuoteSvgHandler(request, mockEnv)
 
     expect(getRandomQuote).toHaveBeenCalledWith(mockDb, { lang: DEFAULT_LANG });
     // Should use default height 200
@@ -259,7 +262,7 @@ describe('getRandomQuoteSvgHandler Controller', () => {
   it('should handle combined valid parameters', async () => {
     vi.mocked(getRandomQuote).mockResolvedValue(sampleQuote);
     const request = new Request('https://example.com/random.svg?lang=es&theme=dark&width=600&height=150&categoryId=3');
-    await getRandomQuoteSvgHandler(request, mockDb);
+    await getRandomQuoteSvgHandler(request, mockEnv)
 
     expect(getRandomQuote).toHaveBeenCalledWith(mockDb, { lang: 'es', categoryId: 3 });
     expect(generateQuoteSvg).toHaveBeenCalledWith(sampleQuote, { theme: 'dark', width: 600, height: 150 });
