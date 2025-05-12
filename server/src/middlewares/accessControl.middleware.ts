@@ -1,4 +1,5 @@
 import { validateApiToken } from "@/services/api-token.service";
+import { error } from "itty-router";
 
 /**
  * Middleware for controlling access via Origin header or API Token.
@@ -18,9 +19,6 @@ export async function accessControlMiddleware(
     o.trim().toLowerCase(),
   );
   const requestOrigin = request.headers.get("Origin");
-
-  console.log("Allowed Origins:", allowedOrigins);
-  console.log("Request Origin:", requestOrigin);
 
   if (allowedOrigins && requestOrigin) {
     const lowerRequestOrigin = requestOrigin.toLowerCase();
@@ -47,16 +45,16 @@ export async function accessControlMiddleware(
   const apiToken = apiTokenHeaders || apiTokenQuery;
 
   if (!apiToken) {
-    return;
+    return return401();
   }
 
   try {
     const isValid = await validateApiToken(apiToken, env.DB);
     if (!isValid) {
-      return;
+      return return401();
     }
   } catch {
-    return;
+    return return401();
   }
   ctx.props.accessGranted = true;
   ctx.props.authMethod = "apitoken";
@@ -65,4 +63,11 @@ export async function accessControlMiddleware(
     sub: "api-token-user",
     roles: ["ApiUser"],
   };
+}
+
+function return401() {
+  return error(401, {
+    success: false,
+    error: "Unauthorized. User not authenticated.",
+  });
 }

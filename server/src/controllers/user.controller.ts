@@ -1,7 +1,4 @@
-import type { ExecutionContext } from "@cloudflare/workers-types";
 import { type IRequest, error, json } from "itty-router";
-import { type Auth0User, UserService } from "../services/user.service";
-import type { Env } from "../types/env.types";
 
 // Define a type for the expected request properties after authentication middleware
 interface AuthenticatedRequest extends IRequest {
@@ -27,8 +24,6 @@ export async function updateUserNameHandler(
   env: Env,
   ctx: ExecutionContext,
 ): Promise<Response> {
-  const userService = new UserService();
-
   // Extract userId from request.props.user.sub (set by authenticationMiddleware)
   const userId = request.props?.user?.sub;
 
@@ -44,18 +39,12 @@ export async function updateUserNameHandler(
   try {
     nameParts = await request.json();
     if (!nameParts || typeof nameParts !== "object") {
-      throw new Error("Invalid request body: expected an object.");
+      throw new Error("Invalid request body");
     }
-  } catch (e: any) {
-    if (e instanceof SyntaxError) {
-      return error(400, {
-        success: false,
-        error: "Invalid JSON in request body.",
-      });
-    }
+  } catch {
     return error(400, {
       success: false,
-      error: e.message || "Failed to parse request body.",
+      error: "Invalid request body",
     });
   }
 
@@ -79,37 +68,19 @@ export async function updateUserNameHandler(
     Object.fromEntries(validNameParts);
 
   try {
-    const updatedUser: Auth0User = await userService.updateUserName(
-      env,
-      userId,
-      validatedNameParts,
-    );
+    // TODO: Implement the actual user name update logic
     return json({
       success: true,
       message: "User name updated successfully.",
-      data: updatedUser,
+      data: {
+        message: "TODO: Implement the actual user name update logic",
+      },
+      // data: updatedUser,
     });
-  } catch (e: any) {
-    console.error(
-      "Error in updateUserNameHandler calling userService:",
-      e.message,
-    );
-    // Check if the error message is one we threw from the service for Auth0 specific issues
-    if (
-      e.message.startsWith("Failed to update user name for") ||
-      e.message.startsWith("Network error") ||
-      e.message.startsWith("Auth0 Management API request failed")
-    ) {
-      return error(502, {
-        success: false,
-        error: "Failed to update user name with external provider.",
-        details: e.message,
-      }); // 502 Bad Gateway
-    }
+  } catch {
     return error(500, {
       success: false,
       error: "An unexpected error occurred while updating user name.",
-      details: e.message,
     });
   }
 }
@@ -119,7 +90,6 @@ export async function sendForgotPasswordEmailHandler(
   env: Env,
   ctx: ExecutionContext,
 ): Promise<Response> {
-  const userService = new UserService();
   const userEmail = request.props?.user?.email;
   const userId = request.props?.user?.sub; // For logging or if needed by service in future
 
@@ -143,31 +113,20 @@ export async function sendForgotPasswordEmailHandler(
   }
 
   try {
-    await userService.sendForgotPasswordEmail(env, userEmail);
+    // TODO: Implement the actual logic to send a password reset email
     // Return a generic success message to prevent user enumeration
     return json({
       success: true,
       message: `If an account exists for ${userEmail}, a password reset email has been sent.`,
+      details: {
+        message:
+          "TODO: Implement the actual logic to send a password reset email",
+      },
     });
-  } catch (e: any) {
-    console.error(
-      `Error in sendForgotPasswordEmailHandler for user ${userId} (email: ${userEmail}):`,
-      e.message,
-    );
-    if (
-      e.message.startsWith("Failed to request password reset for") ||
-      e.message.startsWith("Auth0 Management API request failed")
-    ) {
-      return error(502, {
-        success: false,
-        error: "Failed to initiate password reset with external provider.",
-        details: e.message,
-      });
-    }
+  } catch {
     return error(500, {
       success: false,
       error: "An unexpected error occurred while initiating password reset.",
-      details: e.message,
     });
   }
 }
@@ -177,7 +136,6 @@ export async function deleteUserAccountHandler(
   env: Env,
   ctx: ExecutionContext,
 ): Promise<Response> {
-  const userService = new UserService();
   const userId = request.props?.user?.sub;
 
   if (!userId) {
@@ -188,7 +146,7 @@ export async function deleteUserAccountHandler(
   }
 
   try {
-    await userService.deleteUserAccount(env, userId);
+    // TODO: Implement the actual logic to delete the user account
     // Typically, a DELETE operation that is successful returns a 204 No Content,
     // or a 200/202 if the deletion is asynchronous or needs further confirmation.
     // For simplicity and to provide some feedback, a 200 with a message is used here.
@@ -196,30 +154,15 @@ export async function deleteUserAccountHandler(
     return json({
       success: true,
       message: `User account ${userId} has been successfully scheduled for deletion.`,
+      details: {
+        message: "TODO: Implement the actual logic to delete user account",
+      },
     });
-  } catch (e: any) {
-    console.error(
-      `Error in deleteUserAccountHandler for user ${userId}:`,
-      e.message,
-    );
-    if (
-      e.message.startsWith("Failed to delete user account") ||
-      e.message.startsWith("Auth0 Management API request failed") ||
-      e.message.includes("user not found")
-    ) {
-      // Auth0 might return this if already deleted or never existed
-      // You might want to treat "user not found" as a success for idempotency, or a specific error.
-      // For now, treating it as a failure from the provider.
-      return error(502, {
-        success: false,
-        error: "Failed to delete user account with external provider.",
-        details: e.message,
-      });
-    }
+  } catch {
+    console.error(`Error in deleteUserAccountHandler for user ${userId}`);
     return error(500, {
       success: false,
       error: "An unexpected error occurred while deleting user account.",
-      details: e.message,
     });
   }
 }

@@ -5,7 +5,6 @@ import {
   getSupportedLanguages,
 } from "@/services/translate.service";
 import type { Quote } from "@/types/quote.types";
-import { DEFAULT_CORS_HEADERS } from "@/utils/constants";
 
 /**
  * Handles requests for generating quote SVG images.
@@ -86,7 +85,6 @@ export async function getRandomQuoteSvgHandler(
     if (!quote) {
       return new Response("No quote found matching the criteria", {
         status: 404,
-        headers: { ...DEFAULT_CORS_HEADERS },
       });
     }
 
@@ -95,7 +93,6 @@ export async function getRandomQuoteSvgHandler(
     const svgString = generateQuoteSvg(quote, svgOptions);
 
     const headers = {
-      ...DEFAULT_CORS_HEADERS, // Keep CORS headers
       "Content-Type": "image/svg+xml",
       "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
       Pragma: "no-cache",
@@ -111,7 +108,6 @@ export async function getRandomQuoteSvgHandler(
     console.error("Error in getRandomQuoteSvgHandler:", error);
     return new Response("Internal Server Error", {
       status: 500,
-      headers: { ...DEFAULT_CORS_HEADERS },
     });
   }
 }

@@ -1,4 +1,5 @@
 import { parseJwt } from "@cfworker/jwt";
+import { error } from "itty-router";
 
 export interface User {
   given_name: string;
@@ -19,10 +20,6 @@ export interface User {
   roles: string[];
 }
 
-export async function isAdmin(ctx: ExecutionContext) {
-  return ctx.props.user?.roles?.includes("Admin") ?? false;
-}
-
 export async function authenticationMiddleware(
   request: Request,
   env: Env,
@@ -31,7 +28,7 @@ export async function authenticationMiddleware(
   const token = request.headers.get("authorization")?.split("Bearer ")?.[1];
 
   if (!token) {
-    return;
+    return return401();
   }
 
   const result = await parseJwt({
@@ -41,7 +38,7 @@ export async function authenticationMiddleware(
   });
 
   if (!result || !result.valid) {
-    return;
+    return return401();
   }
 
   let roles: string[] = [];
@@ -54,4 +51,11 @@ export async function authenticationMiddleware(
     ...result.payload,
     roles,
   };
+}
+
+function return401() {
+  return error(401, {
+    success: false,
+    error: "Unauthorized. User not authenticated.",
+  });
 }

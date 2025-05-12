@@ -1,4 +1,3 @@
-import type { Env } from "@/index"; // Import Env from index.ts
 import {
   createQuote,
   deleteQuote,
@@ -14,7 +13,6 @@ import {
   DEFAULT_LANG,
   getSupportedLanguages,
 } from "@/services/translate.service";
-import { DEFAULT_CORS_HEADERS } from "@/utils/constants";
 import { quoteInputValidator } from "@/validators/quote.validator";
 
 export const getAllQuotesHandler = async (request: Request, db: D1Database) => {
@@ -31,7 +29,6 @@ export const getAllQuotesHandler = async (request: Request, db: D1Database) => {
       { error: "Invalid categoryId format" },
       {
         status: 400,
-        headers: DEFAULT_CORS_HEADERS,
       },
     );
   }
@@ -54,7 +51,6 @@ export const getAllQuotesHandler = async (request: Request, db: D1Database) => {
   } = await getAllQuotes(db, options);
   return Response.json(quotes, {
     headers: {
-      ...DEFAULT_CORS_HEADERS,
       "Content-Range": `quotes ${start}-${end}/${count}`,
       "X-Total-Count": `${total}`,
     },
@@ -98,21 +94,17 @@ export const getRandomQuoteHandler = async (
         { error: "No quote found matching the criteria" },
         {
           status: 404,
-          headers: DEFAULT_CORS_HEADERS,
         },
       );
     }
 
-    return Response.json(quote, {
-      headers: DEFAULT_CORS_HEADERS,
-    });
+    return Response.json(quote);
   } catch (error) {
     console.error("Error in getRandomQuoteHandler:", error);
     return Response.json(
       { error: "An internal error occurred" },
       {
         status: 500,
-        headers: DEFAULT_CORS_HEADERS,
       },
     );
   }
@@ -123,12 +115,9 @@ export const getQuoteByIdHandler = async (db: D1Database, id: number) => {
   if (!quote) {
     return new Response("Quote not found", {
       status: 404,
-      headers: DEFAULT_CORS_HEADERS,
     });
   }
-  return Response.json(quote, {
-    headers: DEFAULT_CORS_HEADERS,
-  });
+  return Response.json(quote);
 };
 
 export const getQuoteOfTheDayHandler = async (
@@ -153,21 +142,17 @@ export const getQuoteOfTheDayHandler = async (
         { error: "Could not retrieve the quote of the day" },
         {
           status: 404,
-          headers: DEFAULT_CORS_HEADERS,
         },
       );
     }
 
-    return Response.json(quote, {
-      headers: DEFAULT_CORS_HEADERS,
-    });
+    return Response.json(quote);
   } catch (error) {
     console.error("Error in getQuoteOfTheDayHandler:", error);
     return Response.json(
       { error: "An internal error occurred" },
       {
         status: 500,
-        headers: DEFAULT_CORS_HEADERS,
       },
     );
   }
@@ -183,7 +168,7 @@ export const createQuoteHandler = async (
         error:
           "Invalid request body: 'quote', 'author', and 'categoryId' are required and must be valid.",
       },
-      { status: 400, headers: DEFAULT_CORS_HEADERS },
+      { status: 400 },
     );
   }
 
@@ -191,16 +176,12 @@ export const createQuoteHandler = async (
     const newQuote = await createQuote(db, quote);
     return Response.json(newQuote, {
       status: 201,
-      headers: DEFAULT_CORS_HEADERS,
     });
   } catch (error) {
     // Log the error for debugging purposes
     console.error("Error in createQuoteHandler:", error);
     // Return a generic 500 error for other types of errors
-    return Response.json(
-      { error: "Internal Server Error" },
-      { status: 500, headers: DEFAULT_CORS_HEADERS },
-    );
+    return Response.json({ error: "Internal Server Error" }, { status: 500 });
   }
 };
 
@@ -215,7 +196,7 @@ export const updateQuoteHandler = async (
         error:
           "Invalid request body: 'quote', 'author', and 'categoryId' are required and must be valid.",
       },
-      { status: 400, headers: DEFAULT_CORS_HEADERS },
+      { status: 400 },
     );
   }
   try {
@@ -223,20 +204,14 @@ export const updateQuoteHandler = async (
     if (!updatedQuote) {
       return new Response("Quote not found", {
         status: 404,
-        headers: DEFAULT_CORS_HEADERS,
       });
     }
-    return Response.json(updatedQuote, {
-      headers: DEFAULT_CORS_HEADERS,
-    });
+    return Response.json(updatedQuote);
   } catch (error) {
     // Log the error for debugging purposes
     console.error("Error in updateQuoteHandler:", error);
     // Return a generic 500 error for other types of errors
-    return Response.json(
-      { error: "Internal Server Error" },
-      { status: 500, headers: DEFAULT_CORS_HEADERS },
-    );
+    return Response.json({ error: "Internal Server Error" }, { status: 500 });
   }
 };
 
@@ -245,11 +220,9 @@ export const deleteQuoteHandler = async (db: D1Database, id: number) => {
   if (!success) {
     return new Response("Quote not found", {
       status: 404,
-      headers: DEFAULT_CORS_HEADERS,
     });
   }
   return new Response(null, {
     status: 204,
-    headers: DEFAULT_CORS_HEADERS,
   });
 };

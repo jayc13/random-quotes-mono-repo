@@ -1,8 +1,8 @@
-import type { Env } from "@/types/env.types"; // Assuming Env type is needed for context or future use
-import { DEFAULT_CORS_HEADERS } from "@/utils/constants";
-import type { ExecutionContext } from "@cloudflare/workers-types";
 import { type IRequest, error } from "itty-router";
-import { isAdmin as checkIsAdmin } from "./authentication.middleware"; // Assuming isAdmin is exported here
+
+export async function checkIsAdmin(ctx: ExecutionContext) {
+  return ctx.props.user?.roles?.includes("Admin") ?? false;
+}
 
 export async function isAdminMiddleware(
   request: IRequest,
@@ -16,22 +16,17 @@ export async function isAdminMiddleware(
     console.warn(
       "isAdminMiddleware: ctx.props.user not set. Ensure authenticationMiddleware runs first.",
     );
-    return error(
-      401,
-      { success: false, error: "Unauthorized. User not authenticated." },
-      { headers: DEFAULT_CORS_HEADERS },
-    );
+    return error(401, {
+      success: false,
+      error: "Unauthorized. User not authenticated.",
+    });
   }
 
   const adminCheck = await checkIsAdmin(ctx);
   if (!adminCheck) {
-    return error(
-      403,
-      { success: false, error: "Forbidden. Admin privileges required." },
-      { headers: DEFAULT_CORS_HEADERS },
-    );
+    return error(403, {
+      success: false,
+      error: "Forbidden. Admin privileges required.",
+    });
   }
-
-  // If admin, proceed to the next handler
-  // itty-router automatically proceeds if no response is returned by the middleware
 }
