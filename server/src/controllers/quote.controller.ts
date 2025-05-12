@@ -14,6 +14,7 @@ import {
   getSupportedLanguages,
 } from "@/services/translate.service";
 import { quoteInputValidator } from "@/validators/quote.validator";
+import type { IRequest } from "itty-router";
 
 export const getAllQuotesHandler = async (request: Request, db: D1Database) => {
   const url = new URL(request.url);
@@ -58,8 +59,8 @@ export const getAllQuotesHandler = async (request: Request, db: D1Database) => {
 };
 
 export const getRandomQuoteHandler = async (
-  request: Request,
-  env: Env, // Changed db: D1Database to env: Env
+  request: IRequest,
+  env: Env,
 ): Promise<Response> => {
   try {
     const userIp = request.headers.get("CF-Connecting-IP") || "unknown"; // Get user IP
@@ -121,7 +122,7 @@ export const getQuoteByIdHandler = async (db: D1Database, id: number) => {
 };
 
 export const getQuoteOfTheDayHandler = async (
-  request: Request,
+  request: IRequest,
   env: Env,
 ): Promise<Response> => {
   try {

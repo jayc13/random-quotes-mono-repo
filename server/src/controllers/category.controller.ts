@@ -6,8 +6,10 @@ import {
   updateCategory,
 } from "@/services/category.service";
 import { categoryInputValidator } from "@/validators/category.validator";
+import type { IRequest } from "itty-router";
 
-export const getAllCategoriesHandler = async (db: D1Database) => {
+export const getAllCategoriesHandler = async (request: IRequest, env: Env) => {
+  const db = env.DB as D1Database;
   const categories = await getAllCategories(db);
   return Response.json(categories, {
     headers: {

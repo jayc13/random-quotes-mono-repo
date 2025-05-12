@@ -5,6 +5,7 @@ import {
   getSupportedLanguages,
 } from "@/services/translate.service";
 import type { Quote } from "@/types/quote.types";
+import type { IRequest } from "itty-router";
 
 /**
  * Handles requests for generating quote SVG images.
@@ -24,9 +25,10 @@ import type { Quote } from "@/types/quote.types";
  * @returns A Promise resolving to a Response object.
  */
 export async function getRandomQuoteSvgHandler(
-  request: Request,
-  db: D1Database,
+  request: IRequest,
+  env: Env,
 ): Promise<Response> {
+  const db = env.DB as D1Database;
   const url = new URL(request.url);
   const params = url.searchParams;
 

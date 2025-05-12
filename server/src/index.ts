@@ -36,43 +36,32 @@ import type { QuoteInput } from "@/types/quote.types";
 import { type IRequest, Router, cors, error } from "itty-router";
 
 const { preflight, corsify } = cors({
-  origin: "*", // Allow all origins
-  allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowHeaders: ["Content-Type", "Content-Range", "X-Total-Count"],
+  origin: true,
+  // origin: 'https://foo.bar',
+  // origin: ['https://foo.bar', 'https://dog.cat'],
+  // origin: (origin) => origin.endsWith('foo.bar') ? origin : undefined,
+  //   credentials: true,
+  allowMethods: "*",
+  allowHeaders:
+    "Content-Type, Content-Range, X-Total-Count, Authorization, api-token",
+  exposeHeaders: "Content-Range, X-Total-Count",
+  maxAge: 84600,
 });
 
-// Create a new router instance
 const router = Router({
-  base: "/",
-  preflight,
-  cors: corsify,
+  before: [preflight],
+  finally: [corsify],
 });
+
+// Apply middlewares in correct order
+router.all("*", accessControlMiddleware);
+router.all("*", authenticationMiddleware);
 
 // --- Public Routes (No Authentication Middleware here, handled globally before router) ---
-router.get(
-  "/random",
-  accessControlMiddleware,
-  authenticationMiddleware,
-  getRandomQuoteHandler,
-);
-router.get(
-  "/categories",
-  accessControlMiddleware,
-  authenticationMiddleware,
-  (request: IRequest, env: Env) => getAllCategoriesHandler(env.DB),
-);
-router.get(
-  "/random.svg",
-  accessControlMiddleware,
-  authenticationMiddleware,
-  (request: IRequest, env: Env) => getRandomQuoteSvgHandler(request, env.DB),
-);
-router.get(
-  "/qotd",
-  accessControlMiddleware,
-  authenticationMiddleware,
-  getQuoteOfTheDayHandler,
-);
+router.get("/random", getRandomQuoteHandler);
+router.get("/categories", getAllCategoriesHandler);
+router.get("/random.svg", getRandomQuoteSvgHandler);
+router.get("/qotd", getQuoteOfTheDayHandler);
 
 // --- Authenticated User Routes (Not Admin Specific) ---
 // These routes require a user to be authenticated (i.e., ctx.props.user.sub must exist)
@@ -93,7 +82,6 @@ router.delete("/users/me", requireUserAuthMiddleware, deleteUserAccountHandler);
 // Categories Admin
 router.post(
   "/categories",
-  authenticationMiddleware,
   isAdminMiddleware,
   async (request: IRequest, env: Env) => {
     const requestBody = await request.json<CategoryInput>();
@@ -104,7 +92,6 @@ router.post(
 router.all("/categories/:id", validateIdParam); // Validate ID for all /categories/:id routes
 router.get(
   "/categories/:id",
-  authenticationMiddleware,
   isAdminMiddleware,
   (request: IRequest, env: Env) => {
     const categoryId = Number.parseInt(request.params.id, 10);
@@ -113,7 +100,6 @@ router.get(
 );
 router.put(
   "/categories/:id",
-  authenticationMiddleware,
   isAdminMiddleware,
   async (request: IRequest, env: Env) => {
     const categoryId = Number.parseInt(request.params.id, 10);
@@ -123,7 +109,6 @@ router.put(
 );
 router.patch(
   "/categories/:id",
-  authenticationMiddleware,
   isAdminMiddleware,
   async (request: IRequest, env: Env) => {
     // Alias for PUT
@@ -134,7 +119,6 @@ router.patch(
 );
 router.delete(
   "/categories/:id",
-  authenticationMiddleware,
   isAdminMiddleware,
   (request: IRequest, env: Env) => {
     const categoryId = Number.parseInt(request.params.id, 10);
@@ -143,15 +127,11 @@ router.delete(
 );
 
 // Quotes Admin
-router.get(
-  "/quotes",
-  authenticationMiddleware,
-  isAdminMiddleware,
-  (request: IRequest, env: Env) => getAllQuotesHandler(request, env.DB),
+router.get("/quotes", isAdminMiddleware, (request: IRequest, env: Env) =>
+  getAllQuotesHandler(request, env.DB),
 );
 router.post(
   "/quotes",
-  authenticationMiddleware,
   isAdminMiddleware,
   async (request: IRequest, env: Env) => {
     const requestBody = await request.json<QuoteInput>();
@@ -160,18 +140,12 @@ router.post(
 );
 
 router.all("/quotes/:id", validateIdParam); // Validate ID for all /quotes/:id routes
-router.get(
-  "/quotes/:id",
-  authenticationMiddleware,
-  isAdminMiddleware,
-  (request: IRequest, env: Env) => {
-    const quoteId = Number.parseInt(request.params.id, 10);
-    return getQuoteByIdHandler(env.DB, quoteId);
-  },
-);
+router.get("/quotes/:id", isAdminMiddleware, (request: IRequest, env: Env) => {
+  const quoteId = Number.parseInt(request.params.id, 10);
+  return getQuoteByIdHandler(env.DB, quoteId);
+});
 router.put(
   "/quotes/:id",
-  authenticationMiddleware,
   isAdminMiddleware,
   async (request: IRequest, env: Env) => {
     const quoteId = Number.parseInt(request.params.id, 10);
@@ -181,7 +155,6 @@ router.put(
 );
 router.patch(
   "/quotes/:id",
-  authenticationMiddleware,
   isAdminMiddleware,
   async (request: IRequest, env: Env) => {
     const quoteId = Number.parseInt(request.params.id, 10);
@@ -191,7 +164,6 @@ router.patch(
 );
 router.delete(
   "/quotes/:id",
-  authenticationMiddleware,
   isAdminMiddleware,
   (request: IRequest, env: Env) => {
     const quoteId = Number.parseInt(request.params.id, 10);
@@ -204,7 +176,6 @@ router.get("/api-tokens", authenticationMiddleware, getUserApiTokensHandler);
 router.post("/api-tokens", authenticationMiddleware, createApiTokenHandler);
 router.delete(
   "/api-tokens/:id",
-  authenticationMiddleware,
   validateIdParam,
   (request: IRequest, env: Env, ctx: ExecutionContext) => {
     const tokenId = Number.parseInt(request.params.id, 10);

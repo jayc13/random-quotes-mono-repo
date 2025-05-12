@@ -45,7 +45,7 @@ export async function accessControlMiddleware(
   const apiToken = apiTokenHeaders || apiTokenQuery;
 
   if (!apiToken) {
-    return return401();
+    return;
   }
 
   try {
