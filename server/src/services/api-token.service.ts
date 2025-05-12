@@ -214,16 +214,13 @@ export const deleteAllApiTokensForUser = async (
 
   try {
     // Corrected column name to match the SQL migration (UserId)
-    const stmt = db.prepare("DELETE FROM ApiTokens WHERE UserId = ?").bind(userId);
+    const stmt = db
+      .prepare("DELETE FROM ApiTokens WHERE UserId = ?")
+      .bind(userId);
     const result = await stmt.run();
-
-    console.log(`Deletion of API tokens for user ${userId} success: ${result.success}. Changes: ${result.meta.changes}`);
-    // result.success is true if the statement executed without error,
-    // result.meta.changes tells how many rows were affected.
-    // If no tokens existed, changes will be 0, but success will still be true.
     return result.success;
-  } catch (error: any) {
-    console.error(`Error deleting API tokens for user ${userId}:`, error.message);
+  } catch {
+    console.error(`Error deleting API tokens for user ${userId}:`);
     return false;
   }
 };
