@@ -20,212 +20,148 @@ import {
   getRandomQuoteHandler,
   updateQuoteHandler,
 } from "@/controllers/quote.controller";
+import { 
+  updateUserNameHandler, 
+  sendForgotPasswordEmailHandler, 
+  deleteUserAccountHandler 
+} from "@/controllers/user.controller";
 import { accessControlMiddleware } from "@/middlewares/accessControl.middleware";
-import {
-  authenticationMiddleware,
-  isAdmin,
-} from "@/middlewares/authentication.middleware";
+import { authenticationMiddleware } from "@/middlewares/authentication.middleware";
+import { isAdminMiddleware } from "@/middlewares/admin.middleware";
+import { requireUserAuthMiddleware } from "@/middlewares/userAuth.middleware"; // Refactored
+import { validateIdParam } from "@/middlewares/validation.middleware"; // Refactored
 import type { CategoryInput } from "@/types/category.types";
 import type { QuoteInput } from "@/types/quote.types";
 import { DEFAULT_CORS_HEADERS } from "@/utils/constants";
+import { IRequest, Router, error, json } from "itty-router";
+import { Env } from "./types/env.types"; // Ensure Env is correctly imported
+import { ExecutionContext } from "@cloudflare/workers-types";
 
-export interface Env {
-  DB: D1Database;
-  QUOTES_KV: KVNamespace;
-  AUTH0_DOMAIN: string;
-  AUTH0_CLIENT_ID: string;
-  ALLOWED_ORIGINS: string;
-}
+// Create a new router instance
+const router = Router();
 
-const validateId = (id: string): boolean => !/^\d+$/.test(id);
+// --- Global Pre-flight OPTIONS Handler ---
+router.options("*", () => new Response("OK", { headers: DEFAULT_CORS_HEADERS }));
+
+// --- Public Routes (No Authentication Middleware here, handled globally before router) ---
+router.get("/random", getRandomQuoteHandler); // (request, env)
+router.get("/categories", (request: IRequest, env: Env, ctx: ExecutionContext) => getAllCategoriesHandler(env.DB));
+router.get("/random.svg", (request: IRequest, env: Env, ctx: ExecutionContext) => getRandomQuoteSvgHandler(request, env.DB));
+router.get("/qotd", getQuoteOfTheDayHandler); // (request, env)
+
+
+// --- Authenticated User Routes (Not Admin Specific) ---
+// These routes require a user to be authenticated (i.e., ctx.props.user.sub must exist)
+router.patch("/users/me/name", requireUserAuthMiddleware, updateUserNameHandler);
+router.post("/users/me/forgot-password", requireUserAuthMiddleware, sendForgotPasswordEmailHandler);
+router.delete("/users/me", requireUserAuthMiddleware, deleteUserAccountHandler);
+
+
+// --- Admin Routes ---
+// All routes below this will first check for user authentication (implicit via global middleware), 
+// then specifically check for admin privileges using isAdminMiddleware.
+
+// Categories Admin
+router.post("/categories", isAdminMiddleware, async (request: IRequest, env: Env, ctx: ExecutionContext) => {
+  const requestBody = await request.json<CategoryInput>();
+  return createCategoryHandler(env.DB, requestBody);
+});
+
+router.all("/categories/:id", isAdminMiddleware, validateIdParam); // Validate ID for all /categories/:id routes
+router.get("/categories/:id", isAdminMiddleware, (request: IRequest, env: Env, ctx: ExecutionContext) => {
+  const categoryId = Number.parseInt(request.params.id, 10);
+  return getCategoryByIdHandler(env.DB, categoryId);
+});
+router.put("/categories/:id", isAdminMiddleware, async (request: IRequest, env: Env, ctx: ExecutionContext) => {
+  const categoryId = Number.parseInt(request.params.id, 10);
+  const requestBody = await request.json<CategoryInput>();
+  return updateCategoryHandler(env.DB, categoryId, requestBody);
+});
+router.patch("/categories/:id", isAdminMiddleware, async (request: IRequest, env: Env, ctx: ExecutionContext) => { // Alias for PUT
+  const categoryId = Number.parseInt(request.params.id, 10);
+  const requestBody = await request.json<CategoryInput>();
+  return updateCategoryHandler(env.DB, categoryId, requestBody);
+});
+router.delete("/categories/:id", isAdminMiddleware, (request: IRequest, env: Env, ctx: ExecutionContext) => {
+  const categoryId = Number.parseInt(request.params.id, 10);
+  return deleteCategoryHandler(env.DB, categoryId);
+});
+
+
+// Quotes Admin
+router.get("/quotes", isAdminMiddleware, (request: IRequest, env: Env, ctx: ExecutionContext) => getAllQuotesHandler(request, env.DB));
+router.post("/quotes", isAdminMiddleware, async (request: IRequest, env: Env, ctx: ExecutionContext) => {
+  const requestBody = await request.json<QuoteInput>();
+  return createQuoteHandler(env.DB, requestBody);
+});
+
+router.all("/quotes/:id", isAdminMiddleware, validateIdParam); // Validate ID for all /quotes/:id routes
+router.get("/quotes/:id", isAdminMiddleware, (request: IRequest, env: Env, ctx: ExecutionContext) => {
+  const quoteId = Number.parseInt(request.params.id, 10);
+  return getQuoteByIdHandler(env.DB, quoteId);
+});
+router.put("/quotes/:id", isAdminMiddleware, async (request: IRequest, env: Env, ctx: ExecutionContext) => {
+  const quoteId = Number.parseInt(request.params.id, 10);
+  const requestBody = await request.json<QuoteInput>();
+  return updateQuoteHandler(env.DB, quoteId, requestBody);
+});
+router.patch("/quotes/:id", isAdminMiddleware, async (request: IRequest, env: Env, ctx: ExecutionContext) => { // Alias for PUT
+  const quoteId = Number.parseInt(request.params.id, 10);
+  const requestBody = await request.json<QuoteInput>();
+  return updateQuoteHandler(env.DB, quoteId, requestBody);
+});
+router.delete("/quotes/:id", isAdminMiddleware, (request: IRequest, env: Env, ctx: ExecutionContext) => {
+  const quoteId = Number.parseInt(request.params.id, 10);
+  return deleteQuoteHandler(env.DB, quoteId);
+});
+
+
+// API Tokens Admin
+router.get("/api-tokens", isAdminMiddleware, getUserApiTokensHandler);
+router.post("/api-tokens", isAdminMiddleware, createApiTokenHandler);
+
+router.all("/api-tokens/:id", isAdminMiddleware, validateIdParam); // Validate ID for /api-tokens/:id
+router.delete("/api-tokens/:id", isAdminMiddleware, (request: IRequest, env: Env, ctx: ExecutionContext) => {
+  const tokenId = Number.parseInt(request.params.id, 10);
+  return deleteApiTokenHandler(request, env, ctx, tokenId);
+});
+
+
+// --- Default 404 Handler ---
+router.all("*", () => error(404, { success: false, error: "Not Found. The requested resource was not found." }, { headers: DEFAULT_CORS_HEADERS }));
+
 
 export default {
-  async fetch(request, env, ctx): Promise<Response> {
-    const url = new URL(request.url);
-
-    if (request.method === "OPTIONS") {
-      return new Response("OK", {
-        headers: DEFAULT_CORS_HEADERS,
-      });
-    }
-    // --- Authentication for public routes ---
-    await accessControlMiddleware(request, env, ctx);
-    await authenticationMiddleware(request, env, ctx);
-
-    if (!ctx.props.accessGranted || !ctx.props.originAllowed) {
-      return Response.json(
-        { error: "Unauthorized", message: "Access control failed." },
-        { status: 401, headers: DEFAULT_CORS_HEADERS },
-      );
-    }
-
-    // --- Public Routes (No Authentication Required) ---
-    if (url.pathname === "/random" && request.method === "GET") {
-      return getRandomQuoteHandler(request, env);
-    }
-
-    if (url.pathname === "/categories" && request.method === "GET") {
-      return getAllCategoriesHandler(env.DB);
-    }
-
-    // New route for random SVG generation
-    if (url.pathname === "/random.svg" && request.method === "GET") {
-      return getRandomQuoteSvgHandler(request, env.DB);
-    }
-
-    if (url.pathname === "/qotd" && request.method === "GET") {
-      return getQuoteOfTheDayHandler(request, env);
-    }
-
-    // --- Routes Requiring Authentication + Admin Role ---
-    // Apply Admin Check globally for remaining routes
-    if (!(await isAdmin(ctx))) {
-      return Response.json(
-        { error: "Forbidden", message: "Admin privileges required." },
-        { status: 403, headers: DEFAULT_CORS_HEADERS },
-      );
-    }
-
-    // --- Admin-Only Routes ---
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    // Run global middlewares that attach props to ctx or request
+    // These middlewares modify ctx.props
     try {
-      // POST /categories
-      if (url.pathname === "/categories" && request.method === "POST") {
-        const requestBody = await request.json<CategoryInput>();
-        return createCategoryHandler(env.DB, requestBody);
-      }
-
-      // /categories/:id (PUT, DELETE, GET - GET needs admin here?)
-      // Note: The original code had GET /categories/:id here, implying it needed admin.
-      // Keeping it here for now, but it might be better public or just authenticated.
-      if (url.pathname.startsWith("/categories/")) {
-        const categoryIdStr = url.pathname.split("/")[2];
-        if (validateId(categoryIdStr)) {
-          return Response.json(
-            { error: "Invalid ID format" },
-            { status: 400, headers: DEFAULT_CORS_HEADERS },
-          );
-        }
-        const categoryId = Number.parseInt(categoryIdStr, 10);
-
-        switch (request.method) {
-          case "PATCH": // Assuming PATCH is like PUT
-          case "PUT": {
-            const requestBody = await request.json<CategoryInput>();
-            return updateCategoryHandler(env.DB, categoryId, requestBody);
-          }
-          case "GET": // Requires admin in this block
-            return getCategoryByIdHandler(env.DB, categoryId);
-          case "DELETE":
-            return deleteCategoryHandler(env.DB, categoryId);
-        }
-      }
-
-      // GET /quotes
-      if (url.pathname === "/quotes" && request.method === "GET") {
-        // This route is now covered by the global admin check.
-        // authenticationMiddleware (JWT) would have run if !ctx.props.accessGranted.
-        // The isAdmin check is global for this section.
-        return getAllQuotesHandler(request, env.DB);
-      }
-
-      // POST /quotes
-      if (url.pathname === "/quotes" && request.method === "POST") {
-        const requestBody = await request.json<QuoteInput>();
-        return createQuoteHandler(env.DB, requestBody);
-      }
-
-      // /quotes/:id (PUT, DELETE, GET - GET needs admin here?)
-      // Note: The original code had GET /quotes/:id here. Keeping it admin-only.
-      if (url.pathname.startsWith("/quotes/")) {
-        const quoteIdStr = url.pathname.split("/")[2];
-        if (validateId(quoteIdStr)) {
-          return Response.json(
-            { error: "Invalid ID format" },
-            { status: 400, headers: DEFAULT_CORS_HEADERS },
-          );
-        }
-        const quoteId = Number.parseInt(quoteIdStr, 10);
-
-        switch (request.method) {
-          case "PATCH": // Assuming PATCH is like PUT
-          case "PUT": {
-            const requestBody = await request.json<QuoteInput>();
-            return updateQuoteHandler(env.DB, quoteId, requestBody);
-          }
-          case "GET": // Requires admin in this block
-            return getQuoteByIdHandler(env.DB, quoteId);
-          case "DELETE":
-            return deleteQuoteHandler(env.DB, quoteId);
-        }
-      }
-
-      // --- API Token Routes (Admin Only) ---
-
-      // GET /api-tokens - List user's tokens
-      if (url.pathname === "/api-tokens" && request.method === "GET") {
-        // Assuming only admins manage tokens for now, reuse isAdmin check
-        // If regular users need to manage their own, adjust middleware/checks
-        return getUserApiTokensHandler(request, env, ctx);
-      }
-
-      // POST /api-tokens - Create a new token
-      if (url.pathname === "/api-tokens" && request.method === "POST") {
-        try {
-          // Assuming request body parsing is needed, similar to categories/quotes
-          return createApiTokenHandler(request, env, ctx);
-        } catch (e) {
-          // Basic error handling for invalid JSON
-          const message = e instanceof Error ? e.message : "Invalid JSON";
-          return Response.json(
-            { error: "Bad Request", message },
-            {
-              status: 400,
-              headers: DEFAULT_CORS_HEADERS,
-            },
-          );
-        }
-      }
-
-      // DELETE /api-tokens/:tokenId - Delete a specific token
-      if (
-        url.pathname.startsWith("/api-tokens/") &&
-        request.method === "DELETE"
-      ) {
-        const pathSegments = url.pathname.split("/");
-        const tokenIdStr = pathSegments[pathSegments.length - 1]; // Get the last segment
-        if (validateId(tokenIdStr)) {
-          return Response.json(
-            { error: "Invalid ID format" },
-            { status: 400, headers: DEFAULT_CORS_HEADERS },
-          );
-        }
-        const tokenId: number = Number.parseInt(tokenIdStr, 10);
-
-        return deleteApiTokenHandler(request, env, ctx, tokenId);
-      }
-
-      // --- End API Token Routes ---
-    } catch (error) {
-      console.error("Error handling admin request:", error);
-      return Response.json(
-        {
-          error: "Internal Server Error",
-          message:
-            "An unexpected error occurred while processing your request.",
-        },
-        {
-          status: 500,
-          headers: DEFAULT_CORS_HEADERS,
-        },
-      );
+      await accessControlMiddleware(request as IRequest, env, ctx);
+      await authenticationMiddleware(request as IRequest, env, ctx); // Populates ctx.props.user
+    } catch (e: any) {
+      console.error("Global middleware error:", e.message);
+      return error(500, { success: false, error: "Middleware processing failed", details: e.message }, { headers: DEFAULT_CORS_HEADERS });
     }
-
-    return Response.json(
-      {
-        error: "Not Found",
-        message: "The requested resource was not found.",
-      },
-      { status: 404 },
-    );
-  },
+    
+    if (!ctx.props.accessGranted || !ctx.props.originAllowed) {
+      return error(401, { success: false, error: "Unauthorized. Access control failed." }, { headers: DEFAULT_CORS_HEADERS });
+    }
+    
+    // itty-router handlers expect (request, env, ctx)
+    // The router.handle method will pass these through.
+    return router.handle(request as IRequest, env, ctx)
+      .catch(err => {
+        // This catch is for unexpected errors *during* router handling or if a route itself throws.
+        // itty-router's error() helper or direct Response.json() in routes should ideally handle known errors.
+        console.error("Router execution error:", err);
+        const statusCode = err.status || 500;
+        const message = err.message || "Internal Server Error";
+        const details = err.error || err.details || "An unexpected error occurred.";
+        // Ensure DEFAULT_CORS_HEADERS are applied to error responses
+        return new Response(JSON.stringify({ success: false, error: message, details: details }), { 
+          status: statusCode, 
+          headers: { ...DEFAULT_CORS_HEADERS, 'Content-Type': 'application/json' }
+        });
+      });
+  }
 } satisfies ExportedHandler<Env>;
