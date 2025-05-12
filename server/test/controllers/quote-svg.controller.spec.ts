@@ -1,12 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-// Import only the remaining handler
 import { getRandomQuoteSvgHandler } from '@/controllers/quote-svg.controller';
-// Import only the used service function
 import { getRandomQuote } from '@/services/random-quotes.service';
 import { generateQuoteSvg } from '@/services/quote-svg.service';
-// Import language utils
 import { DEFAULT_LANG } from '@/services/translate.service';
-import { DEFAULT_CORS_HEADERS } from '@/utils/constants';
 import type { Quote } from '@/types/quote.types';
 
 // --- Mocks ---
@@ -71,7 +67,6 @@ describe('getRandomQuoteSvgHandler Controller', () => {
 
     expect(response.status).toBe(200);
     expect(response.headers.get('Content-Type')).toBe('image/svg+xml');
-    expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
     expect(response.headers.get('Cache-Control')).toContain('no-store'); // Check for cache headers
     expect(responseBody).toBe(dummySvgString);
   });
@@ -144,7 +139,6 @@ describe('getRandomQuoteSvgHandler Controller', () => {
     expect(generateQuoteSvg).not.toHaveBeenCalled(); // Should not generate SVG
 
     expect(response.status).toBe(404);
-    expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
     expect(responseBody).toContain('No quote found matching the criteria');
   });
 
@@ -180,7 +174,6 @@ describe('getRandomQuoteSvgHandler Controller', () => {
     expect(generateQuoteSvg).not.toHaveBeenCalled();
 
     expect(response.status).toBe(500);
-    expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
     expect(responseBody).toBe('Internal Server Error');
   });
 

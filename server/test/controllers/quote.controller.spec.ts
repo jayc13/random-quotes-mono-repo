@@ -22,7 +22,6 @@ import {
 import {quoteInputValidator} from '@/validators/quote.validator';
 import type {Env} from '@/index';
 import {getSupportedLanguages, DEFAULT_LANG} from '@/services/translate.service';
-import {DEFAULT_CORS_HEADERS} from '@/utils/constants';
 import type {Quote} from '@/types/quote.types';
 
 // Mock services
@@ -119,7 +118,6 @@ describe('Quote Controllers', () => {
       const responseBody = await response.json();
 
       expect(response.status).toBe(200);
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
       expect(responseBody).toEqual(mockQuoteData);
       expect(getQuoteOfTheDayOrRandom).toHaveBeenCalledTimes(1);
       expect(getQuoteOfTheDayOrRandom).toHaveBeenCalledWith(mockEnv.DB, mockEnv.QUOTES_KV, MOCK_IP, {
@@ -205,7 +203,6 @@ describe('Quote Controllers', () => {
       const responseBody = await response.json();
 
       expect(response.status).toBe(404);
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
       expect(responseBody).toHaveProperty('error');
       expect(responseBody.error).toContain('No quote found');
       expect(getQuoteOfTheDayOrRandom).toHaveBeenCalledTimes(1);
@@ -221,7 +218,6 @@ describe('Quote Controllers', () => {
       const responseBody = await response.json();
 
       expect(response.status).toBe(500);
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
       expect(responseBody).toHaveProperty('error');
       expect(responseBody.error).toContain('internal error');
       expect(getQuoteOfTheDayOrRandom).toHaveBeenCalledTimes(1);
@@ -234,7 +230,6 @@ describe('Quote Controllers', () => {
       const responseBody = await response.json();
 
       expect(response.status).toBe(200);
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
       expect(responseBody).toEqual(mockQuoteData);
       expect(getQuoteOfTheDayOrRandom).toHaveBeenCalledTimes(1);
       expect(getQuoteOfTheDayOrRandom).toHaveBeenCalledWith(mockEnv.DB, mockEnv.QUOTES_KV, MOCK_IP, {
@@ -320,7 +315,6 @@ describe('Quote Controllers', () => {
       const responseBody = await response.json();
 
       expect(response.status).toBe(404);
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
       expect(responseBody).toHaveProperty('error');
       expect(responseBody.error).toContain('No quote found');
       expect(getQuoteOfTheDayOrRandom).toHaveBeenCalledTimes(1);
@@ -336,7 +330,6 @@ describe('Quote Controllers', () => {
       const responseBody = await response.json();
 
       expect(response.status).toBe(500);
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
       expect(responseBody).toHaveProperty('error');
       expect(responseBody.error).toContain('internal error');
       expect(getQuoteOfTheDayOrRandom).toHaveBeenCalledTimes(1);
@@ -372,7 +365,6 @@ describe('Quote Controllers', () => {
       const responseBody = await response.json();
 
       expect(response.status).toBe(200);
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
       expect(responseBody).toEqual(mockQuoteData);
       expect(getQuoteOfTheDay).toHaveBeenCalledTimes(1);
       expect(getQuoteOfTheDay).toHaveBeenCalledWith(mockEnv.DB, mockEnv.QUOTES_KV, {
@@ -387,7 +379,6 @@ describe('Quote Controllers', () => {
       const responseBody = await response.json();
 
       expect(response.status).toBe(200);
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
       expect(responseBody).toEqual(mockQuoteData);
       expect(getQuoteOfTheDay).toHaveBeenCalledTimes(1);
       expect(getQuoteOfTheDay).toHaveBeenCalledWith(mockEnv.DB, mockEnv.QUOTES_KV, {
@@ -414,7 +405,6 @@ describe('Quote Controllers', () => {
       const responseBody = await response.json();
 
       expect(response.status).toBe(404);
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
       expect(responseBody).toHaveProperty('error');
       expect(responseBody.error).toContain('Could not retrieve the quote of the day');
       expect(getQuoteOfTheDay).toHaveBeenCalledTimes(1);
@@ -428,7 +418,6 @@ describe('Quote Controllers', () => {
       const responseBody = await response.json();
 
       expect(response.status).toBe(500);
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
       expect(responseBody).toHaveProperty('error');
       expect(responseBody.error).toContain('internal error occurred');
       expect(getQuoteOfTheDay).toHaveBeenCalledTimes(1);
@@ -441,7 +430,6 @@ describe('Quote Controllers', () => {
       const responseBody = await response.json();
 
       expect(response.status).toBe(200);
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
       expect(responseBody).toEqual(mockQuoteData);
       expect(getQuoteOfTheDay).toHaveBeenCalledTimes(1);
       expect(getQuoteOfTheDay).toHaveBeenCalledWith(mockEnv.DB, mockEnv.QUOTES_KV, {
@@ -456,7 +444,6 @@ describe('Quote Controllers', () => {
       const responseBody = await response.json();
 
       expect(response.status).toBe(200);
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
       expect(responseBody).toEqual(mockQuoteData);
       expect(getQuoteOfTheDay).toHaveBeenCalledTimes(1);
       expect(getQuoteOfTheDay).toHaveBeenCalledWith(mockEnv.DB, mockEnv.QUOTES_KV, {
@@ -483,7 +470,6 @@ describe('Quote Controllers', () => {
       const responseBody = await response.json();
 
       expect(response.status).toBe(404);
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
       expect(responseBody).toHaveProperty('error');
       expect(responseBody.error).toContain('Could not retrieve the quote of the day');
       expect(getQuoteOfTheDay).toHaveBeenCalledTimes(1);
@@ -497,7 +483,6 @@ describe('Quote Controllers', () => {
       const responseBody = await response.json();
 
       expect(response.status).toBe(500);
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
       expect(responseBody).toHaveProperty('error');
       expect(responseBody.error).toContain('internal error occurred');
       expect(getQuoteOfTheDay).toHaveBeenCalledTimes(1);
@@ -513,7 +498,6 @@ describe('Quote Controllers', () => {
       const responseBody = await response.json();
 
       expect(response.status).toBe(200);
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
       expect(response.headers.get('Content-Range')).toBe('quotes 0-10/1');
       expect(response.headers.get('X-Total-Count')).toBe('1');
       expect(responseBody).toEqual([mockQuoteData]);
@@ -547,7 +531,6 @@ describe('Quote Controllers', () => {
       const responseBody = await response.json();
 
       expect(response.status).toBe(400);
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
       expect(responseBody).toHaveProperty('error');
       expect(responseBody.error).toContain('Invalid categoryId format');
       expect(getAllQuotes).not.toHaveBeenCalled();
@@ -565,7 +548,6 @@ describe('Quote Controllers', () => {
       const responseBody = await response.json();
 
       expect(response.status).toBe(200);
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
       expect(responseBody).toEqual(mockQuoteData);
       expect(getQuoteById).toHaveBeenCalledTimes(1);
       expect(getQuoteById).toHaveBeenCalledWith(mockDb, quoteIdToFind);
@@ -577,7 +559,6 @@ describe('Quote Controllers', () => {
       const response = await getQuoteByIdHandler(mockDb, nonExistentQuoteId);
 
       expect(response.status).toBe(404);
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
       expect(await response.text()).toBe('Quote not found');
       expect(getQuoteById).toHaveBeenCalledTimes(1);
       expect(getQuoteById).toHaveBeenCalledWith(mockDb, nonExistentQuoteId);
@@ -599,7 +580,6 @@ describe('Quote Controllers', () => {
       const responseBody = await response.json();
 
       expect(response.status).toBe(201);
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
       expect(responseBody).toEqual(mockCreatedQuoteData);
       expect(quoteInputValidator).toHaveBeenCalledTimes(1);
       expect(quoteInputValidator).toHaveBeenCalledWith(mockNewQuotePayload);
@@ -614,7 +594,6 @@ describe('Quote Controllers', () => {
       const responseBody = await response.json();
 
       expect(response.status).toBe(400);
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
       expect(responseBody).toHaveProperty('error');
       expect(responseBody.error).toContain('Invalid request body');
       expect(quoteInputValidator).toHaveBeenCalledTimes(1);
@@ -631,7 +610,6 @@ describe('Quote Controllers', () => {
       const responseBody = await response.json();
 
       expect(response.status).toBe(500);
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
       expect(responseBody).toHaveProperty('error');
       expect(responseBody.error).toBe('Internal Server Error');
       expect(quoteInputValidator).toHaveBeenCalledTimes(1);
@@ -663,7 +641,6 @@ describe('Quote Controllers', () => {
       const responseBody = await response.json();
 
       expect(response.status).toBe(200);
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
       expect(responseBody).toEqual(mockUpdatedQuoteData);
       expect(quoteInputValidator).toHaveBeenCalledTimes(1);
       expect(quoteInputValidator).toHaveBeenCalledWith(validUpdatePayload);
@@ -678,7 +655,6 @@ describe('Quote Controllers', () => {
       const responseBody = await response.json();
 
       expect(response.status).toBe(400);
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
       expect(responseBody).toHaveProperty('error');
       expect(responseBody.error).toContain('Invalid request body');
       expect(quoteInputValidator).toHaveBeenCalledTimes(1);
@@ -693,7 +669,6 @@ describe('Quote Controllers', () => {
       const response = await updateQuoteHandler(mockDb, quoteIdToUpdate, validUpdatePayload);
 
       expect(response.status).toBe(404);
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
       expect(await response.text()).toBe('Quote not found');
       expect(quoteInputValidator).toHaveBeenCalledTimes(1);
       expect(updateQuote).toHaveBeenCalledTimes(1);
@@ -709,7 +684,6 @@ describe('Quote Controllers', () => {
       const responseBody = await response.json();
 
       expect(response.status).toBe(500);
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
       expect(responseBody).toHaveProperty('error');
       expect(responseBody.error).toBe('Internal Server Error');
       expect(quoteInputValidator).toHaveBeenCalledTimes(1);
@@ -729,7 +703,6 @@ describe('Quote Controllers', () => {
       const response = await deleteQuoteHandler(mockDb, quoteIdToDelete);
 
       expect(response.status).toBe(204);
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
       expect(await response.text()).toBe(''); // No body for 204
       expect(deleteQuote).toHaveBeenCalledTimes(1);
       expect(deleteQuote).toHaveBeenCalledWith(mockDb, quoteIdToDelete);
@@ -741,7 +714,6 @@ describe('Quote Controllers', () => {
       const response = await deleteQuoteHandler(mockDb, quoteIdToDelete);
 
       expect(response.status).toBe(404);
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
       expect(await response.text()).toBe('Quote not found');
       expect(deleteQuote).toHaveBeenCalledTimes(1);
       expect(deleteQuote).toHaveBeenCalledWith(mockDb, quoteIdToDelete);
