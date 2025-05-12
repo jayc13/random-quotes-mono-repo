@@ -1,4 +1,3 @@
-import type { Env } from "@/index"; // Assuming Env interface is exported from index.ts
 import type { User } from "@/middlewares/authentication.middleware"; // Assuming User type is exported
 import {
   deleteApiToken,

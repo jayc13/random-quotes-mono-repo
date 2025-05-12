@@ -14,12 +14,6 @@
 		"enabled": true
 	},
 	"preview_urls": true,
-	"vars": {
-		"AUTH0_MANAGEMENT_DOMAIN": "your-auth0-management-domain",
-		"AUTH0_MANAGEMENT_CLIENT_ID": "your-auth0-management-client-id",
-		"AUTH0_MANAGEMENT_CLIENT_SECRET": "your-auth0-management-client-secret",
-		"AUTH0_CONNECTION_ID": "your-auth0-db-connection-id"
-	},
 	"d1_databases": [
 		{
 			"binding": "DB",
@@ -51,13 +45,7 @@
 					"binding": "QUOTES_KV",
 					"id": "9cef104895f24284ab025bc17eb1471d"
 				}
-			],
-			"vars": {
-				"AUTH0_MANAGEMENT_DOMAIN": "your-auth0-management-domain",
-				"AUTH0_MANAGEMENT_CLIENT_ID": "your-auth0-management-client-id",
-				"AUTH0_MANAGEMENT_CLIENT_SECRET": "your-auth0-management-client-secret",
-				"AUTH0_CONNECTION_ID": "your-auth0-db-connection-id"
-			}
+			]
 		},
 		"production": {
 			"d1_databases": [
@@ -73,13 +61,7 @@
 					"binding": "QUOTES_KV",
 					"id": "7670f60623a744f1a931b5bf49da124a"
 				}
-			],
-			"vars": {
-				"AUTH0_MANAGEMENT_DOMAIN": "your-auth0-management-domain",
-				"AUTH0_MANAGEMENT_CLIENT_ID": "your-auth0-management-client-id",
-				"AUTH0_MANAGEMENT_CLIENT_SECRET": "your-auth0-management-client-secret",
-				"AUTH0_CONNECTION_ID": "your-auth0-db-connection-id"
-			}
+			]
 		}
 	}
 	/**
