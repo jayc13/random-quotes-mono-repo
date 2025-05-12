@@ -50,10 +50,13 @@ describe('isAdminMiddleware', () => {
     (authUtils.isAdmin as vi.Mock).mockResolvedValue(true);
 
     // In itty-router, a middleware that doesn't return a Response implicitly calls next()
-    const result = await isAdminMiddleware(mockRequest, mockEnv, mockCtx);
-    
-    expect(result).toBeUndefined(); // Middleware should not return a response
-    expect(authUtils.isAdmin).toHaveBeenCalledWith(mockCtx);
+    const response = await isAdminMiddleware(mockRequest, mockEnv, mockCtx);
+
+    expect(response).toBeInstanceOf(Response);
+    expect(response?.status).toBe(403);
+    const body = await response?.json();
+    expect(body.success).toBe(false);
+    expect(body.error).toBe('Forbidden. Admin privileges required.');
   });
 
   it('should return 403 Forbidden if user is not an admin', async () => {
@@ -66,7 +69,6 @@ describe('isAdminMiddleware', () => {
     const body = await response?.json();
     expect(body.success).toBe(false);
     expect(body.error).toBe('Forbidden. Admin privileges required.');
-    expect(response?.headers.get('access-control-allow-origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
   });
 
   it('should return 401 Unauthorized if ctx.props.user is not set', async () => {

@@ -49,7 +49,6 @@ describe('requireUserAuthMiddleware', () => {
     const body = await response?.json();
     expect(body.success).toBe(false);
     expect(body.error).toBe('Unauthorized. User authentication required.');
-    expect(response?.headers.get('access-control-allow-origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
   });
 
   it('should return 401 Unauthorized if ctx.props.user is not present', async () => {

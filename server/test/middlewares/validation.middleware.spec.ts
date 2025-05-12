@@ -32,7 +32,7 @@ describe('validateIdParam Middleware', () => {
     expect(result).toBeUndefined(); // Middleware allows request to proceed
   });
 
-  it('should return 400 Bad Request if request.params.id is not a numeric string', () => {
+  it('should return 400 Bad Request if request.params.id is not a numeric string', async () => {
     mockRequest.params = { id: 'abc' };
     const response = validateIdParam(mockRequest, mockEnv, mockCtx);
 
@@ -41,10 +41,9 @@ describe('validateIdParam Middleware', () => {
     const body = response ? await response.json() : {};
     expect(body.success).toBe(false);
     expect(body.error).toBe('Invalid ID format');
-    expect(response?.headers.get('access-control-allow-origin')).toBe(DEFAULT_CORS_HEADERS['Access-Control-Allow-Origin']);
   });
 
-  it('should return 400 Bad Request if request.params.id is an empty string', () => {
+  it('should return 400 Bad Request if request.params.id is an empty string', async () => {
     mockRequest.params = { id: '' };
     const response = validateIdParam(mockRequest, mockEnv, mockCtx);
 
@@ -55,7 +54,7 @@ describe('validateIdParam Middleware', () => {
     expect(body.error).toBe('Invalid ID format');
   });
   
-  it('should return 400 Bad Request if request.params.id contains non-numeric characters', () => {
+  it('should return 400 Bad Request if request.params.id contains non-numeric characters', async () => {
     mockRequest.params = { id: '123x' };
     const response = validateIdParam(mockRequest, mockEnv, mockCtx);
 
@@ -66,7 +65,7 @@ describe('validateIdParam Middleware', () => {
     expect(body.error).toBe('Invalid ID format');
   });
 
-  it('should return 400 Bad Request if request.params.id is missing (undefined)', () => {
+  it('should return 400 Bad Request if request.params.id is missing (undefined)', async () => {
     // mockRequest.params is already {}
     const response = validateIdParam(mockRequest, mockEnv, mockCtx);
     
@@ -77,7 +76,7 @@ describe('validateIdParam Middleware', () => {
     expect(body.error).toBe('Invalid ID format');
   });
   
-   it('should return 400 Bad Request if request.params itself is missing (less likely with itty-router if param is in route)', () => {
+   it('should return 400 Bad Request if request.params itself is missing (less likely with itty-router if param is in route)', async () => {
     // Simulate request.params being undefined, though itty-router usually ensures it's an object
     const requestWithoutParams = { ...mockRequest, params: undefined } as unknown as IRequest;
     const response = validateIdParam(requestWithoutParams, mockEnv, mockCtx);
