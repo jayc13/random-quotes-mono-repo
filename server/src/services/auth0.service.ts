@@ -7,10 +7,12 @@ interface ManagementApiToken {
   scope: string;
 }
 
-let token: ManagementApiToken | null = null;
-let tokenExpiresAt: number | null = null;
+
+
 
 export class Auth0Service {
+  private token: ManagementApiToken | null = null;
+  private tokenExpiresAt: number | null = null;
   constructor(private env: Env) {}
 
   private async fetchNewToken(): Promise<ManagementApiToken> {
