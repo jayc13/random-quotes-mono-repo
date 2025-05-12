@@ -25,7 +25,6 @@ import {
   sendForgotPasswordEmailHandler, 
   deleteUserAccountHandler 
 } from "@/controllers/user.controller";
-import { accessControlMiddleware } from "@/middlewares/accessControl.middleware";
 import { authenticationMiddleware } from "@/middlewares/authentication.middleware";
 import { isAdminMiddleware } from "@/middlewares/admin.middleware";
 import { requireUserAuthMiddleware } from "@/middlewares/userAuth.middleware"; // Refactored
