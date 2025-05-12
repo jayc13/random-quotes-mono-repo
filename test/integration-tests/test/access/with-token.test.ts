@@ -85,8 +85,6 @@ describe('Access Control with API Token', () => {
             .get('/random')
             .set('API-Token', apiToken);
 
-          console.log(response.text)
-
           expect(response.status).to.not.equal(401);
         });
 
@@ -104,8 +102,6 @@ describe('Access Control with API Token', () => {
           const apiToken = testConfigElement.token;
           const response = await req
             .get(`/random?api-token=${apiToken}`);
-
-          console.log(response.text)
 
           expect(response.status).to.not.equal(401);
         });
@@ -125,8 +121,6 @@ describe('Access Control with API Token', () => {
             .get('/random')
             .set('Origin', 'https://allowed-domain.com')
             .set('API-Token', apiToken);
-
-          console.log(response.text)
 
           expect(response.status).to.not.equal(401);
         });
