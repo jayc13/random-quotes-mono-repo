@@ -10,17 +10,10 @@ import {
   Space,
   Spin,
   Typography,
-  message,
 } from "antd";
 import React, { useState } from "react";
-import {
-  changeUserPassword,
-  deleteUserAccount,
-  updateUserName,
-} from "../../utils/auth0";
 
 const { Title, Text } = Typography;
-const VITE_AUTH0_DOMAIN = import.meta.env.VITE_AUTH0_DOMAIN as string;
 
 export const ProfilePage: React.FC = () => {
   const { user, isLoading, getAccessTokenSilently, logout } = useAuth0();
@@ -30,12 +23,6 @@ export const ProfilePage: React.FC = () => {
   const [isNameUpdating, setIsNameUpdating] = useState(false);
   const [isPasswordTicketSending, setIsPasswordTicketSending] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
-
-  const auth0ApiOptions = {
-    getAccessTokenSilently,
-    auth0Domain: VITE_AUTH0_DOMAIN,
-    userId: user?.sub || "",
-  };
 
   const handleChangeName = async (values: { name: string }) => {
     if (!user?.sub) {
@@ -48,18 +35,26 @@ export const ProfilePage: React.FC = () => {
     }
     setIsNameUpdating(true);
     try {
-      await updateUserName(auth0ApiOptions, values.name);
+      const token = await getAccessTokenSilently();
+      const response = await fetch("/server/users/name", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ name: values.name }),
+      });
+      if (!response.ok) throw new Error("Failed to update name");
       open?.({
         type: "success",
         message: "Success",
         description:
           "Name updated successfully. Changes may take a moment to reflect.",
       });
-      // Optionally, you might want to refresh the user object or parts of it.
-      // For example, by calling getAccessTokenSilently again to get an updated token/user profile
-      // or by re-fetching user data if you have a separate mechanism.
-      // Auth0's `user` object might not update immediately without a new login or token refresh.
-    } catch {
+      // NOTE: The user object from useAuth0() will not reflect this change immediately.
+      // A page refresh or re-login might be needed to see the updated name from Auth0.
+      // Or, if the server response includes the updated user, update the local state.
+    } catch (error) {
       open?.({
         type: "error",
         message: "Error",
@@ -81,13 +76,23 @@ export const ProfilePage: React.FC = () => {
     }
     setIsPasswordTicketSending(true);
     try {
-      const result = await changeUserPassword(auth0ApiOptions);
+      const token = await getAccessTokenSilently();
+      const response = await fetch("/server/users/forgot-password", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({}), // Empty body or specific payload if required by backend
+      });
+      if (!response.ok) throw new Error("Failed to send password change email");
       open?.({
         type: "success",
         message: "Success",
-        description: `Password·change·email·sent.·Please·check·your·inbox.·Ticket·URL:·${result.ticket_url}`,
+        description:
+          "Password change email sent. Please check your inbox.",
       });
-    } catch {
+    } catch (error) {
       open?.({
         type: "error",
         message: "Error",
@@ -116,14 +121,21 @@ export const ProfilePage: React.FC = () => {
       onOk: async () => {
         setIsDeletingAccount(true);
         try {
-          await deleteUserAccount(auth0ApiOptions);
+          const token = await getAccessTokenSilently();
+          const response = await fetch("/server/users/me", {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          if (!response.ok) throw new Error("Failed to delete account");
           open?.({
             type: "success",
             message: "Success",
             description: "Account deleted successfully.",
           });
           logout({ logoutParams: { returnTo: window.location.origin } });
-        } catch {
+        } catch (error) {
           open?.({
             type: "error",
             message: "Error",
