@@ -100,7 +100,7 @@ export const CategoryList = () => {
   // Show Modal
   const [visibleShowModal, setVisibleShowModal] = useState<boolean>(false);
 
-  const { query: queryResult, setShowId } = useShow<ICategory>();
+  const { query: queryResult } = useShow<ICategory>();
 
   const { data: showQueryResult } = queryResult;
   const record = showQueryResult?.data;

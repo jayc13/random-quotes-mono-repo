@@ -1,5 +1,5 @@
 import { useAuth0 } from "@auth0/auth0-react";
-import { useNotification } from "@refinedev/core";
+import { useCustomMutation, useNotification } from "@refinedev/core";
 import {
   Button,
   Card,
@@ -12,6 +12,7 @@ import {
   Typography,
 } from "antd";
 import React, { useState } from "react";
+import { API_URL } from "../../utils/constants";
 
 const { Title, Text } = Typography;
 
@@ -24,36 +25,28 @@ export const ProfilePage: React.FC = () => {
   const [isPasswordTicketSending, setIsPasswordTicketSending] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
+  const allowChangeName = !user?.sub?.includes("google-oauth2");
+
+  const { mutateAsync } = useCustomMutation();
+
   const handleChangeName = async (values: { name: string }) => {
-    if (!user?.sub) {
-      open?.({
-        type: "error",
-        message: "Error",
-        description: "User ID not found.",
-      });
-      return;
-    }
     setIsNameUpdating(true);
+
     try {
-      const token = await getAccessTokenSilently();
-      const response = await fetch("/server/users/name", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      await mutateAsync({
+        url: `${API_URL}/users/me/name`,
+        method: "patch",
+        values: {
+          name: values.name,
         },
-        body: JSON.stringify({ name: values.name }),
       });
-      if (!response.ok) throw new Error("Failed to update name");
+
       open?.({
         type: "success",
         message: "Success",
         description:
           "Name updated successfully. Changes may take a moment to reflect.",
       });
-      // NOTE: The user object from useAuth0() will not reflect this change immediately.
-      // A page refresh or re-login might be needed to see the updated name from Auth0.
-      // Or, if the server response includes the updated user, update the local state.
     } catch {
       open?.({
         type: "error",
@@ -66,26 +59,13 @@ export const ProfilePage: React.FC = () => {
   };
 
   const handleChangePassword = async () => {
-    if (!user?.sub) {
-      open?.({
-        type: "error",
-        message: "Error",
-        description: "User ID not found.",
-      });
-      return;
-    }
     setIsPasswordTicketSending(true);
     try {
-      const token = await getAccessTokenSilently();
-      const response = await fetch("/server/users/forgot-password", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({}), // Empty body or specific payload if required by backend
+      await mutateAsync({
+        url: `${API_URL}/users/forgot-password`,
+        method: "post",
+        values: {},
       });
-      if (!response.ok) throw new Error("Failed to send password change email");
       open?.({
         type: "success",
         message: "Success",
@@ -103,14 +83,6 @@ export const ProfilePage: React.FC = () => {
   };
 
   const handleDeleteAccount = () => {
-    if (!user?.sub) {
-      open?.({
-        type: "error",
-        message: "Error",
-        description: "User ID not found.",
-      });
-      return;
-    }
     Modal.confirm({
       title: "Are you sure you want to delete your account?",
       content: "This action cannot be undone and all your data will be lost.",
@@ -120,21 +92,18 @@ export const ProfilePage: React.FC = () => {
       onOk: async () => {
         setIsDeletingAccount(true);
         try {
-          const token = await getAccessTokenSilently();
-          const response = await fetch("/server/users/me", {
-            method: "DELETE",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+          await mutateAsync({
+            url: `${API_URL}/users/me`,
+            method: "delete",
+            values: {},
           });
-          if (!response.ok) throw new Error("Failed to delete account");
           open?.({
             type: "success",
             message: "Success",
             description: "Account deleted successfully.",
           });
-          logout({ logoutParams: { returnTo: window.location.origin } });
-        } catch (error) {
+          await logout({ logoutParams: { returnTo: window.location.origin } });
+        } catch {
           open?.({
             type: "error",
             message: "Error",
@@ -148,7 +117,6 @@ export const ProfilePage: React.FC = () => {
   };
 
   if (isLoading && !user) {
-    // Keep showing spinner if user is not yet loaded
     return (
       <Spin
         size='large'
@@ -185,39 +153,46 @@ export const ProfilePage: React.FC = () => {
       )}
       <Divider />
       <Title level={4}>Change Name</Title>
-      <Form
-        form={form}
-        layout='vertical'
-        onFinish={handleChangeName}
-        // initialValues is set by useEffect now
-      >
+      <Form form={form} layout='vertical' onFinish={handleChangeName}>
         <Form.Item
           label='New Name'
           name='name'
+          data-testid='userName'
+          required
+          help={
+            allowChangeName
+              ? "Please enter your new name."
+              : "You cannot change your name as it was provided by Google."
+          }
           rules={[{ required: true, message: "Please input your new name!" }]}
         >
-          <Input disabled={isNameUpdating} />
+          <Input disabled={isNameUpdating || !allowChangeName} />
         </Form.Item>
         <Form.Item>
-          <Button type='primary' htmlType='submit' loading={isNameUpdating}>
+          <Button
+            type='primary'
+            htmlType='submit'
+            loading={isNameUpdating}
+            disabled={!allowChangeName}
+          >
             Save Name
           </Button>
         </Form.Item>
       </Form>
-      <Divider />
-      <Title level={4}>Change Password</Title>
-      <Space direction='vertical'>
-        <Text>
-          For security reasons, password changes are handled by sending a secure
-          link to your email.
-        </Text>
-        <Button
-          onClick={handleChangePassword}
-          loading={isPasswordTicketSending}
-        >
-          Send Password Change Email
-        </Button>
-      </Space>
+      {/*<Divider />*/}
+      {/*<Title level={4}>Change Password</Title>*/}
+      {/*<Space direction='vertical'>*/}
+      {/*  <Text>*/}
+      {/*    For security reasons, password changes are handled by sending a secure*/}
+      {/*    link to your email.*/}
+      {/*  </Text>*/}
+      {/*  <Button*/}
+      {/*    onClick={handleChangePassword}*/}
+      {/*    loading={isPasswordTicketSending}*/}
+      {/*  >*/}
+      {/*    Send Password Change Email*/}
+      {/*  </Button>*/}
+      {/*</Space>*/}
       <Divider />
       <Title level={4}>Delete Account</Title>
       <Space direction='vertical'>
