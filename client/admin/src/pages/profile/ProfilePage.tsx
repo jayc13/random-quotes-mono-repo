@@ -54,7 +54,7 @@ export const ProfilePage: React.FC = () => {
       // NOTE: The user object from useAuth0() will not reflect this change immediately.
       // A page refresh or re-login might be needed to see the updated name from Auth0.
       // Or, if the server response includes the updated user, update the local state.
-    } catch (error) {
+    } catch {
       open?.({
         type: "error",
         message: "Error",
@@ -89,10 +89,9 @@ export const ProfilePage: React.FC = () => {
       open?.({
         type: "success",
         message: "Success",
-        description:
-          "Password change email sent. Please check your inbox.",
+        description: "Password change email sent. Please check your inbox.",
       });
-    } catch (error) {
+    } catch {
       open?.({
         type: "error",
         message: "Error",
