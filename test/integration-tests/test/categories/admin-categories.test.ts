@@ -13,7 +13,7 @@ describe('Categories API Integration Tests', () => {
     token = await getUserAuthToken('ADMIN');
   });
 
-  it('should return a list of categories - Admin User', async () => {
+  it('should return a list of categories', async () => {
     const response = await server
       .get('/categories')
       .set('Authorization', token)

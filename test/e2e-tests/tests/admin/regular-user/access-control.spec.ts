@@ -11,28 +11,24 @@ test.describe('Regular users - Access Control', () => {
     page = await browser.newPage();
     await loginAs(page, 'REGULAR');
   });
-  test('only the home page is accessible after login', async () => {
-    await onlyHomePageAccessible(page);
+  test('the sidebar displays all the allowed entries', async () => {
+    const sideMenuOptions = await page.locator('aside ul li a').all();
+    expect(sideMenuOptions.length).toBe(2);
+    const homeOption = sideMenuOptions[0];
+    expect(await homeOption.innerText()).toBe('Home');
+    const apiKeysOption = sideMenuOptions[1];
+    expect(await apiKeysOption.innerText()).toBe('API Keys');
   });
   test('/categories path requires admin login', async () => {
     await page.goto(`${ADMIN_BASE_URL}/categories`);
     const mainContainer =  page.locator('header');
     await mainContainer.waitFor({ state: 'visible' });
     await page.getByTestId('home-page').waitFor({ state: 'visible' });
-    await onlyHomePageAccessible(page);
   });
   test('/quotes path requires admin login', async () => {
     await page.goto(`${ADMIN_BASE_URL}/quotes`);
     const mainContainer =  page.locator('header');
     await mainContainer.waitFor({ state: 'visible' });
     await page.getByTestId('home-page').waitFor({ state: 'visible' });
-    await onlyHomePageAccessible(page);
   });
 });
-
-async function onlyHomePageAccessible(page: Page) {
-  const sideMenuOptions = await page.locator('aside ul li a').all();
-  expect(sideMenuOptions.length).toBe(1);
-  const homeOption = sideMenuOptions[0];
-  expect(await homeOption.innerText()).toBe('Home');
-}

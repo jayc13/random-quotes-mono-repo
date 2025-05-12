@@ -5,7 +5,7 @@ import {
   getSupportedLanguages,
 } from "@/services/translate.service";
 import type { Quote } from "@/types/quote.types";
-import { DEFAULT_CORS_HEADERS } from "@/utils/constants";
+import type { IRequest } from "itty-router";
 
 /**
  * Handles requests for generating quote SVG images.
@@ -25,9 +25,10 @@ import { DEFAULT_CORS_HEADERS } from "@/utils/constants";
  * @returns A Promise resolving to a Response object.
  */
 export async function getRandomQuoteSvgHandler(
-  request: Request,
-  db: D1Database,
+  request: IRequest,
+  env: Env,
 ): Promise<Response> {
+  const db = env.DB as D1Database;
   const url = new URL(request.url);
   const params = url.searchParams;
 
@@ -86,7 +87,6 @@ export async function getRandomQuoteSvgHandler(
     if (!quote) {
       return new Response("No quote found matching the criteria", {
         status: 404,
-        headers: { ...DEFAULT_CORS_HEADERS },
       });
     }
 
@@ -95,7 +95,6 @@ export async function getRandomQuoteSvgHandler(
     const svgString = generateQuoteSvg(quote, svgOptions);
 
     const headers = {
-      ...DEFAULT_CORS_HEADERS, // Keep CORS headers
       "Content-Type": "image/svg+xml",
       "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
       Pragma: "no-cache",
@@ -111,7 +110,6 @@ export async function getRandomQuoteSvgHandler(
     console.error("Error in getRandomQuoteSvgHandler:", error);
     return new Response("Internal Server Error", {
       status: 500,
-      headers: { ...DEFAULT_CORS_HEADERS },
     });
   }
 }

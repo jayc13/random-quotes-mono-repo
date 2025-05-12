@@ -20,212 +20,178 @@ import {
   getRandomQuoteHandler,
   updateQuoteHandler,
 } from "@/controllers/quote.controller";
-import { accessControlMiddleware } from "@/middlewares/accessControl.middleware";
 import {
-  authenticationMiddleware,
-  isAdmin,
-} from "@/middlewares/authentication.middleware";
+  deleteUserAccountHandler,
+  sendForgotPasswordEmailHandler,
+  updateUserNameHandler,
+} from "@/controllers/user.controller";
+
+import { accessControlMiddleware } from "@/middlewares/accessControl.middleware";
+import { isAdminMiddleware } from "@/middlewares/admin.middleware";
+import { authenticationMiddleware } from "@/middlewares/authentication.middleware";
+import { requireUserAuthMiddleware } from "@/middlewares/userAuth.middleware";
+import { validateIdParam } from "@/middlewares/validation.middleware";
 import type { CategoryInput } from "@/types/category.types";
 import type { QuoteInput } from "@/types/quote.types";
-import { DEFAULT_CORS_HEADERS } from "@/utils/constants";
+import { AutoRouter, type IRequest, cors, error } from "itty-router";
 
-export interface Env {
-  DB: D1Database;
-  QUOTES_KV: KVNamespace;
-  AUTH0_DOMAIN: string;
-  AUTH0_CLIENT_ID: string;
-  ALLOWED_ORIGINS: string;
-}
+const { preflight, corsify } = cors({
+  origin: true,
+  allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowHeaders: "Content-Type, Authorization, api-token",
+  exposeHeaders: "Content-Range, X-Total-Count",
+  maxAge: 84600,
+});
 
-const validateId = (id: string): boolean => !/^\d+$/.test(id);
+const router = AutoRouter({
+  before: [preflight],
+  finally: [corsify],
+});
 
-export default {
-  async fetch(request, env, ctx): Promise<Response> {
-    const url = new URL(request.url);
+// Apply middlewares in correct order
+router.all("*", accessControlMiddleware);
+router.all("*", authenticationMiddleware);
+router.all("*", (request: IRequest, env: Env, ctx: ExecutionContext) => {
+  if (!ctx.props.accessGranted) {
+    return error(401, {
+      success: false,
+      error: "Unauthorized. Access denied.",
+    });
+  }
+});
 
-    if (request.method === "OPTIONS") {
-      return new Response("OK", {
-        headers: DEFAULT_CORS_HEADERS,
-      });
-    }
-    // --- Authentication for public routes ---
-    await accessControlMiddleware(request, env, ctx);
-    await authenticationMiddleware(request, env, ctx);
+// --- Public Routes (No Authentication Middleware here, handled globally before router) ---
+router.get("/random", getRandomQuoteHandler);
+router.get("/categories", getAllCategoriesHandler);
+router.get("/random.svg", getRandomQuoteSvgHandler);
+router.get("/qotd", getQuoteOfTheDayHandler);
 
-    if (!ctx.props.accessGranted || !ctx.props.originAllowed) {
-      return Response.json(
-        { error: "Unauthorized", message: "Access control failed." },
-        { status: 401, headers: DEFAULT_CORS_HEADERS },
-      );
-    }
+// --- Authenticated User Routes (Not Admin Specific) ---
+// These routes require a user to be authenticated (i.e., ctx.props.user.sub must exist)
+router.patch(
+  "/users/me/name",
+  requireUserAuthMiddleware,
+  updateUserNameHandler,
+);
+router.post(
+  "/users/me/forgot-password",
+  requireUserAuthMiddleware,
+  sendForgotPasswordEmailHandler,
+);
+router.delete("/users/me", requireUserAuthMiddleware, deleteUserAccountHandler);
 
-    // --- Public Routes (No Authentication Required) ---
-    if (url.pathname === "/random" && request.method === "GET") {
-      return getRandomQuoteHandler(request, env);
-    }
+// --- Admin Routes ---
 
-    if (url.pathname === "/categories" && request.method === "GET") {
-      return getAllCategoriesHandler(env.DB);
-    }
-
-    // New route for random SVG generation
-    if (url.pathname === "/random.svg" && request.method === "GET") {
-      return getRandomQuoteSvgHandler(request, env.DB);
-    }
-
-    if (url.pathname === "/qotd" && request.method === "GET") {
-      return getQuoteOfTheDayHandler(request, env);
-    }
-
-    // --- Routes Requiring Authentication + Admin Role ---
-    // Apply Admin Check globally for remaining routes
-    if (!(await isAdmin(ctx))) {
-      return Response.json(
-        { error: "Forbidden", message: "Admin privileges required." },
-        { status: 403, headers: DEFAULT_CORS_HEADERS },
-      );
-    }
-
-    // --- Admin-Only Routes ---
-    try {
-      // POST /categories
-      if (url.pathname === "/categories" && request.method === "POST") {
-        const requestBody = await request.json<CategoryInput>();
-        return createCategoryHandler(env.DB, requestBody);
-      }
-
-      // /categories/:id (PUT, DELETE, GET - GET needs admin here?)
-      // Note: The original code had GET /categories/:id here, implying it needed admin.
-      // Keeping it here for now, but it might be better public or just authenticated.
-      if (url.pathname.startsWith("/categories/")) {
-        const categoryIdStr = url.pathname.split("/")[2];
-        if (validateId(categoryIdStr)) {
-          return Response.json(
-            { error: "Invalid ID format" },
-            { status: 400, headers: DEFAULT_CORS_HEADERS },
-          );
-        }
-        const categoryId = Number.parseInt(categoryIdStr, 10);
-
-        switch (request.method) {
-          case "PATCH": // Assuming PATCH is like PUT
-          case "PUT": {
-            const requestBody = await request.json<CategoryInput>();
-            return updateCategoryHandler(env.DB, categoryId, requestBody);
-          }
-          case "GET": // Requires admin in this block
-            return getCategoryByIdHandler(env.DB, categoryId);
-          case "DELETE":
-            return deleteCategoryHandler(env.DB, categoryId);
-        }
-      }
-
-      // GET /quotes
-      if (url.pathname === "/quotes" && request.method === "GET") {
-        // This route is now covered by the global admin check.
-        // authenticationMiddleware (JWT) would have run if !ctx.props.accessGranted.
-        // The isAdmin check is global for this section.
-        return getAllQuotesHandler(request, env.DB);
-      }
-
-      // POST /quotes
-      if (url.pathname === "/quotes" && request.method === "POST") {
-        const requestBody = await request.json<QuoteInput>();
-        return createQuoteHandler(env.DB, requestBody);
-      }
-
-      // /quotes/:id (PUT, DELETE, GET - GET needs admin here?)
-      // Note: The original code had GET /quotes/:id here. Keeping it admin-only.
-      if (url.pathname.startsWith("/quotes/")) {
-        const quoteIdStr = url.pathname.split("/")[2];
-        if (validateId(quoteIdStr)) {
-          return Response.json(
-            { error: "Invalid ID format" },
-            { status: 400, headers: DEFAULT_CORS_HEADERS },
-          );
-        }
-        const quoteId = Number.parseInt(quoteIdStr, 10);
-
-        switch (request.method) {
-          case "PATCH": // Assuming PATCH is like PUT
-          case "PUT": {
-            const requestBody = await request.json<QuoteInput>();
-            return updateQuoteHandler(env.DB, quoteId, requestBody);
-          }
-          case "GET": // Requires admin in this block
-            return getQuoteByIdHandler(env.DB, quoteId);
-          case "DELETE":
-            return deleteQuoteHandler(env.DB, quoteId);
-        }
-      }
-
-      // --- API Token Routes (Admin Only) ---
-
-      // GET /api-tokens - List user's tokens
-      if (url.pathname === "/api-tokens" && request.method === "GET") {
-        // Assuming only admins manage tokens for now, reuse isAdmin check
-        // If regular users need to manage their own, adjust middleware/checks
-        return getUserApiTokensHandler(request, env, ctx);
-      }
-
-      // POST /api-tokens - Create a new token
-      if (url.pathname === "/api-tokens" && request.method === "POST") {
-        try {
-          // Assuming request body parsing is needed, similar to categories/quotes
-          return createApiTokenHandler(request, env, ctx);
-        } catch (e) {
-          // Basic error handling for invalid JSON
-          const message = e instanceof Error ? e.message : "Invalid JSON";
-          return Response.json(
-            { error: "Bad Request", message },
-            {
-              status: 400,
-              headers: DEFAULT_CORS_HEADERS,
-            },
-          );
-        }
-      }
-
-      // DELETE /api-tokens/:tokenId - Delete a specific token
-      if (
-        url.pathname.startsWith("/api-tokens/") &&
-        request.method === "DELETE"
-      ) {
-        const pathSegments = url.pathname.split("/");
-        const tokenIdStr = pathSegments[pathSegments.length - 1]; // Get the last segment
-        if (validateId(tokenIdStr)) {
-          return Response.json(
-            { error: "Invalid ID format" },
-            { status: 400, headers: DEFAULT_CORS_HEADERS },
-          );
-        }
-        const tokenId: number = Number.parseInt(tokenIdStr, 10);
-
-        return deleteApiTokenHandler(request, env, ctx, tokenId);
-      }
-
-      // --- End API Token Routes ---
-    } catch (error) {
-      console.error("Error handling admin request:", error);
-      return Response.json(
-        {
-          error: "Internal Server Error",
-          message:
-            "An unexpected error occurred while processing your request.",
-        },
-        {
-          status: 500,
-          headers: DEFAULT_CORS_HEADERS,
-        },
-      );
-    }
-
-    return Response.json(
-      {
-        error: "Not Found",
-        message: "The requested resource was not found.",
-      },
-      { status: 404 },
-    );
+// Categories Admin
+router.post(
+  "/categories",
+  isAdminMiddleware,
+  async (request: IRequest, env: Env) => {
+    const requestBody = await request.json<CategoryInput>();
+    return createCategoryHandler(env.DB, requestBody);
   },
-} satisfies ExportedHandler<Env>;
+);
+
+router.all("/categories/:id", validateIdParam); // Validate ID for all /categories/:id routes
+router.get(
+  "/categories/:id",
+  isAdminMiddleware,
+  (request: IRequest, env: Env) => {
+    const categoryId = Number.parseInt(request.params.id, 10);
+    return getCategoryByIdHandler(env.DB, categoryId);
+  },
+);
+router.put(
+  "/categories/:id",
+  isAdminMiddleware,
+  async (request: IRequest, env: Env) => {
+    const categoryId = Number.parseInt(request.params.id, 10);
+    const requestBody = await request.json<CategoryInput>();
+    return updateCategoryHandler(env.DB, categoryId, requestBody);
+  },
+);
+router.patch(
+  "/categories/:id",
+  isAdminMiddleware,
+  async (request: IRequest, env: Env) => {
+    // Alias for PUT
+    const categoryId = Number.parseInt(request.params.id, 10);
+    const requestBody = await request.json<CategoryInput>();
+    return updateCategoryHandler(env.DB, categoryId, requestBody);
+  },
+);
+router.delete(
+  "/categories/:id",
+  isAdminMiddleware,
+  (request: IRequest, env: Env) => {
+    const categoryId = Number.parseInt(request.params.id, 10);
+    return deleteCategoryHandler(env.DB, categoryId);
+  },
+);
+
+// Quotes Admin
+router.get("/quotes", isAdminMiddleware, (request: IRequest, env: Env) =>
+  getAllQuotesHandler(request, env.DB),
+);
+router.post(
+  "/quotes",
+  isAdminMiddleware,
+  async (request: IRequest, env: Env) => {
+    const requestBody = await request.json<QuoteInput>();
+    return createQuoteHandler(env.DB, requestBody);
+  },
+);
+
+router.all("/quotes/:id", validateIdParam); // Validate ID for all /quotes/:id routes
+router.get("/quotes/:id", isAdminMiddleware, (request: IRequest, env: Env) => {
+  const quoteId = Number.parseInt(request.params.id, 10);
+  return getQuoteByIdHandler(env.DB, quoteId);
+});
+router.put(
+  "/quotes/:id",
+  isAdminMiddleware,
+  async (request: IRequest, env: Env) => {
+    const quoteId = Number.parseInt(request.params.id, 10);
+    const requestBody = await request.json<QuoteInput>();
+    return updateQuoteHandler(env.DB, quoteId, requestBody);
+  },
+);
+router.patch(
+  "/quotes/:id",
+  isAdminMiddleware,
+  async (request: IRequest, env: Env) => {
+    const quoteId = Number.parseInt(request.params.id, 10);
+    const requestBody = await request.json<QuoteInput>();
+    return updateQuoteHandler(env.DB, quoteId, requestBody);
+  },
+);
+router.delete(
+  "/quotes/:id",
+  isAdminMiddleware,
+  (request: IRequest, env: Env) => {
+    const quoteId = Number.parseInt(request.params.id, 10);
+    return deleteQuoteHandler(env.DB, quoteId);
+  },
+);
+
+// API Tokens
+router.get("/api-tokens", authenticationMiddleware, getUserApiTokensHandler);
+router.post("/api-tokens", authenticationMiddleware, createApiTokenHandler);
+router.delete(
+  "/api-tokens/:id",
+  validateIdParam,
+  (request: IRequest, env: Env, ctx: ExecutionContext) => {
+    const tokenId = Number.parseInt(request.params.id, 10);
+    return deleteApiTokenHandler(request, env, ctx, tokenId);
+  },
+);
+
+// --- Default 404 Handler ---
+router.all("*", () =>
+  error(404, {
+    success: false,
+    error: "Not Found. The requested resource was not found.",
+  }),
+);
+
+export default router;

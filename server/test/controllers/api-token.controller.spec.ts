@@ -5,10 +5,8 @@ import {
   getUserApiTokensHandler,
 } from '@/controllers/api-token.controller';
 import * as ApiTokenService from '@/services/api-token.service';
-import type { Env } from '@/index'; // Assuming Env type is needed for context
 import type { User } from '@/middlewares/authentication.middleware';
 import type { ApiTokenInfo, NewApiToken } from '@/types/api-token.types';
-import { DEFAULT_CORS_HEADERS } from '@/utils/constants';
 
 
 // Mock the entire service module
