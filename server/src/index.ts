@@ -33,22 +33,24 @@ import { requireUserAuthMiddleware } from "@/middlewares/userAuth.middleware";
 import { validateIdParam } from "@/middlewares/validation.middleware";
 import type { CategoryInput } from "@/types/category.types";
 import type { QuoteInput } from "@/types/quote.types";
-import { type IRequest, Router, cors, error } from "itty-router";
+import { AutoRouter, type IRequest, cors, error } from "itty-router";
+
+export const DEFAULT_CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "*",
+  "Access-Control-Expose-Headers": "*",
+};
 
 const { preflight, corsify } = cors({
   origin: true,
-  // origin: 'https://foo.bar',
-  // origin: ['https://foo.bar', 'https://dog.cat'],
-  // origin: (origin) => origin.endsWith('foo.bar') ? origin : undefined,
-  //   credentials: true,
-  allowMethods: "*",
-  allowHeaders:
-    "Content-Type, Content-Range, X-Total-Count, Authorization, api-token",
+  allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowHeaders: "Content-Type, Authorization, api-token",
   exposeHeaders: "Content-Range, X-Total-Count",
   maxAge: 84600,
 });
 
-const router = Router({
+const router = AutoRouter({
   before: [preflight],
   finally: [corsify],
 });

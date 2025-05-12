@@ -13,8 +13,9 @@ export const getAllCategoriesHandler = async (request: IRequest, env: Env) => {
   const categories = await getAllCategories(db);
   return Response.json(categories, {
     headers: {
-      "Content-Range": `categories 0-${categories.length}/${categories.length}`,
-      "X-Total-Count": `${categories.length}`,
+      "content-range": `categories 0-${categories.length}/${categories.length}`,
+      "x-Total-count": `${categories.length}`,
+      "Access-Control-Expose-Headers": "content-range, x-total-count",
     },
   });
 };

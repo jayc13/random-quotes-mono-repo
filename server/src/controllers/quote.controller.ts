@@ -14,7 +14,7 @@ import {
   getSupportedLanguages,
 } from "@/services/translate.service";
 import { quoteInputValidator } from "@/validators/quote.validator";
-import type { IRequest } from "itty-router";
+import { type IRequest, json } from "itty-router";
 
 export const getAllQuotesHandler = async (request: Request, db: D1Database) => {
   const url = new URL(request.url);
@@ -50,10 +50,12 @@ export const getAllQuotesHandler = async (request: Request, db: D1Database) => {
     quotes,
     meta: { count, total },
   } = await getAllQuotes(db, options);
-  return Response.json(quotes, {
+
+  return json(quotes, {
     headers: {
-      "Content-Range": `quotes ${start}-${end}/${count}`,
-      "X-Total-Count": `${total}`,
+      "content-range": `quotes ${start}-${end}/${count}`,
+      "x-total-count": total,
+      "Access-Control-Expose-Headers": "content-range, x-total-count",
     },
   });
 };
