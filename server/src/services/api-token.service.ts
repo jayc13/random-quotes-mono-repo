@@ -198,3 +198,32 @@ export const validateApiToken = async (
     return false; // Ensure function returns false on any error
   }
 };
+
+/**
+ * Deletes all API tokens for a specific user.
+ * This is typically used when a user account is being deleted.
+ */
+export const deleteAllApiTokensForUser = async (
+  db: D1Database,
+  userId: string,
+): Promise<boolean> => {
+  if (!userId) {
+    console.error("deleteAllApiTokensForUser: userId cannot be empty.");
+    return false;
+  }
+
+  try {
+    // Corrected column name to match the SQL migration (UserId)
+    const stmt = db.prepare("DELETE FROM ApiTokens WHERE UserId = ?").bind(userId);
+    const result = await stmt.run();
+
+    console.log(`Deletion of API tokens for user ${userId} success: ${result.success}. Changes: ${result.meta.changes}`);
+    // result.success is true if the statement executed without error,
+    // result.meta.changes tells how many rows were affected.
+    // If no tokens existed, changes will be 0, but success will still be true.
+    return result.success;
+  } catch (error: any) {
+    console.error(`Error deleting API tokens for user ${userId}:`, error.message);
+    return false;
+  }
+};

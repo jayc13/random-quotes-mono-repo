@@ -5,8 +5,10 @@ import {
   getUserApiTokens,
   validateApiTokenInput,
   validateApiToken,
+  deleteAllApiTokensForUser,
 } from '@/services/api-token.service';
 import type { ApiTokenInput } from '@/types/api-token.types';
+import type { D1Result } from '@cloudflare/workers-types';
 
 // Mock D1Database
 const mockRun = vi.fn();
@@ -390,6 +392,61 @@ describe('API Token Service', () => {
         expect(isValid).toBe(false);
         expect(consoleErrorSpy).toHaveBeenCalledWith("validateApiToken: Error during token validation:", expect.any(Error));
         consoleErrorSpy.mockRestore();
+    });
+  });
+
+  // --- deleteAllApiTokensForUser ---
+  describe('deleteAllApiTokensForUser', () => {
+    const testUserId = 'auth0|userToDeleteTokens';
+
+    it('should successfully delete all tokens for a given user', async () => {
+      mockRun.mockResolvedValueOnce({ success: true, meta: { changes: 3 } } as D1Result);
+      const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      const result = await deleteAllApiTokensForUser(mockDb, testUserId);
+
+      expect(result).toBe(true);
+      expect(mockPrepare).toHaveBeenCalledWith('DELETE FROM ApiTokens WHERE UserId = ?');
+      expect(mockBind).toHaveBeenCalledWith(testUserId);
+      expect(mockRun).toHaveBeenCalledOnce();
+      expect(consoleLogSpy).toHaveBeenCalledWith(`Deletion of API tokens for user ${testUserId} success: true. Changes: 3`);
+      consoleLogSpy.mockRestore();
+    });
+
+    it('should return true even if no tokens were found for the user (changes = 0)', async () => {
+      mockRun.mockResolvedValueOnce({ success: true, meta: { changes: 0 } } as D1Result);
+      const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      const result = await deleteAllApiTokensForUser(mockDb, 'userWithoutTokens');
+
+      expect(result).toBe(true);
+      expect(mockPrepare).toHaveBeenCalledWith('DELETE FROM ApiTokens WHERE UserId = ?');
+      expect(mockBind).toHaveBeenCalledWith('userWithoutTokens');
+      expect(consoleLogSpy).toHaveBeenCalledWith(`Deletion of API tokens for user userWithoutTokens success: true. Changes: 0`);
+      consoleLogSpy.mockRestore();
+    });
+
+    it('should return false if userId is empty', async () => {
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const result = await deleteAllApiTokensForUser(mockDb, '');
+
+      expect(result).toBe(false);
+      expect(mockPrepare).not.toHaveBeenCalled();
+      expect(consoleErrorSpy).toHaveBeenCalledWith('deleteAllApiTokensForUser: userId cannot be empty.');
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should return false and log error if D1 operation fails', async () => {
+      mockRun.mockRejectedValueOnce(new Error('D1 database error'));
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      const result = await deleteAllApiTokensForUser(mockDb, 'userErrorCase');
+
+      expect(result).toBe(false);
+      expect(mockPrepare).toHaveBeenCalledWith('DELETE FROM ApiTokens WHERE UserId = ?');
+      expect(mockBind).toHaveBeenCalledWith('userErrorCase');
+      expect(consoleErrorSpy).toHaveBeenCalledWith(`Error deleting API tokens for user userErrorCase:`, 'D1 database error');
+      consoleErrorSpy.mockRestore();
     });
   });
 });

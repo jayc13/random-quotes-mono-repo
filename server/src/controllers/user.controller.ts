@@ -1,4 +1,6 @@
 import { type IRequest, error, json } from "itty-router";
+import * as userService from "../services/user.service";
+import type { NamePartsRequestBody } from "../services/user.service";
 
 // Define a type for the expected request properties after authentication middleware
 interface AuthenticatedRequest extends IRequest {
@@ -9,14 +11,6 @@ interface AuthenticatedRequest extends IRequest {
     };
     accessGranted?: boolean; // Flag from access control middleware
   };
-}
-
-// Define the expected structure for name parts in the request body
-interface NamePartsRequestBody {
-  given_name?: string;
-  family_name?: string;
-  nickname?: string;
-  name?: string;
 }
 
 export async function updateUserNameHandler(
@@ -68,16 +62,24 @@ export async function updateUserNameHandler(
     Object.fromEntries(validNameParts);
 
   try {
-    // TODO: Implement the actual user name update logic
-    return json({
-      success: true,
-      message: "User name updated successfully.",
-      data: {
-        message: "TODO: Implement the actual user name update logic",
-      },
-      // data: updatedUser,
-    });
-  } catch {
+    const success = await userService.updateUserName(env.DB, userId, validatedNameParts);
+    if (success) {
+      // Optionally, you could fetch the updated user record here if needed
+      // const updatedUser = await userService.getUserById(env.DB, userId);
+      return json({
+        success: true,
+        message: "User name updated successfully.",
+        // data: updatedUser // if you fetch and return the user details
+      });
+    } else {
+      // This could be due to user not found, or DB error handled in the service
+      return error(404, {
+        success: false,
+        error: "User not found or update failed."
+      });
+    }
+  } catch (e: any) {
+    console.error(`Error in updateUserNameHandler for user ${userId}:`, e.message);
     return error(500, {
       success: false,
       error: "An unexpected error occurred while updating user name.",
@@ -113,17 +115,23 @@ export async function sendForgotPasswordEmailHandler(
   }
 
   try {
-    // TODO: Implement the actual logic to send a password reset email
-    // Return a generic success message to prevent user enumeration
-    return json({
-      success: true,
-      message: `If an account exists for ${userEmail}, a password reset email has been sent.`,
-      details: {
-        message:
-          "TODO: Implement the actual logic to send a password reset email",
-      },
-    });
-  } catch {
+    // The service function currently simulates this and returns true.
+    // It expects db and userEmail.
+    const success = await userService.sendForgotPasswordEmail(env.DB, userEmail);
+    if (success) {
+      return json({
+        success: true,
+        message: `If an account exists for ${userEmail}, a password reset email has been sent.`,
+      });
+    } else {
+      // This path might not be hit if the service always returns true or throws.
+      return error(500, {
+        success: false,
+        error: "Failed to initiate password reset process.",
+      });
+    }
+  } catch (e: any) {
+    console.error(`Error in sendForgotPasswordEmailHandler for user ${userEmail} (ID: ${userId}):`, e.message);
     return error(500, {
       success: false,
       error: "An unexpected error occurred while initiating password reset.",
@@ -146,20 +154,25 @@ export async function deleteUserAccountHandler(
   }
 
   try {
-    // TODO: Implement the actual logic to delete the user account
-    // Typically, a DELETE operation that is successful returns a 204 No Content,
-    // or a 200/202 if the deletion is asynchronous or needs further confirmation.
-    // For simplicity and to provide some feedback, a 200 with a message is used here.
-    // Consider 204 No Content if no body is preferred: return new Response(null, { status: 204 });
-    return json({
-      success: true,
-      message: `User account ${userId} has been successfully scheduled for deletion.`,
-      details: {
-        message: "TODO: Implement the actual logic to delete user account",
-      },
-    });
-  } catch {
-    console.error(`Error in deleteUserAccountHandler for user ${userId}`);
+    // The service function attempts to delete API tokens and then simulates Auth0 deletion.
+    // It expects db and userId.
+    const success = await userService.deleteUserAccount(env.DB, userId);
+    if (success) {
+      return json({
+        success: true,
+        message: `User account ${userId} and associated API tokens have been successfully processed for deletion.`,
+      });
+      // Consider returning 204 No Content if no body is preferred for DELETE operations.
+      // return new Response(null, { status: 204 });
+    } else {
+      // This could mean the user wasn't found in Auth0 (simulated) or token deletion failed.
+      return error(404, { // Or 500 depending on the failure reason
+        success: false,
+        error: "User account deletion failed or user not found."
+      });
+    }
+  } catch (e: any) {
+    console.error(`Error in deleteUserAccountHandler for user ${userId}:`, e.message);
     return error(500, {
       success: false,
       error: "An unexpected error occurred while deleting user account.",
