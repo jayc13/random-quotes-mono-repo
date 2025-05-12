@@ -1,10 +1,4 @@
-// Interface for name parts, consistent with the controller
-export interface NamePartsRequestBody {
-  given_name?: string;
-  family_name?: string;
-  nickname?: string;
-  name?: string; // Full name, potentially
-}
+import type { UpdateUserNameInput } from "@/types/user.types";
 
 // Placeholder for User type - this might need to be adjusted based on actual DB schema
 // Assuming we'll fetch this from a central types file or define it more concretely later
@@ -17,14 +11,6 @@ export interface User {
   name?: string; // This could be a concatenation or a separate field
 }
 
-// Interface for the update user name request body
-export interface UpdateUserNameData {
-  given_name?: string;
-  family_name?: string;
-  nickname?: string;
-  name?: string; // Full name, potentially
-}
-
 // Interface for the options parameter in updateUserName function
 export interface UserServiceOptions {
   env: Env;
@@ -33,7 +19,7 @@ export interface UserServiceOptions {
 
 export async function updateUserName(
   userId: string,
-  data: UpdateUserNameData,
+  data: UpdateUserNameInput,
   options: UserServiceOptions,
 ): Promise<boolean> {
   const { env } = options;
