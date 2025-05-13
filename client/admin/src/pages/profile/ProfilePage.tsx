@@ -12,12 +12,12 @@ import {
   Typography,
 } from "antd";
 import React, { useState } from "react";
-import { API_URL } from "../../utils/constants";
+import { API_URL, AUTH0_CLIENT_ID, AUTH0_DOMAIN } from "../../utils/constants";
 
 const { Title, Text } = Typography;
 
 export const ProfilePage: React.FC = () => {
-  const { user, isLoading, getAccessTokenSilently, logout } = useAuth0();
+  const { user, isLoading, logout } = useAuth0();
   const { open } = useNotification();
   const [form] = Form.useForm();
 
@@ -27,7 +27,11 @@ export const ProfilePage: React.FC = () => {
 
   const allowChangeName = !user?.sub?.includes("google-oauth2");
 
-  const { mutateAsync } = useCustomMutation();
+  const { mutateAsync } = useCustomMutation({
+    mutationOptions: {
+      useErrorBoundary: false,
+    },
+  });
 
   const handleChangeName = async (values: { name: string }) => {
     setIsNameUpdating(true);
@@ -39,6 +43,7 @@ export const ProfilePage: React.FC = () => {
         values: {
           name: values.name,
         },
+        errorNotification: false,
       });
 
       open?.({
@@ -50,8 +55,7 @@ export const ProfilePage: React.FC = () => {
     } catch {
       open?.({
         type: "error",
-        message: "Error",
-        description: "Failed to update name.",
+        message: "Failed to update name.",
       });
     } finally {
       setIsNameUpdating(false);
@@ -61,11 +65,23 @@ export const ProfilePage: React.FC = () => {
   const handleChangePassword = async () => {
     setIsPasswordTicketSending(true);
     try {
-      await mutateAsync({
-        url: `${API_URL}/users/forgot-password`,
-        method: "post",
-        values: {},
-      });
+      const response = await fetch(
+        `https://${AUTH0_DOMAIN}/dbconnections/change_password`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            client_id: AUTH0_CLIENT_ID,
+            email: user?.email,
+            connection: "Username-Password-Authentication",
+          }),
+        },
+      );
+      if (!response.ok) {
+        throw new Error("Failed to send password change email.");
+      }
       open?.({
         type: "success",
         message: "Success",
@@ -179,20 +195,20 @@ export const ProfilePage: React.FC = () => {
           </Button>
         </Form.Item>
       </Form>
-      {/*<Divider />*/}
-      {/*<Title level={4}>Change Password</Title>*/}
-      {/*<Space direction='vertical'>*/}
-      {/*  <Text>*/}
-      {/*    For security reasons, password changes are handled by sending a secure*/}
-      {/*    link to your email.*/}
-      {/*  </Text>*/}
-      {/*  <Button*/}
-      {/*    onClick={handleChangePassword}*/}
-      {/*    loading={isPasswordTicketSending}*/}
-      {/*  >*/}
-      {/*    Send Password Change Email*/}
-      {/*  </Button>*/}
-      {/*</Space>*/}
+      <Divider />
+      <Title level={4}>Change Password</Title>
+      <Space direction='vertical'>
+        <Text>
+          For security reasons, password changes are handled by sending a secure
+          link to your email.
+        </Text>
+        <Button
+          onClick={handleChangePassword}
+          loading={isPasswordTicketSending}
+        >
+          Send Password Change Email
+        </Button>
+      </Space>
       <Divider />
       <Title level={4}>Delete Account</Title>
       <Space direction='vertical'>

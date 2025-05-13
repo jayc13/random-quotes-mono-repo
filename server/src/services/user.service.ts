@@ -1,20 +1,7 @@
 import type { UpdateUserNameInput } from "@/types/user.types";
 
-// Placeholder for User type - this might need to be adjusted based on actual DB schema
-// Assuming we'll fetch this from a central types file or define it more concretely later
-export interface User {
-  id: string;
-  email: string;
-  given_name?: string;
-  family_name?: string;
-  nickname?: string;
-  name?: string; // This could be a concatenation or a separate field
-}
-
-// Interface for the options parameter in updateUserName function
 export interface UserServiceOptions {
   env: Env;
-  auth0Token: string;
 }
 
 export async function updateUserName(
@@ -29,6 +16,7 @@ export async function updateUserName(
   const auth0Domain = env.AUTH0_DOMAIN;
 
   const auth0Token: string = await getAuth0ManagementToken(env);
+
   try {
     const response = await fetch(
       `https://${auth0Domain}/api/v2/users/${userId}`,
@@ -45,53 +33,37 @@ export async function updateUserName(
       },
     );
     return response.ok;
-  } catch {
+  } catch (error) {
+    console.error("Error updating user name:", error);
     return false;
   }
 }
 
-/**
- * Initiates the password reset process for a user.
- * This typically involves calling an authentication provider's API (e.g., Auth0).
- */
 export async function sendForgotPasswordEmail(
-  db: D1Database, // db might not be directly used if relying on Auth0
+  env: Env,
   userEmail: string,
-  // Consider adding env: Env for Auth0 domain/client credentials
 ): Promise<boolean> {
-  // TODO: Implement actual password reset email logic.
-  // This would typically involve:
-  // 1. Calling the Auth0 Management API to send a password reset email.
-  //    - POST /api/v2/tickets/password-change
-  //    - Requires Auth0 domain, client_id.
-  // 2. For this example, we will just log the action.
-
   if (!userEmail) {
-    console.error("sendForgotPasswordEmail: No email provided.");
     return false;
   }
 
-  console.log(`Simulating sending password reset email to: ${userEmail}`);
-  // In a real scenario, you would make an API call to Auth0 here.
-  // Example:
-  // const auth0Domain = env.AUTH0_DOMAIN;
-  // const auth0ClientId = env.AUTH0_CLIENT_ID_MGMT_API_PW_RESET; // A specific M2M client for this
-  // const response = await fetch(`https://${auth0Domain}/dbconnections/change_password`, {
-  //   method: 'POST',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify({
-  //     client_id: auth0ClientId,
-  //     email: userEmail,
-  //     connection: 'Username-Password-Authentication', // Or your specific DB connection
-  //   }),
-  // });
-  // if (!response.ok) {
-  //   const errorBody = await response.text();
-  //   console.error('Failed to send password reset email via Auth0:', response.status, errorBody);
-  //   return false;
-  // }
-  // console.log(`Password reset email request sent successfully for ${userEmail} via Auth0.`);
-  return true; // Indicate success for now
+  const auth0Domain = env.AUTH0_DOMAIN;
+  const response = await fetch(
+    `https://${auth0Domain}/dbconnections/change_password`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        client_id: env.AUTH0_CLIENT_ID,
+        email: userEmail,
+        connection: "Username-Password-Authentication",
+      }),
+    },
+  );
+
+  return response.ok;
 }
 
 /**
@@ -107,7 +79,6 @@ export async function deleteUserAccount(
   const db = env.DB as D1Database; // Assuming DB is a D1Database instance
 
   if (!userId) {
-    console.error("deleteUserAccount: No userId provided.");
     return false;
   }
 
@@ -144,8 +115,8 @@ async function getAuth0ManagementToken(env: Env): Promise<string> {
       },
       body: new URLSearchParams({
         grant_type: "client_credentials",
-        client_id: env.AUTH0_CLIENT_ID,
-        client_secret: env.AUTH0_CLIENT_SECRET,
+        client_id: env.AUTH0_MGMT_CLIENT_ID,
+        client_secret: env.AUTH0_MGMT_CLIENT_SECRET,
         audience: `https://${env.AUTH0_DOMAIN}/api/v2/`,
       }),
     });
@@ -154,8 +125,8 @@ async function getAuth0ManagementToken(env: Env): Promise<string> {
       access_token: string;
       token_type: string;
       expires_in: number;
-      scope: string;
     } = await response.json();
+
     return data.access_token;
   } catch (error) {
     console.error("Error getting management token:", error);

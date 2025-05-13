@@ -35,8 +35,6 @@ export async function updateUserNameHandler(
     updateUserNameInput,
     {
       env,
-      auth0Token:
-        request.headers.get("authorization")?.split("Bearer ")?.[1] ?? "",
     },
   );
   if (success) {
@@ -56,22 +54,9 @@ export async function sendForgotPasswordEmailHandler(
   env: Env,
   ctx: ExecutionContext,
 ): Promise<Response> {
-  const userEmail = request.props?.user?.email;
-  const userId = request.props?.user?.sub; // For logging or if needed by service in future
-
-  if (!userId) {
-    // This should ideally be caught by authenticationMiddleware if sub is always expected
-    return error(401, {
-      success: false,
-      error: "Unauthorized. User identifier not found.",
-    });
-  }
+  const userEmail = ctx.props.user.email;
 
   if (!userEmail) {
-    // If email is not present in the token (e.g. not configured in custom claims or scope)
-    console.error(
-      `User ${userId} attempted password reset, but email was not found in token props.`,
-    );
     return error(400, {
       success: false,
       error: "User email not found in token. Cannot initiate password reset.",
@@ -79,12 +64,7 @@ export async function sendForgotPasswordEmailHandler(
   }
 
   try {
-    // The service function currently simulates this and returns true.
-    // It expects db and userEmail.
-    const success = await userService.sendForgotPasswordEmail(
-      env.DB,
-      userEmail,
-    );
+    const success = await userService.sendForgotPasswordEmail(env, userEmail);
     if (success) {
       return json({
         success: true,
@@ -95,7 +75,8 @@ export async function sendForgotPasswordEmailHandler(
       success: false,
       error: "An unexpected error occurred while initiating password reset.",
     });
-  } catch {
+  } catch (e) {
+    console.error("Error sending password reset email:", e);
     return error(500, {
       success: false,
       error: "An unexpected error occurred while initiating password reset.",
