@@ -54,8 +54,6 @@ describe('Access Control with API Token', () => {
     regularApiKeyId = regularResult.id;
     regularApiToken = regularResult.token;
 
-    console.log({adminApiToken})
-
     testConfig[0].token = adminApiToken;
     // testConfig[1].token = regularApiToken;
   });

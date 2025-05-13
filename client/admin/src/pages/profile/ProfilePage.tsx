@@ -17,7 +17,7 @@ import { API_URL, AUTH0_CLIENT_ID, AUTH0_DOMAIN } from "../../utils/constants";
 const { Title, Text } = Typography;
 
 export const ProfilePage: React.FC = () => {
-  const { user, isLoading, getAccessTokenSilently, logout } = useAuth0();
+  const { user, isLoading, logout } = useAuth0();
   const { open } = useNotification();
   const [form] = Form.useForm();
 
@@ -26,7 +26,6 @@ export const ProfilePage: React.FC = () => {
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   const allowChangeName = !user?.sub?.includes("google-oauth2");
-  const allowResetPassword = !user?.sub?.includes("google-oauth2");
 
   const { mutateAsync } = useCustomMutation({
     mutationOptions: {

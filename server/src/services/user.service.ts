@@ -17,8 +17,6 @@ export async function updateUserName(
 
   const auth0Token: string = await getAuth0ManagementToken(env);
 
-  console.log({ auth0Token });
-
   try {
     const response = await fetch(
       `https://${auth0Domain}/api/v2/users/${userId}`,
@@ -34,9 +32,6 @@ export async function updateUserName(
         }),
       },
     );
-
-    console.log(await response.text());
-
     return response.ok;
   } catch (error) {
     console.error("Error updating user name:", error);
@@ -49,7 +44,6 @@ export async function sendForgotPasswordEmail(
   userEmail: string,
 ): Promise<boolean> {
   if (!userEmail) {
-    console.error("sendForgotPasswordEmail: No email provided.");
     return false;
   }
 
@@ -85,7 +79,6 @@ export async function deleteUserAccount(
   const db = env.DB as D1Database; // Assuming DB is a D1Database instance
 
   if (!userId) {
-    console.error("deleteUserAccount: No userId provided.");
     return false;
   }
 
