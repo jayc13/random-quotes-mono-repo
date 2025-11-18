@@ -27,6 +27,6 @@
   "devDependencies": {
     "@biomejs/biome": "latest",
     "@types/node": "^22.14.0",
-    "@vitest/coverage-istanbul": "3.0.9"
+    "@vitest/coverage-istanbul": "4.0.10"
   }
 }
