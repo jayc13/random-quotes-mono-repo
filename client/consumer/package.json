@@ -16,7 +16,7 @@
 		"vike": "^0.4.229",
 		"@hono/node-server": "^1.14.1",
 		"@universal-middleware/hono": "^0.4.9",
-		"hono": "^4.7.6",
+		"hono": "^4.11.4",
 		"@vitejs/plugin-react": "^4.3.4",
 		"react": "^19.1.0",
 		"react-dom": "^19.1.0",
