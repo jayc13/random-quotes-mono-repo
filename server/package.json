@@ -16,13 +16,13 @@
   },
   "dependencies": {
     "@cfworker/jwt": "^7.0.4",
-    "@cloudflare/vitest-pool-workers": "^0.8.15",
+    "@cloudflare/vitest-pool-workers": "^0.8.71",
     "@tsndr/cloudflare-worker-jwt": "^3.1.4",
     "itty-router": "^5.0.10",
     "typescript": "^5.2.2",
     "vitest": "3.0.9",
     "workers-qb": "^1.10.2",
-    "wrangler": "^4.9.1"
+    "wrangler": "^4.35.0"
   },
   "devDependencies": {
     "@biomejs/biome": "latest",
